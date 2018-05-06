@@ -7,7 +7,7 @@
     }],
     "autoload": {
         "psr-4": {
-            "Framework\\Container\\": ""
+            "Framework\\Container\\": "src/"
         }
     },
     "require": {
