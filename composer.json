@@ -1,5 +1,5 @@
 {
-    "name": "framework",
+    "name": "gustavofabiane/framework",
     "description": "Descrição do projeto framework.",
     "authors": [
         {
@@ -29,6 +29,9 @@
     "scripts": {
         "test": [
             "vendor\\bin\\phpunit"
+        ],
+        "update-split-bb": [
+            "build\\subsplit-bit-bucket.sh"
         ]
     }
 }
