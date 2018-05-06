@@ -3,10 +3,9 @@
 namespace Tests\Container;
 
 use ReflectionClass;
-use Container\Container;
-use Container\ServiceResolver;
 use Tests\Helpers\HelperClass;
 use PHPUnit\Framework\TestCase;
+use Framework\Container\Container;
 use Tests\Helpers\HelperInterface;
 use Psr\Container\ContainerInterface;
 

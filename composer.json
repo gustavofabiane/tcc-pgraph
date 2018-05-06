@@ -9,8 +9,7 @@
     ],
     "autoload": {
         "psr-4": {
-            "Container\\": "src/container/src/",
-            "Core\\": "src/core/src/"
+            "Framework\\": "src/"
         }
     },
     "autoload-dev": {
@@ -23,6 +22,9 @@
     },
     "require-dev": {
         "phpunit/phpunit": "^7.0"
+    },
+    "replace": {
+        "gustavofabiane/container": "self.version"
     },
     "scripts": {
         "test": [

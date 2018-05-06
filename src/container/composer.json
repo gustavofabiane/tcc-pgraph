@@ -1,0 +1,16 @@
+{
+    "name": "container",
+    "description": "Descrição do projeto container.",
+    "authors": [{
+        "name": "Gustavo Fabiane",
+        "email": "gustavfabiane@gmail.com"
+    }],
+    "autoload": {
+        "psr-4": {
+            "Framework\\Container\\": ""
+        }
+    },
+    "require": {
+        "psr/container": "1.0.0"
+    }
+}

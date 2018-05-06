@@ -1,13 +1,12 @@
 <?php
 
-namespace Container;
+namespace Framework\Container;
 
 use ReflectionClass;
 use ReflectionMethod;
 use RuntimeException;
 use ReflectionFunction;
 use Psr\Container\ContainerInterface;
-use Container\ServiceResolverInterface;
 
 class ServiceResolver implements ServiceResolverInterface
 {

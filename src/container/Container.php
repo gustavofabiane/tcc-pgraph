@@ -1,6 +1,6 @@
 <?php
 
-namespace Container;
+namespace Framework\Container;
 
 use Countable;
 use Exception;
@@ -13,11 +13,9 @@ use IteratorAggregate;
 use ReflectionFunction;
 use ReflectionParameter;
 use InvalidArgumentException;
-use Container\ServiceResolver;
 use Psr\Container\ContainerInterface;
-use Container\ServiceResolverInterface;
-use Container\Exception\ContainerException;
-use Container\Exception\EntryNotFoundException;
+use Framework\Container\Exception\ContainerException;
+use Framework\Container\Exception\EntryNotFoundException;
 
 /**
  * Implementation of PSR's ContainerInterface for dependency injection
