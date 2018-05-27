@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Http;
+namespace Framework\Tests\Http;
 
 use Framework\Http\Stream;
 use PHPUnit\Framework\TestCase;

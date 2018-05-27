@@ -1,12 +1,12 @@
 <?php
 
-namespace Tests\Container;
+namespace Framework\Tests\Container;
 
 use ReflectionClass;
-use Tests\Helpers\HelperClass;
+use Framework\Tests\Helpers\HelperClass;
 use PHPUnit\Framework\TestCase;
 use Framework\Container\Container;
-use Tests\Helpers\HelperInterface;
+use Framework\Tests\Helpers\HelperInterface;
 use Psr\Container\ContainerInterface;
 
 class ContainerTest extends TestCase
