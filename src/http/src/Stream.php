@@ -83,7 +83,7 @@ class Stream implements StreamInterface
     protected $writableModes = ['r+', 'w', 'w+', 'a', 'a+', 'x', 'x+'];
 
     /**
-     * Creates a new stream object
+     * Creates a new Stream object.
      *
      * @param resource|string $stream
      * @param string $mode
@@ -267,9 +267,9 @@ class Stream implements StreamInterface
     }
 
     /**
-     * Truncates the stream to the given size
+     * Truncates the stream to the given size.
      * 
-     * Note: This method is not specified by PSR-7
+     * Note: This method is not part of the PSR-7 specification.
      *
      * @param int $size The size to the stream to be truncated
      * @return void
