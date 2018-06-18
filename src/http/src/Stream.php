@@ -90,7 +90,7 @@ class Stream implements StreamInterface
      */
     public function __construct($stream = 'php://temp', string $mode = 'r')
     {
-        if(!is_resource($stream) && file_exists($stream) && ($stream = fopen($stream, $mode) === false)) {
+        if(!is_resource($stream) && ($stream = fopen($stream, $mode) === false)) {
             throw new \InvalidArgumentException($stream . ' is not a valid stream path');
         }
         $this->stream = $stream;

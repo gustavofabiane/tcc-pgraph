@@ -100,6 +100,16 @@ class Request extends Message implements ServerRequestInterface
      */
     protected $attributes = [];
 
+    /**
+     * Initializes a Request object
+     *
+     * @param string $method
+     * @param array $serverParams
+     * @param array $headers
+     * @param array $cookies
+     * @param StreamInterface $body
+     * @param array $bodyParsers
+     */
     public function __construct(
         string $method,
         array $serverParams,
@@ -112,7 +122,12 @@ class Request extends Message implements ServerRequestInterface
             throw new \InvalidArgumentException($method . ' is not a valid HTTP method');
         }
         $this->method = $method;
+
         $this->serverParams = $serverParams;
+        if (isset($serverParams['SERVER_PROTOCOL'])) {
+            $this->protocolVersion = str_replace('HTTP/', '', $serverParams['SERVER_PROTOCOL']);
+        }
+
         $this->cookies = $cookies;
         $this->body = $body;
 
@@ -126,11 +141,14 @@ class Request extends Message implements ServerRequestInterface
             );
         }
 
-        $this->bodyParsers = [
-            'multipart/form-data' => [$this, 'parsedBodyFromGlobal'],
-            'application/x-www-form-urlencoded' => [$this, 'parsedBodyFromGlobal'],
-        ];
+        $uriHost = $this->uri->getHost();
+        if(!isset($this->headers['Host']) && $uriHost) {
+            $port = $this->uri->getPort() ? ':' . $this->uri->getPort() : '';
+            $this->headers['Host'] = [$uriHost . $port];
+            $this->originalHeadersNames['Host'] = 'Host';
+        }
 
+        $this->bodyParsers = $this->defaultBodyParsers();
         foreach ($bodyParsers as $contentType => $parser) {
             if (!is_callable($parser)) {
                 throw new \InvalidArgumentException(
@@ -619,16 +637,27 @@ class Request extends Message implements ServerRequestInterface
     }
 
     /**
-     * Helper method to get the request parsed body from the PHP super global $_POST.
+     * Default body content-type parsers
      *
-     * Note: This method is not part of the PSR-7 specification.
-     *
-     * @param mixed $content
      * @return array
      */
-    protected function parsedBodyFromGlobal($content = null)
+    protected function defaultBodyParsers()
     {
-        return $_POST;
+        $parsedBodyFromGlobal = function($content){
+            return $_POST;
+        };
+
+        return [
+            'multipart/form-data' => $parsedBodyFromGlobal,
+            'application/x-www-form-urlencoded' => $parsedBodyFromGlobal,
+            'application/json' => function ($json) {
+                $decodedJson = json_decode($json, true);
+                if ($decodedJson === false) {
+                    throw new \RuntimeException(json_last_error_msg(), json_last_error());
+                }
+                return $decodedJson;
+            }
+        ];
     }
 
     /**

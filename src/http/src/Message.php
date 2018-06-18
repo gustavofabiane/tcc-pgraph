@@ -128,9 +128,10 @@ class Message implements MessageInterface
         if (!is_string($name)) {
             throw new \InvalidArgumentException('"' . $name . '" is not a valid header name');
         }
-        $name = str_replace('-', ' ', trim($name));
-        $normalized = ucwords(strtolower($name));
-        return str_replace(' ', '-', $normalized);
+        $name = str_replace(['-', '_'], ' ', trim($name));
+        $normalized = str_replace(' ', '-', ucwords(mb_strtolower($name)));
+        
+        return $normalized;
     }
 
     protected function normalizeHeaderValue($value)
@@ -138,7 +139,7 @@ class Message implements MessageInterface
         if (!is_string($value)) {
             throw new \InvalidArgumentException('"' . $value  . '" is not a valid header value');
         }
-        return strtolower(trim($value));
+        return trim($value);
     }
 
     /**
@@ -197,7 +198,7 @@ class Message implements MessageInterface
         if (!$this->hasHeader($name)) {
             return '';
         }
-        return implode(',', $this->headers[$this->normalizeHeaderName($name)]);
+        return implode(', ', $this->headers[$this->normalizeHeaderName($name)]);
     }
 
     public function withHeaders(array $headers, bool $appendValues = false)
