@@ -9,8 +9,7 @@
     ],
     "autoload": {
         "psr-4": {
-            "Framework\\Container\\": "src/container/src/",
-            "Framework\\Http\\": "src/http/src/"
+            "Framework\\": "src/"
         }
     },
     "autoload-dev": {

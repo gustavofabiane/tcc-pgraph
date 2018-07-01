@@ -113,6 +113,7 @@ class Request extends Message implements ServerRequestInterface
     public function __construct(
         string $method,
         array $serverParams,
+        UriInterface $uri,
         array $headers,
         array $cookies,
         StreamInterface $body,
@@ -128,6 +129,7 @@ class Request extends Message implements ServerRequestInterface
             $this->protocolVersion = str_replace('HTTP/', '', $serverParams['SERVER_PROTOCOL']);
         }
 
+        $this->uri = $uri;
         $this->cookies = $cookies;
         $this->body = $body;
 
