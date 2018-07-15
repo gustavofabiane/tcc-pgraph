@@ -6,27 +6,31 @@ use ReflectionClass;
 use ReflectionMethod;
 use RuntimeException;
 use ReflectionFunction;
+use ReflectionParameter;
 use Psr\Container\ContainerInterface;
 
 class ServiceResolver implements ServiceResolverInterface
 {
     /**
-     * RegEx pattern for string resolvables
+     * Container instance
+     *
+     * @var ContainerInterface
      */
-    const RESOLVABLE_PATTERN = '!^([^\:]+)\:([a-zA-Z_\x7f-\xff][a-zA-Z0-9_\x7f-\xff]*)$!';
-    
+    private $container;
+
     /**
      * Resolves a class, method or Closure
      *
      * @param mixed $resolvable
      * @param ContainerInterface $container
+     * @param bool $lazy
      * @return mixed
      */
-    public function resolve($resolvable, ContainerInterface $container)
+    public function resolve($resolvable, bool $lazy = false)
     {
         $reflected = null;
 
-        if (is_string($resolvable) && preg_match(self::RESOLVABLE_PATTERN, $resolvable, $matches)) {
+        if (is_string($resolvable) && preg_match(static::RESOLVABLE_PATTERN, $resolvable, $matches)) {
             $resolvable = [$matches[1], $matches[2]];
         } elseif (is_string($resolvable)) {
             $resolvable = [$resolvable];
@@ -55,7 +59,13 @@ class ServiceResolver implements ServiceResolverInterface
             throw new RuntimeException('Cannot resolve ' . $resolvable);
         }
 
-        return $this->buildReflected($reflected, $container);
+        if ($lazy) {
+            return function () use ($reflected) {
+                return $this->buildReflected($reflected);
+            };
+        }
+
+        return $this->buildReflected($reflected);
     }
 
 
@@ -66,14 +76,14 @@ class ServiceResolver implements ServiceResolverInterface
      * @param ContainerInterface
      * @return void
      */
-    protected function buildReflected($reflected, ContainerInterface $container)
+    protected function buildReflected($reflected)
     {
         if (!($reflected instanceof ReflectionClass ||
               $reflected instanceof ReflectionMethod ||
               $reflected instanceof ReflectionFunction)
         ) {
             throw new InvalidArgumentException(
-                'Invalid argument 1 for ' . __METHOD__ . ' must be instance 
+                'Invalid argument 1 in ' . __METHOD__ . ' must be instance 
                 of ReflectionClass, ReflectionMethod or ReflectionFunction, '
                 . get_class($reflected) . ' given',
                 500
@@ -88,7 +98,7 @@ class ServiceResolver implements ServiceResolverInterface
         }
 
         $parameters = $reflected->getParameters();
-        $resolvedParams = $this->resolveParameters($parameters, $container);
+        $resolvedParams = $this->resolveParameters($parameters);
 
         try {
             if (isset($class)) {
@@ -115,27 +125,35 @@ class ServiceResolver implements ServiceResolverInterface
      * @param array $parameters
      * @return array
      */
-    protected function resolveParameters(array $parameters, ContainerInterface $container)
+    protected function resolveParameters(array $parameters)
     {
         $resolvedParameters = [];
         foreach ($parameters as $parameter) {
-            if (! $parameter instanceof \ReflectionParameter) {
-                throw new InvalidArgumentException(
-                    'Parameter 1 of ' . __CLASS__ . '::' .
-                    __METHOD__ . ' must by an array of ReflectionParameter'
-                );
-            }
-            $paramIdentifier = $parameter->getName();
-            if (!$container->has($paramIdentifier) && $parameter->hasType()) {
-                $paramIdentifier = $parameter->getType()->__toString();
-            }
-            if ($container->has($paramIdentifier)) {
-                $resolvedParameters[] = $container->get($paramIdentifier);
-            }
+            $resolvedParameters[] = $this->resolveMethodParameter($parameter);
         }
         if (empty($resolvedParameters) && !empty($parameters)) {
-            $resolvedParameters[] = $container;
+            $resolvedParameters[] = $this->container;
         }
         return $resolvedParameters;
+    }
+
+    protected function resolveMethodParameter(ReflectionParameter $parameter) 
+    {
+        $paramIdentifier = $parameter->getName();
+        if (!$this->container->has($paramIdentifier) && $parameter->hasType()) {
+            $paramIdentifier = $parameter->getType()->__toString();
+        }
+        
+        return $this->container->get($paramIdentifier);
+    }
+
+    public function setContainer(ContainerInterface $container)
+    {
+        $this->container = $container;
+    }
+
+    public function getContainer(): ContainerInterface
+    {
+        return $this->container;
     }
 }

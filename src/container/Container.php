@@ -63,7 +63,12 @@ class Container implements
         foreach($services as $id => $assembler) {
             $this->add($id, $assembler);
         }
+
         $this->resolver = $resolver ?: new ServiceResolver();
+        $this->resolver->setContainer($this);
+        $this->add(ServiceResolverInterface::class, $this->resolver);
+
+        $this->add(ContainerInterface::class, $this);
     }
 
     /**
@@ -142,7 +147,7 @@ class Container implements
     protected function buildAsResolvable(array $service)
     {
         try {
-            $instance = $this->resolver->resolve($this->serviceToResolvable($service), $this);
+            $instance = $this->resolver->resolve($this->serviceToResolvable($service));
             return $instance;
         } catch (Exception $e) {
             throw new ContainerException(
@@ -202,12 +207,13 @@ class Container implements
             'assembler' => $assembler,
             'singleton' => in_array($type, self::PHP_SIMPLE_TYPES) || $singleton,
             'class' => class_exists($id) && !$assembler,
-            'implemented' => (interface_exists($id) && class_exists($assembler) && 
-                              self::implements($assembler, $id)) || 
-                              is_callable($assembler),
+            'implemented' => interface_exists($id) && (is_callable($assembler) || ($assembler && static::implements($assembler, $id))),
             'callable' => is_callable($assembler) || $assembler instanceof \Closure,
             'type' => $type
         ];
+        // (interface_exists($id) && class_exists($assembler) && 
+        //                       self::implements($assembler, $id)) || 
+        //                       is_callable($assembler)
 
         $this->services[$id] = $service;
     }
@@ -277,6 +283,9 @@ class Container implements
      */
     public static function implements($class, string $interface): bool
     {
+        if (is_string($class) && !class_exists($class)) {
+            throw new ContainerException('Class \'' . $class . '\' does not exists.');
+        }
         return array_key_exists($interface, class_implements($class));
     }
 

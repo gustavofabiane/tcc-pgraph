@@ -27,10 +27,6 @@
     "require-dev": {
         "phpunit/phpunit": "^7.0"
     },
-    "replace": {
-        "gustavofabiane/container": "self.version",
-        "gustavofabiane/http": "self.version"
-    },
     "scripts": {
         "test": [
             "vendor\\bin\\phpunit"
