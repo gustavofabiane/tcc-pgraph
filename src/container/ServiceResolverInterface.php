@@ -18,10 +18,10 @@ interface ServiceResolverInterface
      * Resolves a class, method or Closure
      *
      * @param mixed $resolvable
-     * @param bool $lazy define that the resolver instance will return a Closure for lazy resolving
+     * @param bool $deffered define that the resolver instance will return a Closure for deffered resolving
      * @return callable
      */
-    public function resolve($resolvable, bool $lazy = false);
+    public function resolve($resolvable, bool $deffered = false, array $parameters = []);
 
     public function setContainer(ContainerInterface $container);
 

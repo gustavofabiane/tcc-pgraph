@@ -15,10 +15,29 @@ class ClassMethodCallMiddleware implements MiddlewareInterface
      *
      * @var string|object
      */
-    private $callable;
+    private $class;
 
-    public function __construct($class, $method, ServiceResolverInterface $serviceResolver)
+    /**
+     * Method to be called
+     *
+     * @var string
+     */
+    private $method;
+
+    /**
+     * Resolver
+     *
+     * @var ServiceResolverInterface
+     */
+    private $serviceResolver;
+
+    public function __construct($class, ?string $method, ServiceResolverInterface $serviceResolver)
     {
+        if (!is_object($class) && !class_exists($class)) {
+            throw new \InvalidArgumentException(
+                __CLASS__ . ' constructor argument\'s 1 accepts only objects or class string.'
+            );
+        }
         $this->class = $class;
         $this->method = $method;
         $this->serviceResolver = $serviceResolver;
@@ -28,16 +47,15 @@ class ClassMethodCallMiddleware implements MiddlewareInterface
         ServerRequestInterface $request, 
         RequestHandlerInterface $handler
     ): ResponseInterface {
-        if (is_object($this->class) && 
-            method_exists($this->class, $this->method)
-        ) {
-            return $this->class->{$this->method}($request, $handler);
-        }
-        
-        if (is_object($this->class)) {
-            return $this->class($request, $handler);
+        $middleware = $this->class;
+        if ($this->method) {
+            $middleware = [$this->class, $this->method];
         }
 
-        return $this->serviceResolver->resolve([$this->class, $this->method]);
+        return $this->serviceResolver->resolve(
+            $middleware, 
+            false,
+            compact('request', 'handler')
+        );
     }
 }

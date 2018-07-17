@@ -1,6 +1,6 @@
 <?php
 
-namespace Framework\Tests\Helpers\Middleware;
+namespace Framework\Tests\Stubs\Middleware;
 
 use Framework\Http\ResponseStatusCode;
 use Psr\Http\Message\ResponseInterface;

@@ -26,6 +26,8 @@ class CallableMiddleware implements MiddlewareInterface
         ServerRequestInterface $request, 
         RequestHandlerInterface $handler
     ): ResponseInterface {
-        return $callable($request, $handler);
+        return call_user_func(
+            $this->callable, $request, $handler
+        );
     }
 }

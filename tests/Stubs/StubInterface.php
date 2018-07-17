@@ -1,8 +1,8 @@
 <?php
 
-namespace Framework\Tests\Helpers;
+namespace Framework\Tests\Stubs;
 
-interface HelperInterface
+interface StubInterface
 {
     const CONSTANT = 0;
     public function method();

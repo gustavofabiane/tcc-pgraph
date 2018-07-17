@@ -3,10 +3,10 @@
 namespace Framework\Tests\Container;
 
 use ReflectionClass;
-use Framework\Tests\Helpers\HelperClass;
+use Framework\Tests\Stubs\StubClass;
 use PHPUnit\Framework\TestCase;
 use Framework\Container\Container;
-use Framework\Tests\Helpers\HelperInterface;
+use Framework\Tests\Stubs\StubInterface;
 use Psr\Container\ContainerInterface;
 
 class ContainerTest extends TestCase
@@ -108,9 +108,9 @@ class ContainerTest extends TestCase
      */
     public function testAddImplementedInterface()
     {
-        $this->container->implemented(HelperInterface::class, HelperClass::class);
-        $implemented = $this->container->get(HelperInterface::class);
-        $this->isTrue(Container::implements($implemented, HelperInterface::class));
-        $this->assertInstanceOf(HelperInterface::class, $implemented);
+        $this->container->implemented(StubInterface::class, StubClass::class);
+        $implemented = $this->container->get(StubInterface::class);
+        $this->isTrue(Container::implements($implemented, StubInterface::class));
+        $this->assertInstanceOf(StubInterface::class, $implemented);
     }
 }

@@ -66,9 +66,9 @@ class Container implements
 
         $this->resolver = $resolver ?: new ServiceResolver();
         $this->resolver->setContainer($this);
-        $this->add(ServiceResolverInterface::class, $this->resolver);
+        $this->implemented(ServiceResolverInterface::class, $this->resolver);
 
-        $this->add(ContainerInterface::class, $this);
+        $this->implemented(ContainerInterface::class, $this);
     }
 
     /**
@@ -147,7 +147,7 @@ class Container implements
     protected function buildAsResolvable(array $service)
     {
         try {
-            $instance = $this->resolver->resolve($this->serviceToResolvable($service));
+            $instance = $this->resolver->resolve($this->serviceToResolvable($service), false, $service['defaults']);
             return $instance;
         } catch (Exception $e) {
             throw new ContainerException(
@@ -191,7 +191,7 @@ class Container implements
      * @param boolean $singleton
      * @return void
      */
-    public function add(string $id, $assembler = null, $singleton = false)
+    public function add(string $id, $assembler = null, $singleton = false, array $defaults = [])
     {
         if (isset($this->services[$id])) {
             unset($this->services[$id]);
@@ -209,11 +209,9 @@ class Container implements
             'class' => class_exists($id) && !$assembler,
             'implemented' => interface_exists($id) && (is_callable($assembler) || ($assembler && static::implements($assembler, $id))),
             'callable' => is_callable($assembler) || $assembler instanceof \Closure,
-            'type' => $type
+            'type' => $type,
+            'defaults' => $defaults
         ];
-        // (interface_exists($id) && class_exists($assembler) && 
-        //                       self::implements($assembler, $id)) || 
-        //                       is_callable($assembler)
 
         $this->services[$id] = $service;
     }
@@ -251,6 +249,19 @@ class Container implements
             );
         }
         $this->add($interface, $implemented, $singleton);
+    }
+
+    /**
+     * Adds a service with default resolvable parameters
+     *
+     * @param string $id
+     * @param mixed $assembler
+     * @param array $defaults
+     * @return void
+     */
+    public function addWithDefaults($id, $assembler, array $defaults)
+    {
+        $this->add($id, $assembler, false, $defaults);
     }
 
     /**
