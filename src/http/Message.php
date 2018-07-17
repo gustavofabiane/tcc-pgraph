@@ -62,7 +62,7 @@ class Message implements MessageInterface
 
     public function isValidProtocolVersion($version)
     {
-        return is_string($version) && in_array($version, self::HTTP_VERSIONS);
+        return is_string($version) && in_array($version, static::HTTP_VERSIONS);
     }
 
     /**

@@ -14,8 +14,10 @@ use ReflectionFunction;
 use ReflectionParameter;
 use InvalidArgumentException;
 use Psr\Container\ContainerInterface;
+use Framework\Container\ServiceResolver;
 use Framework\Container\Exception\ContainerException;
 use Framework\Container\Exception\EntryNotFoundException;
+use Framework\Container\Exception\AliasTargetNotFoundException;
 
 /**
  * Implementation of PSR's ContainerInterface for dependency injection
@@ -53,6 +55,13 @@ class Container implements
     private $instances = [];
 
     /**
+     * Registered aliases for services in the container
+     *
+     * @var array
+     */
+    private $aliases = [];
+
+    /**
      * Contructs the container with an array of services and a resolver
      *
      * @param array $values
@@ -67,8 +76,10 @@ class Container implements
         $this->resolver = $resolver ?: new ServiceResolver();
         $this->resolver->setContainer($this);
         $this->implemented(ServiceResolverInterface::class, $this->resolver);
+        $this->alias(ServiceResolver::class, ServiceResolverInterface::class);
 
         $this->implemented(ContainerInterface::class, $this);
+        $this->alias(static::class, ContainerInterface::class);
     }
 
     /**
@@ -84,7 +95,13 @@ class Container implements
     public function get($id)
     {
         if (!$this->has($id)) {
-            throw new EntryNotFoundException($id . ' not found in Dependency Injection Container');
+            throw new EntryNotFoundException(
+                'Entry \'' . $id . '\' not found in Dependency Injection Container'
+            );
+        }
+
+        if (isset($this->aliases[$id])) {
+            return $this->build($this->services[$this->aliases[$id]]);
         }
         
         return $this->build($this->services[$id]);
@@ -104,7 +121,8 @@ class Container implements
     public function has($id): bool
     {
         return isset($this->services[$id]) ||
-               isset($this->instances[$id]);
+               isset($this->instances[$id]) ||
+               isset($this->aliases[$id]);
     }
 
     /**
@@ -119,9 +137,10 @@ class Container implements
 
         if (isset($this->instances[$service['id']])) {
             $instance = $this->instances[$service['id']];
-        } elseif (in_array($service['type'], self::PHP_SIMPLE_TYPES) && !$service['implemented']) {
-            $instance = $service['assembler'];
-        } elseif (is_object($service['assembler']) && !($service['assembler'] instanceof \Closure)) {
+        } elseif (
+            in_array($service['type'], static::PHP_SIMPLE_TYPES) && !$service['implemented'] || 
+            is_object($service['assembler']) && !($service['assembler'] instanceof \Closure)
+        ) {
             $instance = $service['assembler'];
         }
         
@@ -129,9 +148,9 @@ class Container implements
             $instance = $this->buildAsResolvable($service);
         }
         
-        if (!$instance && $service['assembler'] instanceof \Closure) {
-            $instance = $service['assembler']($this);
-        }
+        // if (!$instance && $service['assembler'] instanceof \Closure) {
+        //     $instance = $service['assembler']($this);
+        // }
             
         if (!$instance) {
             throw new ContainerException('Cannot resolve service \'' . $service['id'] . '\'');
@@ -147,7 +166,9 @@ class Container implements
     protected function buildAsResolvable(array $service)
     {
         try {
-            $instance = $this->resolver->resolve($this->serviceToResolvable($service), false, $service['defaults']);
+            $instance = $this->resolver->resolve(
+                $this->serviceToResolvable($service), false, $service['defaults']
+            );
             return $instance;
         } catch (Exception $e) {
             throw new ContainerException(
@@ -205,9 +226,11 @@ class Container implements
         $service = [
             'id' => $id,
             'assembler' => $assembler,
-            'singleton' => in_array($type, self::PHP_SIMPLE_TYPES) || $singleton,
+            'singleton' => in_array($type, static::PHP_SIMPLE_TYPES) || $singleton,
             'class' => class_exists($id) && !$assembler,
-            'implemented' => interface_exists($id) && (is_callable($assembler) || ($assembler && static::implements($assembler, $id))),
+            'implemented' => interface_exists($id) && 
+                             (is_callable($assembler) || 
+                             ($assembler && static::implements($assembler, $id))),
             'callable' => is_callable($assembler) || $assembler instanceof \Closure,
             'type' => $type,
             'defaults' => $defaults
@@ -242,7 +265,7 @@ class Container implements
      */
     public function implemented(string $interface, $implemented = null, $singleton = false)
     {
-        if (!self::implements($implemented, $interface)) {
+        if (!static::implements($implemented, $interface)) {
             throw new ContainerException(
                 (is_string($implemented) ? $implemented : get_class($implemented)) .
                 ' must implements ' . $interface
@@ -262,6 +285,14 @@ class Container implements
     public function addWithDefaults($id, $assembler, array $defaults)
     {
         $this->add($id, $assembler, false, $defaults);
+    }
+
+    public function alias(string $alias, string $target)
+    {
+        if (!$this->has($target)) {
+            throw new AliasTargetNotFoundException($target . ' is not registered in the container');
+        }
+        $this->aliases[$alias] = $target;
     }
 
     /**

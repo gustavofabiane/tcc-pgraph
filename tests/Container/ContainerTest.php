@@ -3,11 +3,12 @@
 namespace Framework\Tests\Container;
 
 use ReflectionClass;
-use Framework\Tests\Stubs\StubClass;
 use PHPUnit\Framework\TestCase;
 use Framework\Container\Container;
-use Framework\Tests\Stubs\StubInterface;
+use Framework\Tests\Stubs\StubClass;
 use Psr\Container\ContainerInterface;
+use Framework\Tests\Stubs\StubInterface;
+use Framework\Container\Exception\AliasTargetNotFoundException;
 
 class ContainerTest extends TestCase
 {
@@ -112,5 +113,21 @@ class ContainerTest extends TestCase
         $implemented = $this->container->get(StubInterface::class);
         $this->isTrue(Container::implements($implemented, StubInterface::class));
         $this->assertInstanceOf(StubInterface::class, $implemented);
+    }
+
+    public function testAlias()
+    {
+        $this->container->add(StubClass::class);
+        $this->container->alias('stub', StubClass::class);
+
+        $stub = $this->container->get('stub');
+        $this->assertInstanceOf(StubClass::class, $stub);
+    }
+
+    public function testAliasWithNoTarget()
+    {
+        $this->expectException(AliasTargetNotFoundException::class);
+        
+        $this->container->alias('stub', StubClass::class);
     }
 }
