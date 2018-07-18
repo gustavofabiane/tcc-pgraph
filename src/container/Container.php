@@ -73,8 +73,20 @@ class Container implements
             $this->add($id, $assembler);
         }
 
+        $this->selfProvide($resolver);
+    }
+
+    /**
+     * Self provides $this and resolver instance
+     *
+     * @param ServiceResolverInterface $resolver
+     * @return void
+     */
+    private function selfProvide(?ServiceResolverInterface $resolver)
+    {
         $this->resolver = $resolver ?: new ServiceResolver();
         $this->resolver->setContainer($this);
+        
         $this->implemented(ServiceResolverInterface::class, $this->resolver);
         $this->alias(ServiceResolver::class, ServiceResolverInterface::class);
 
