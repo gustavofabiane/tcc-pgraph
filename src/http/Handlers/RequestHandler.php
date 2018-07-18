@@ -9,6 +9,8 @@ use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use Framework\Container\ServiceResolverInterface;
+use Framework\Http\Middleware\ResolvableMiddleware;
+use Framework\Http\Handlers\ResolvableRequestHandler;
 use Framework\Http\Middleware\ClassMethodCallMiddleware;
 
 class RequestHandler implements RequestHandlerInterface
@@ -21,91 +23,137 @@ class RequestHandler implements RequestHandlerInterface
     protected $serviceResolver;
 
     /**
-     * A to be used if not response is produced by the middlware stack
+     * A to be used if no response is produced by the middleware stack
      *
      * @var RequestHandlerInterface
      */
-    protected $fallbackHandler;
+    protected $nextHandler;
 
     /**
-     * An array of MiddlewareInterface to be 
+     * An array of MiddlewareInterface to be
      * proccessed by the handler
      *
      * @var array
      */
     protected $middleware = [];
 
+    /**
+     * Creates the request handler instance
+     *
+     * @param ServiceResolverInterface $serviceResolver
+     *      The application service resolver implementation
+     * @param RequestHandlerInterface $next
+     *      The next handler to be execute if no response has been generated
+     */
     public function __construct(
         ServiceResolverInterface $serviceResolver,
-        RequestHandlerInterface $fallbackHandler
+        RequestHandlerInterface $next
     ) {
         $this->serviceResolver = $serviceResolver;
-        $this->fallbackHandler = $fallbackHandler;
+        $this->nextHandler = $next;
     }
 
     /**
-     * Handle the server request recieved and then 
-     * returns a response after middlware stack process
+     * Handle the server request recieved and then
+     * returns a response after middleware stack process
      *
      * @param ServerRequestInterface $request
      * @return ResponseInterface
      */
     public function handle(ServerRequestInterface $request): ResponseInterface
     {
-        if (!empty($this->middleware)) {
-            $middleware = array_shift($this->middleware);
-            return $middleware->process($request, $this);
+        if ($this->hasMiddleware()) {
+            return $this->processMiddleware($request);
         }
 
-        return $this->fallbackHandler->handle($request);
+        return $this->nextHandler->handle($request);
     }
 
-    public function add($middleware)
+    /**
+     * Checks if the handler has middleware in its stack
+     *
+     * @return bool
+     */
+    protected function hasMiddleware(): bool
+    {
+        return !empty($this->middleware);
+    }
+
+    /**
+     * Process the middleware at the top of the stack
+     *
+     * @param RequestInterface $request
+     * @return ResponseInterface
+     */
+    protected function processMiddleware(RequestInterface $request): ResponseInterface
+    {
+        $middleware = array_shift($this->middleware);
+        return $middleware->process($request, $this);
+    }
+
+    /**
+     * Add a middleware at the top of the stack
+     *
+     * @param MiddlewareInterface|callable $middleware
+     * @return void
+     */
+    public function add($middleware, bool $top = true): RequestHandler
     {
         if (!$middleware = $this->filterMiddleware($middleware)) {
             throw new \InvalidArgumentException(
                 'Argument value is not a valid middleware'
             );
         }
-        $this->middleware[] = $middleware;
+        array_unshift($this->middleware, $middleware);
 
         return $this;
     }
 
-    public function middleware(array $middlewareGroup)
+    /**
+     * Add a list of middleware
+     *
+     * @see add()
+     *
+     * @param array $middlewareGroup
+     * @return void
+     */
+    public function middleware(array $middlewareGroup): RequestHandler
     {
         foreach ($middlewareGroup as $middleware) {
             $this->add($middleware);
         }
+        return $this;
     }
 
+    /**
+     * Filter a middleware argument
+     *
+     * Expects an object, Closure or class string
+     *
+     * Returns FALSE if the middleware is not valid
+     *
+     * @param object|callable|string $middleware
+     * @return object|callable|bool
+     */
     protected function filterMiddleware($middleware)
     {
-        if (is_object($middleware) && 
+        if (is_object($middleware) &&
             Container::implements($middleware, MiddlewareInterface::class)
         ) {
             return $middleware;
         }
 
-        if (is_callable($middleware)) {
-            return function () use ($middleware) {
-                return new CallableMiddleware($middleware);
-            };
-        }
-
-        if (class_exists($middleware) && 
+        if (is_string($middleware) && class_exists($middleware) &&
             Container::implements($middleware, MiddlewareInterface::class)
         ) {
             return $this->serviceResolver->resolve($middleware, true);
         }
 
-        if (preg_match(ServiceResolverInterface::RESOLVABLE_PATTERN, $middleware, $matches)) {
-            $middleware = [$matches[1], $matches[2]];
-        }
-        if (is_array($middleware)) {
-            return new ClassMethodCallMiddleware(
-                $middleware[0], $middleware[1], $this->serviceResolver
-            );
+        if (is_callable($middleware) || $middleware instanceof \Closure ||
+           (class_exists($middleware) &&  Container::implements($middleware, MiddlewareInterface::class)) ||
+           (preg_match(ServiceResolverInterface::RESOLVABLE_PATTERN, $middleware, $matches))
+        ) {
+            return new ResolvableMiddleware($middleware, $this->serviceResolver);
         }
 
         return false;
