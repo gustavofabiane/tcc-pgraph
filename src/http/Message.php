@@ -201,20 +201,43 @@ class Message implements MessageInterface
         return implode(', ', $this->headers[$this->normalizeHeaderName($name)]);
     }
 
+    /**
+     * Parse a header name and values to a PSR-7 compliant array
+     *
+     * @param string $name
+     * @param string|string[] $value
+     * @return array an array with keys normalized_name, original_name and values
+     */
+    protected function parseHeader($name, $value)
+    {
+        $normalizedName = $this->normalizeHeaderName($name);
+        $value = is_array($value) ? $value : explode(',', $value);
+        $values = array_map([$this, 'normalizeHeaderValue'], $value);
+
+        return [
+            'normalized_name' => $normalizedName,
+            'original_name' => $name,
+            'values' => $values
+        ];
+    }
+
     public function withHeaders(array $headers, bool $appendValues = false)
     {
         $newHeaders = $originalNames = [];
         foreach ($headers as $name => $value) {
-            $normalizedName = $this->normalizeHeaderName($name);
-            $value = is_array($value) ? $value : explode(',', $value);
-            $values = array_map([$this, 'normalizeHeaderValue'], $value);
-            if ($appendValues && isset($this->headers[$normalizedName])) {
-                $values = array_unique(
-                    array_merge($this->headers[$normalizedName], $values)
+            
+            $parsedHeader = $this->parseHeader($name, $value);
+            if ($appendValues && isset($this->headers[$parsedHeader['normalized_name']])) {
+                $parsedHeader['values'] = array_unique(
+                    array_merge(
+                        $this->headers[$parsedHeader['normalized_name']], 
+                        $parsedHeader['values']
+                    )
                 );
             }
-            $newHeaders[$normalizedName] = $values;
-            $originalNames[$normalizedName] = $name;
+
+            $newHeaders[$parsedHeader['normalized_name']] = $parsedHeader['values'];
+            $originalNames[$parsedHeader['normalized_name']] = $parsedHeader['original_name'];
         }
         $clone = clone $this;
         $clone->headers = $newHeaders;

@@ -37,6 +37,20 @@ class Request extends Message implements ServerRequestInterface
     ];
 
     /**
+     * Special HTTP headers that do not have the "HTTP_" prefix
+     *
+     * @var array
+     */
+    const NO_HTTP_PREFIX_HEADERS = [
+        'CONTENT_TYPE',
+        'CONTENT_LENGTH',
+        'PHP_AUTH_USER',
+        'PHP_AUTH_PW',
+        'PHP_AUTH_DIGEST',
+        'AUTH_TYPE'
+    ];
+
+    /**
      * The HTTP request method
      *
      * @var string
@@ -133,18 +147,10 @@ class Request extends Message implements ServerRequestInterface
         $this->cookies = $cookies;
         $this->body = $body;
 
-        foreach ($headers as $name => $value) {
-            $normalizedName = $this->normalizeHeaderName($name);
-            $normalizedValue = is_array($value) ? $value : explode(',', $value);
-            $this->originalHeadersNames[$normalizedName] = $name;
-            $this->headers[$normalizedName] = array_map(
-                [$this, 'normalizeHeaderValue'],
-                $normalizedValue
-            );
-        }
+        $this->makeHeaders($headers, $serverParams);
 
         $uriHost = $this->uri->getHost();
-        if(!isset($this->headers['Host']) && $uriHost) {
+        if (!isset($this->headers['Host']) && $uriHost) {
             $port = $this->uri->getPort() ? ':' . $this->uri->getPort() : '';
             $this->headers['Host'] = [$uriHost . $port];
             $this->originalHeadersNames['Host'] = 'Host';
@@ -158,6 +164,29 @@ class Request extends Message implements ServerRequestInterface
                 );
             }
             $this->bodyParsers[$contentType] = $parser;
+        }
+    }
+
+    protected function makeHeaders(array $headers, array $serverParams)
+    {
+        foreach ($headers as $name => $value) {
+            $parsedHeader = $this->parseHeader($name, $value);
+            $this->headers[$parsedHeader['normalized_name']] = $parsedHeader['values'];
+            $this->originalHeadersNames[$parsedHeader['normalized_name']] = $parsedHeader['original_name'];
+        }
+
+        foreach ($serverParams as $name => $value) {
+            $name = strtoupper($name);
+            if (!in_array($name, static::NO_HTTP_PREFIX_HEADERS) && strpos($name, 'HTTP_') === false) {
+                continue;
+            }
+            
+            $noPrefixHeaderName = str_replace('HTTP_', '', $name);
+            if (!$this->hasHeader($noPrefixHeaderName)) {
+                $parsedHeader = $this->parseHeader($noPrefixHeaderName, $value);
+                $this->headers[$parsedHeader['normalized_name']] = $parsedHeader['values'];
+                $this->originalHeadersNames[$parsedHeader['normalized_name']] = $parsedHeader['original_name'];
+            }
         }
     }
     
@@ -645,7 +674,7 @@ class Request extends Message implements ServerRequestInterface
      */
     protected function defaultBodyParsers()
     {
-        $parsedBodyFromGlobal = function($content){
+        $parsedBodyFromGlobal = function ($content) {
             return $_POST;
         };
 
@@ -664,7 +693,7 @@ class Request extends Message implements ServerRequestInterface
 
     /**
      * Returns an instance with the given content type body parser.
-     * 
+     *
      * Note: This method is not part of the PSR-7 specification.
      *
      * @param string $contentType
@@ -674,7 +703,7 @@ class Request extends Message implements ServerRequestInterface
     public function withBodyParser($contentType, callable $parser)
     {
         $clone = clone $this;
-        $clone[$contentType] = $parser;
+        $clone->bodyParsers[$contentType] = $parser;
 
         return $clone;
     }
