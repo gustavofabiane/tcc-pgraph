@@ -73,7 +73,7 @@ class StreamTest extends TestCase
         $this->onlyReadable->seek(3, SEEK_CUR);
         $this->assertEquals('14151', $this->onlyReadable->read(5));
 
-        $this->assertEquals('617181920', $this->onlyReadable->getContents());
+        $this->assertEquals('1234567891011121314151617181920', $this->onlyReadable->getContents());
 
         $this->assertEquals('1234567891011121314151617181920', (string) $this->onlyReadable);
     }

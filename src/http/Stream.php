@@ -112,7 +112,6 @@ class Stream implements StreamInterface
      */
     public function __toString()
     {
-        $this->rewind();
         return $this->getContents();
     }
 
@@ -323,9 +322,12 @@ class Stream implements StreamInterface
      */
     public function getContents()
     {
+        $this->rewind();
+        
         if (!is_resource($this->stream) || !$this->isReadable() || ($content = stream_get_contents($this->stream)) === false) {
             throw new \RuntimeException('Cannot get stream contents');
         }
+
         return $content;
     }
 

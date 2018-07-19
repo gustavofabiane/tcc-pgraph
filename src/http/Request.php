@@ -94,6 +94,14 @@ class Request extends Message implements ServerRequestInterface
     protected $cookies;
 
     /**
+     * Tree of UploadedFileInterface that were 
+     * uploaded to the server with the request
+     *
+     * @var UploadedFileInterface[]
+     */
+    protected $uploadedFiles;
+
+    /**
      * Registered handlers to parse body data to a PHP readable form
      *
      * @var array
@@ -167,7 +175,14 @@ class Request extends Message implements ServerRequestInterface
         }
     }
 
-    protected function makeHeaders(array $headers, array $serverParams)
+    /**
+     * Builds the request headers at the construction of the request instance
+     *
+     * @param array $headers
+     * @param array $serverParams
+     * @return void
+     */
+    private function makeHeaders(array $headers, array $serverParams)
     {
         foreach ($headers as $name => $value) {
             $parsedHeader = $this->parseHeader($name, $value);
@@ -223,7 +238,7 @@ class Request extends Message implements ServerRequestInterface
      */
     public function getRequestTarget()
     {
-        if (!$this->requestTarget && $this->uri) {
+        if ($this->requestTarget === null && $this->uri) {
             $target = $this->uri->getPath();
             $query = $this->uri->getQuery();
             if ($query) {
@@ -445,9 +460,14 @@ class Request extends Message implements ServerRequestInterface
     public function getQueryParams()
     {
         if (!$this->queryParams) {
-            $this->queryParams = [];
-            $query = $this->uri->getQuery();
-            parse_str($query, $queryParams);
+            $queryString = $this->uri->getQuery();
+            if (!$queryString) {
+                $queryString = $this->serverParams['QUERY_STRING'] ?? '';
+            }
+            if(!empty($queryString)) {
+                $this->queryParams = [];
+                parse_str($queryString, $this->queryParams);
+            }
         }
 
         return $this->queryParams;
@@ -497,7 +517,7 @@ class Request extends Message implements ServerRequestInterface
      */
     public function getUploadedFiles()
     {
-        throw new \Exception('Not implemented yet.');
+        return $this->uploadedFiles ?: [];
     }
 
     /**
@@ -513,7 +533,25 @@ class Request extends Message implements ServerRequestInterface
      */
     public function withUploadedFiles(array $uploadedFiles)
     {
-        throw new \Exception('Not implemented yet.');
+        $clone = clone $this;
+        $clone->uploadedFiles = $uploadedFiles;
+
+        return $clone;
+    }
+
+    /**
+     * Overrides Message::withBody to reset parsed body after 
+     * creating new instance with new body
+     *
+     * @param StreamInterface $body
+     * @return static
+     */
+    public function withBody(StreamInterface $body)
+    {
+        $clone = parent::withBody($body);
+        $clone->parsedBody = null;
+
+        return $clone;
     }
 
     /**
@@ -534,8 +572,9 @@ class Request extends Message implements ServerRequestInterface
     public function getParsedBody()
     {
         if (!$this->parsedBody) {
-            $contentType = $this->getHeader('Content-Type')[0];
-            $parser = $this->bodyParsers[$contentType] ?? null;
+            $contentTypeHeader = $this->getHeader('Content-Type')[0];
+            $contentType = preg_split('/\s*[;,]\s*/', $contentTypeHeader);
+            $parser = $this->bodyParsers[strtolower($contentType[0])] ?? null;
             if (!is_null($parser)) {
                 if ($this->body->isSeekable()) {
                     $this->body->rewind();
@@ -677,17 +716,32 @@ class Request extends Message implements ServerRequestInterface
         $parsedBodyFromGlobal = function ($content) {
             return $_POST;
         };
+        $xmlParser = function ($xml) {
+            $backup = libxml_disable_entity_loader(true);
+            $backup_errors = libxml_use_internal_errors(true);
+            $result = simplexml_load_string($xml);
+            libxml_disable_entity_loader($backup);
+            libxml_clear_errors();
+            libxml_use_internal_errors($backup_errors);
+            if ($result === false) {
+                return null;
+            }
+            return $result;
+        };
+        $jsonParser = function ($json) {
+            $decodedJson = json_decode($json, true);
+            if ($decodedJson === false) {
+                throw new \RuntimeException(json_last_error_msg(), json_last_error());
+            }
+            return $decodedJson;
+        };
 
         return [
             'multipart/form-data' => $parsedBodyFromGlobal,
             'application/x-www-form-urlencoded' => $parsedBodyFromGlobal,
-            'application/json' => function ($json) {
-                $decodedJson = json_decode($json, true);
-                if ($decodedJson === false) {
-                    throw new \RuntimeException(json_last_error_msg(), json_last_error());
-                }
-                return $decodedJson;
-            }
+            'application/xml' => $xmlParser,
+            'text/xml' => $xmlParser,
+            'application/json' => $jsonParser
         ];
     }
 
