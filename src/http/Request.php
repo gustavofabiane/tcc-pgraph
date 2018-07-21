@@ -498,7 +498,7 @@ class Request extends Message implements ServerRequestInterface
     public function withQueryParams(array $query)
     {
         $clone = clone $this;
-        $clone->querParams = $query;
+        $clone->queryParams = $query;
         
         return $clone;
     }
@@ -658,7 +658,7 @@ class Request extends Message implements ServerRequestInterface
      */
     public function getAttribute($name, $default = null)
     {
-        return $this->attributes($name) ?? $default;
+        return $this->attributes[$name] ?? $default;
     }
 
     /**
@@ -713,9 +713,16 @@ class Request extends Message implements ServerRequestInterface
      */
     protected function defaultBodyParsers()
     {
+        /**
+         * Parsed default body from $_POST superglobal
+         */
         $parsedBodyFromGlobal = function ($content) {
             return $_POST;
         };
+
+        /**
+         * Parse an XML body
+         */
         $xmlParser = function ($xml) {
             $backup = libxml_disable_entity_loader(true);
             $backup_errors = libxml_use_internal_errors(true);
@@ -728,6 +735,10 @@ class Request extends Message implements ServerRequestInterface
             }
             return $result;
         };
+
+        /**
+         * Parse a JSON body
+         */
         $jsonParser = function ($json) {
             $decodedJson = json_decode($json, true);
             if ($decodedJson === false) {

@@ -6,6 +6,7 @@ use Framework\Http\Uri;
 use Framework\Http\Body;
 use Framework\Http\Request;
 use PHPUnit\Framework\TestCase;
+use Framework\Tests\Stubs\StubClass;
 use Psr\Http\Message\RequestInterface;
 
 class RequestTest extends TestCase
@@ -30,19 +31,28 @@ class RequestTest extends TestCase
 
     public function setUp()
     {
+        /**
+         * Set up superglobals
+         */
+        $_POST = ['test' => 'post', 'request' => 'form-url-encoded'];
+        $serverParams = [
+            'HTTPS' => 'On',
+            'HTTP_HOST' => 'localhost',
+            'CONTENT_TYPE' => 'application/json',
+            'REQUEST_URI' => '/test/1',
+            'QUERY_STRING' => 'server=true&item=2'
+        ];
+
+        /**
+         * Creates request base for tests
+         */
         $body = new Body(fopen(__DIR__ . '/../utils/writable-stream', 'w+'));
         $body->rewind();
         $body->write(json_encode($this->jsonBody));
 
         $this->request = new Request(
             'GET', 
-            [
-                'HTTPS' => 'On',
-                'HTTP_HOST' => 'localhost',
-                'CONTENT_TYPE' => 'application/json',
-                'REQUEST_URI' => '/test/1',
-                'QUERY_STRING' => 'server=true&item=2'
-            ], 
+            $serverParams, 
             Uri::createFromString('http://localhost:8080/get/path?item=1'), 
             [
                 'Accept' => 'application/json',
@@ -167,6 +177,22 @@ class RequestTest extends TestCase
     }
 
     /**
+     * Tests change request instance query params
+     *
+     * @return void
+     */
+    public function testWithQueryParams()
+    {
+        $params = [
+            'foo' => 'bar',
+            'baz' => '001'
+        ];
+        $request = $this->request->withQueryParams($params);
+
+        $this->assertSame($params, $request->getQueryParams());
+    }
+
+    /**
      * Tests if a json body is correctly parsed by the request
      *
      * @return void
@@ -205,11 +231,56 @@ class RequestTest extends TestCase
         $this->assertEquals($xml, $request->getParsedBody());
 
         /**
-         * Asserts that the array form of both
+         * Asserts that the array form of both are the same
          */
         $this->assertSame(
             json_decode(json_encode($xml), true),
             json_decode(json_encode($request->getParsedBody()), true)
         );
+    }
+
+    /**
+     * Tests if a request with form url encoded 
+     * body will be parsed from $_POST
+     *
+     * @return void
+     */
+    public function testGetFormUrlEncoded()
+    {
+        $request = $this->request->withHeader(
+            'Content-Type', 'application/x-www-form-urlencoded'
+        );
+
+        $this->assertSame($_POST, $request->getParsedBody());
+    }
+
+    public function testRequestAttributes()
+    {
+        $request = $this->request->withAttribute('stub', new StubClass());
+        $request = $this->request->withAttribute('handler', function ($request) { 
+            return 1;
+        });
+
+        /**
+         * Assert instances of attributes of the request
+         */
+        $this->assertInstanceOf(StubClass::class, $request->getAttribute('stub'));
+        $this->assertInstanceOf(\Closure::class, $request->getAttribute('handler'));
+
+        /**
+         * Assert default value of no existent attribute
+         */
+        $this->assertSame(null, $request->getAttribute('foo'));
+
+        /**
+         * Assert custom default value
+         */
+        $this->assertSame('bar', $request->getAttribute('baz', 'bar'));
+
+        /**
+         * Assert that the request without the attribute
+         */
+        $request = $request->withoutAttribute('handler');
+        $this->assertSame(null, $this->getAttribute('handler'));
     }
 }
