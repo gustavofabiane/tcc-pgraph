@@ -257,7 +257,7 @@ class RequestTest extends TestCase
     public function testRequestAttributes()
     {
         $request = $this->request->withAttribute('stub', new StubClass());
-        $request = $this->request->withAttribute('handler', function ($request) { 
+        $request = $request->withAttribute('handler', function ($request) { 
             return 1;
         });
 
@@ -281,6 +281,6 @@ class RequestTest extends TestCase
          * Assert that the request without the attribute
          */
         $request = $request->withoutAttribute('handler');
-        $this->assertSame(null, $this->getAttribute('handler'));
+        $this->assertSame(null, $request->getAttribute('handler'));
     }
 }

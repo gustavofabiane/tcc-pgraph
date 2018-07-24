@@ -677,7 +677,7 @@ class Request extends Message implements ServerRequestInterface
      * @return static
      */
     public function withAttribute($name, $value)
-    {
+    { 
         $clone = clone $this;
         $clone->attributes[$name] = $value;
         
