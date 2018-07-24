@@ -2,6 +2,8 @@
 
 namespace Framework\Http;
 
+use Psr\Http\Message\UploadedFileInterface;
+
 /**
  * Value object representing a file uploaded through an HTTP request.
  *
@@ -137,5 +139,57 @@ class UploadedFile implements UploadedFileInterface
     public function getClientMediaType()
     {
         throw new \Exception('Not implemented yet.');
+    }
+
+    /**
+     * Filters an array with the native PHP uploaded files structure (from $_FILES),
+     * and parses it to a valid structure accepted by the PSR-7.
+     * 
+     * Note: This method is not part of the PSR-7 specification.
+     * 
+     * @see validUploadedFilesTree()
+     * @param array $files
+     * @return array
+     */
+    public static function filterNativeUploadedFiles(array $files): array
+    {
+        $uploadedFiles = [];
+
+        foreach ($files as $fieldName => $nativeUploadedFile) {
+            if (is_array($nativeUploadedFile["tmp_name"])) {
+                // TODO: Create logix to multiple uploads
+            } else {
+                $uploadedFiles[$fieldName] = new static();
+            }
+        }
+
+        return $uploadedFiles;
+    }
+
+    /**
+     * Checks if the given array is a valid UploadedFiles structure.
+     * 
+     * Note: This method is not part of the PSR-7 specification.
+     *
+     * @param array $uploadedFiles
+     * @return bool
+     */
+    public static function validUploadedFilesTree(array $uploadedFiles): bool
+    {
+        foreach ($uploadedFiles as $name => $value) {
+            // if the file(s) name identifier is not a string
+            if (!is_string ($name)) {
+                return false;
+            }
+            // if there is an array of UploadedFile
+            if (is_array($value)) {
+                return static::validUploadedFilesTree($value);
+            }
+            // if the value is an instance of UploadedFileInterface
+            if($value instanceof UploadedFileInterface) {
+                continue;
+            }
+        }
+        return true;
     }
 }

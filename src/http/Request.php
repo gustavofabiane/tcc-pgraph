@@ -533,10 +533,19 @@ class Request extends Message implements ServerRequestInterface
      */
     public function withUploadedFiles(array $uploadedFiles)
     {
+        if (!UploadedFile::validUploadedFilesTree($uploadedFiles)) {
+            throw new \InvalidArgumentException('The given uploaded files array is not valid');
+        }
+
         $clone = clone $this;
         $clone->uploadedFiles = $uploadedFiles;
 
         return $clone;
+    }
+
+    protected function invalidUploadedFilesTree(array $uploadedFiles): bool
+    {
+
     }
 
     /**
@@ -708,6 +717,8 @@ class Request extends Message implements ServerRequestInterface
 
     /**
      * Default body content-type parsers
+     * 
+     * Note: This method is not part of the PSR-7 specification.
      *
      * @return array
      */
