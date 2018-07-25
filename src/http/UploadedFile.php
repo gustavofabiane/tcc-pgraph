@@ -15,6 +15,88 @@ use Psr\Http\Message\UploadedFileInterface;
 class UploadedFile implements UploadedFileInterface
 {
     /**
+     * Uploaded file error code
+     *
+     * @var int
+     */
+    protected $error = UPLOAD_ERR_OK;
+
+    /**
+     * Uploaded file size
+     *
+     * @var int
+     */
+    protected $size;
+
+    /**
+     * The uploaded file original name
+     *
+     * @var string
+     */
+    protected $clientFilename;
+
+    /**
+     * Uploaded file media type provided by the client
+     *
+     * @var string
+     */
+    protected $clientMediaType;
+
+    /**
+     * Uploaded file temporary name
+     *
+     * @var string
+     */
+    protected $tempName;
+
+    /**
+     * Uploaded file stream
+     *
+     * @var \Psr\Http\Message\StreamInterface
+     */
+    protected $stream;
+
+    /**
+     * If the enviroment of the application is a standard SAPI server
+     *
+     * @var bool
+     */
+    protected $sapiEnviroment = true;
+
+    /**
+     * If the file has been already moved from temporary location
+     *
+     * @var bool
+     */
+    protected $isMoved = false;
+
+    /**
+     * Creates a new instance representating an uploaded file
+     *
+     * @param string $file
+     * @param string $clientFilename
+     * @param string $clientMediaType
+     * @param string $size
+     * @param int $error
+     * @param bool $sapiEnviroment
+     */
+    public function __construct(
+        string $tempName,
+        ?string $clientFilename = null,
+        ?string $clientMediaType = null,
+        ?int $size = 0,
+        int $error = UPLOAD_ERR_OK,
+        bool $sapiEnviroment = true
+    ) {
+        $this->tempName = $tempName;
+        $this->size = $size;
+        $this->error = $error;
+        $this->sapiEnviroment = $sapiEnviroment;
+        $this->clientFilename = $clientFilename;
+        $this->clientMediaType = $clientMediaType;
+    }
+
+    /**
      * Retrieve a stream representing the uploaded file.
      *
      * This method MUST return a StreamInterface instance, representing the
@@ -32,7 +114,15 @@ class UploadedFile implements UploadedFileInterface
      */
     public function getStream()
     {
-        throw new \Exception('Not implemented yet.');
+        if ($this->isMoved) {
+            throw new \RuntimeException('Cannot get uploaded file as stream');
+        }
+
+        if (!$this->stream) {
+            $this->stream = new Stream($this->tempName, 'r');;
+        }
+        
+        return $this->stream;
     }
 
     /**
@@ -69,7 +159,43 @@ class UploadedFile implements UploadedFileInterface
      */
     public function moveTo($targetPath)
     {
-        throw new \Exception('Not implemented yet.');
+        if ($this->isMoved) {
+            throw new \RuntimeException('The file has been moved previously');
+        }
+
+        $isStream = strpos($targetPath, '://') !== false;
+        $pathDirectory = dirname($targetPath);
+        if (!is_string($targetPath) || 
+            !$isStream && 
+            is_dir($pathDirectory) && !is_writable($pathDirectory)
+        ) {
+            throw new \InvalidArgumentException('Invalid move target path');
+        }
+        
+        if ($this->error !== UPLOAD_ERR_OK) {
+            throw new \RuntimeException('Cannot move file due to upload error: ' . $this->error);
+        }
+
+        if ($this->sapiEnviroment) {
+            if (is_uploaded_file($this->tempName)) {
+                throw new \RuntimeException('File in ' . $this->tempName . ' is not an uploaded file');
+            }
+            if (move_uploaded_file($this->tempName, $targetPath) === false) {
+                throw new \RuntimeException('It was not possible to move the uploaded file');
+            }
+        } else {
+            $destinationStream = new Stream($targetPath, 'w+');
+            $uploadedFileStream = $this->getStream();
+            
+            $uploadedFileStream->rewind();
+            while (!$uploadedFileStream->eof()) {
+                $destinationStream->write($uploadedFileStream->read(4096));
+            }
+
+            $destinationStream->close();
+        }
+        
+        $this->isMoved = true;
     }
     
     /**
@@ -83,7 +209,7 @@ class UploadedFile implements UploadedFileInterface
      */
     public function getSize()
     {
-        throw new \Exception('Not implemented yet.');
+        return $this->size ?: null;
     }
     
     /**
@@ -102,7 +228,7 @@ class UploadedFile implements UploadedFileInterface
      */
     public function getError()
     {
-        throw new \Exception('Not implemented yet.');
+        return $this->error;
     }
     
     /**
@@ -120,7 +246,7 @@ class UploadedFile implements UploadedFileInterface
      */
     public function getClientFilename()
     {
-        throw new \Exception('Not implemented yet.');
+        return $this->clientFilename ?: null;
     }
     
     /**
@@ -138,7 +264,7 @@ class UploadedFile implements UploadedFileInterface
      */
     public function getClientMediaType()
     {
-        throw new \Exception('Not implemented yet.');
+        return $this->clienteMediaType ?: null;
     }
 
     /**
@@ -156,10 +282,26 @@ class UploadedFile implements UploadedFileInterface
         $uploadedFiles = [];
 
         foreach ($files as $fieldName => $nativeUploadedFile) {
-            if (is_array($nativeUploadedFile["tmp_name"])) {
-                // TODO: Create logix to multiple uploads
+            if (is_array($nativeUploadedFile['tmp_name'])) {
+                $normalized = [];
+                foreach ($nativeUploadedFile['tmp_name'] as $fileKey => $null) { 
+                    $normalized[$fileKey] = [
+                        'tmp_name' => $nativeUploadedFile['tmp_name'][$fileKey],
+                        'name' => $nativeUploadedFile['name'][$fileKey] ?? null,
+                        'type' => $nativeUploadedFile['type'][$fileKey] ?? null,
+                        'size' => $nativeUploadedFile['size'][$fileKey] ?? null,
+                        'error' => $nativeUploadedFile['error'][$fileKey],
+                    ];
+                }
+                $uploadedFiles[$fieldName] = static::filterNativeUploadedFiles($normalized);
             } else {
-                $uploadedFiles[$fieldName] = new static();
+                $uploadedFiles[$fieldName] = new static(
+                    $nativeUploadedFile['tmp_name'],
+                    $nativeUploadedFile['name'] ?? null,
+                    $nativeUploadedFile['type'] ?? null,
+                    (int) $nativeUploadedFile['size'] ?? null,
+                    (int) $nativeUploadedFile['error']
+                );
             }
         }
 
@@ -176,18 +318,18 @@ class UploadedFile implements UploadedFileInterface
      */
     public static function validUploadedFilesTree(array $uploadedFiles): bool
     {
-        foreach ($uploadedFiles as $name => $value) {
+        foreach ($uploadedFiles as $fieldName => $value) {
             // if the file(s) name identifier is not a string
-            if (!is_string ($name)) {
+            if (!is_string($fieldName) && !is_int($fieldName)) {
                 return false;
             }
-            // if there is an array of UploadedFile
+            // if there is an array
             if (is_array($value)) {
                 return static::validUploadedFilesTree($value);
             }
-            // if the value is an instance of UploadedFileInterface
-            if($value instanceof UploadedFileInterface) {
-                continue;
+            // if the value is not an instance of UploadedFileInterface
+            if (! $value instanceof UploadedFileInterface) {
+                return false;
             }
         }
         return true;
