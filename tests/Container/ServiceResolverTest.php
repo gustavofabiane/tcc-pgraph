@@ -69,6 +69,19 @@ class ServiceResolverTest extends TestCase
         $this->assertEquals(6, $result);
     }
 
+    public function testResolveClassMethodArray()
+    {
+        $this->container->add('int', 2);
+
+        $result = $this->resolver->resolve(
+            ['Framework\Tests\Stubs\StubClass', 'toResolve'], 
+            false, 
+            ['userDefinedParam' => 5]
+        );
+
+        $this->assertEquals(7, $result);
+    }
+
     public function testResolveObjectMethodCallable()
     {
         $this->container->add('int', 2);
