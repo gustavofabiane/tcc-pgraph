@@ -125,12 +125,13 @@ class Request extends Message implements ServerRequestInterface
     /**
      * Initializes a Request object
      *
-     * @param string $method
-     * @param array $serverParams
-     * @param array $headers
-     * @param array $cookies
-     * @param StreamInterface $body
-     * @param array $bodyParsers
+     * @param string $method A valid HTTP request method
+     * @param array $serverParams The server parameters
+     * @param array $headers The headers array with a valid structure
+     * @param array $cookies The cookies recieved from the client
+     * @param StreamInterface $body The request body
+     * @param array $uploadedFiles An array containing the uploaded files of the request
+     * @param array $bodyParsers Custom body parsers defined by the user
      */
     public function __construct(
         string $method,
@@ -139,6 +140,7 @@ class Request extends Message implements ServerRequestInterface
         array $headers,
         array $cookies,
         StreamInterface $body,
+        array $uploadedFiles,
         array $bodyParsers = []
     ) {
         if (!$this->isValidHttpMethod($method)) {
@@ -163,6 +165,11 @@ class Request extends Message implements ServerRequestInterface
             $this->headers['Host'] = [$uriHost . $port];
             $this->originalHeadersNames['Host'] = 'Host';
         }
+
+        if (!UploadedFile::validUploadedFilesTree($uploadedFiles)) {
+            throw new \InvalidArgumentException('The given uploaded files array is not valid');
+        }
+        $this->uploadedFiles = $uploadedFiles;
 
         $this->bodyParsers = $this->defaultBodyParsers();
         foreach ($bodyParsers as $contentType => $parser) {

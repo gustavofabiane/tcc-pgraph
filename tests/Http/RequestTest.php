@@ -60,7 +60,8 @@ class RequestTest extends TestCase
                 'Host' => 'localhost'
             ],
             [],
-            $body
+            $body,
+            []
         );
     }
 
