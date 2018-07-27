@@ -166,8 +166,7 @@ class UploadedFile implements UploadedFileInterface
         $isStream = strpos($targetPath, '://') !== false;
         $pathDirectory = dirname($targetPath);
         if (!is_string($targetPath) || 
-            !$isStream && 
-            is_dir($pathDirectory) && !is_writable($pathDirectory)
+            (!$isStream && !is_dir($pathDirectory) || !is_writable($pathDirectory))
         ) {
             throw new \InvalidArgumentException('Invalid move target path');
         }
@@ -187,11 +186,15 @@ class UploadedFile implements UploadedFileInterface
             $destinationStream = new Stream($targetPath, 'w+');
             $uploadedFileStream = $this->getStream();
             
-            $uploadedFileStream->rewind();
+            if ($uploadedFileStream->isSeekable()) {
+                $uploadedFileStream->rewind();
+            }
+            
             while (!$uploadedFileStream->eof()) {
                 $destinationStream->write($uploadedFileStream->read(4096));
             }
 
+            $uploadedFileStream->close();
             $destinationStream->close();
         }
         
@@ -264,7 +267,7 @@ class UploadedFile implements UploadedFileInterface
      */
     public function getClientMediaType()
     {
-        return $this->clienteMediaType ?: null;
+        return $this->clientMediaType ?: null;
     }
 
     /**
