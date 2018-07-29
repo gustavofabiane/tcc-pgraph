@@ -24,6 +24,28 @@ class Response extends Message implements ResponseInterface
     protected $reasonPhrase = ResponseStatusCode::STATUS_REASON_PHRASES[ResponseStatusCode::OK];
 
     /**
+     * Creates an instance of Response
+     *
+     * @param int $statusCode
+     * @param array $headers
+     * @param StreamInterface $body
+     */
+    public function __construct(
+        int $statusCode = ResponseStatusCode::OK, 
+        array $headers = [], 
+        StreamInterface $body = null
+    ) {
+        $this->statusCode = $statusCode;
+        $this->body = $body ?: new Body('php://temp', 'r+');
+
+        foreach ($headers as $name => $value) {
+            $parsedHeader = $this->parseHeader($name, $value);
+            $this->headers[$parsedHeader['normalized_name']] = $parsedHeader['values'];
+            $this->originalHeadersNames[$parsedHeader['normalized_name']] = $parsedHeader['original_name'];
+        }
+    }
+
+    /**
      * Gets the response status code.
      *
      * The status code is a 3-digit integer result code of the server's attempt
@@ -76,7 +98,7 @@ class Response extends Message implements ResponseInterface
             $reasonPhrase = ResponseStatusCode::STATUS_REASON_PHRASES[$code];
         }
         $clone = clone $this;
-        $clone->code = $code;
+        $clone->statusCode = $code;
         $clone->reasonPhrase = $reasonPhrase;
 
         return $clone;
@@ -117,10 +139,14 @@ class Response extends Message implements ResponseInterface
         if ($json === false) {
             throw new \RuntimeException(json_last_error_msg(), json_last_error());
         }
-        $clone = $this->withBody(new Body('php://temp', 'r+'))
+        $body = new Body('php://temp', 'r+');
+        $body->rewind();
+        $body->truncate(0);
+        $body->write($json);
+        
+        $clone = $this->withBody($body)
                       ->withHeader('Content-Type', 'application/json;charset=utf-8')
                       ->withStatus($statusCode);
-        $clone->body->write($json);
 
         return $clone;
     }
