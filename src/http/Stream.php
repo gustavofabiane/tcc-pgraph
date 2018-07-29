@@ -243,8 +243,14 @@ class Stream implements StreamInterface
     public function isWritable()
     {
         if(!$this->writable && is_resource($this->stream)) {
+            $this->writable = false;
             $mode = $this->getMetadata('mode');
-            $this->writable = in_array($mode, $this->writableModes);
+            foreach ($this->writableModes as $writable) {
+                if (strpos($mode, $writable) !== false) {
+                    $this->writable = true;
+                    break;
+                }
+            }
         }
         return $this->writable;
     }
@@ -289,8 +295,14 @@ class Stream implements StreamInterface
     public function isReadable()
     {
         if(!$this->readable && is_resource($this->stream)) {
+            $this->readable = false;
             $mode = $this->getMetadata('mode');
-            $this->readable = in_array($mode, $this->readableModes);
+            foreach ($this->readableModes as $readable) {
+                if (strpos($mode, $readable) >= 0) {
+                    $this->readable = true;
+                    break;
+                }
+            }
         }
         return $this->readableModes;
     }
