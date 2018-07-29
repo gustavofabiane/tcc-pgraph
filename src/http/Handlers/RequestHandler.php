@@ -146,11 +146,11 @@ class RequestHandler implements RequestHandlerInterface
         if (is_string($middleware) && class_exists($middleware) &&
             Container::implements($middleware, MiddlewareInterface::class)
         ) {
-            return $this->serviceResolver->resolve($middleware, true);
+            return $this->serviceResolver->resolve($middleware);
         }
 
         if (is_callable($middleware) || $middleware instanceof \Closure ||
-           (class_exists($middleware) &&  Container::implements($middleware, MiddlewareInterface::class)) ||
+        //    (class_exists($middleware) &&  Container::implements($middleware, MiddlewareInterface::class)) ||
            (preg_match(ServiceResolverInterface::RESOLVABLE_PATTERN, $middleware, $matches))
         ) {
             return new ResolvableMiddleware($middleware, $this->serviceResolver);
