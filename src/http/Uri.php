@@ -153,6 +153,62 @@ class Uri implements UriInterface
     }
 
     /**
+     * Creates a new URI object from the server params array.
+     * 
+     * Note: This method is not part of the PSR-7 specification.
+     *
+     * @param array $serverParams
+     * @return static
+     */
+    public static function createFromServerParams(array $serverParams)
+    {
+        // change server params keys to lower case
+        $serverParams = array_change_key_case($serverParams, CASE_LOWER);
+
+        // scheme
+        $scheme = isset($serverParams['https']) && $serverParams['https'] === 'On' ? 'https' : 'http';
+        
+        // host
+        $host = $serverParams['http_host'] ?? $serverParams['server_name'];
+
+        // port
+        $port = (int) ($serverParams['server_port'] ?? 80);
+        if (preg_match('/^(\[[a-fA-F0-9:.]+\])(:\d+)?\z/', $host, $matches)) {
+            $host = $matches[1];
+            if (isset($matches[2])) {
+                $port = (int) substr($matches[2], 1);
+            }
+        } else {
+            $pos = strpos($host, ':');
+            if ($pos !== false) {
+                $port = (int) substr($host, $pos + 1);
+                $host = strstr($host, ':', true);
+            }
+        }
+
+        //path
+        $path = parse_url('http://default.com' . $serverParams['request_uri'], PHP_URL_PATH);
+
+        // query string
+        $query = $serverParams('query_string') ?? '';
+        if (!$query) {
+            $query = parse_url('http://default.com' . $serverParams['request_uri'], PHP_URL_QUERY);
+        }
+
+        // fragment
+        $fragment = parse_url('http://default.com' . $serverParams['request_uri'], PHP_URL_FRAGMENT);
+
+        // user information
+        $username = $serverParams['php_auth_user'] ?? '';
+        $password = $serverParams['php_auth_pw'] ?? '';
+        
+        return new static(
+            $scheme, $host, $port, $path,
+            $query, $fragment, $username, $password
+        );
+    }
+
+    /**
      * Create an URI object from a string.
      *
      * Note: This method is not part of the PSR-7 specification.

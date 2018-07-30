@@ -37,8 +37,8 @@ class ServiceResolverTest extends TestCase
      */
     public function testResolveClosureWithDefaultParameter()
     {
-        $this->container->add('int', 9);
-        $this->container->add('array', [2, 1, 2, 0]);
+        $this->container->register('int', 9);
+        $this->container->register('array', [2, 1, 2, 0]);
 
         $closure = function (int $numberOne, array $arrayTest) {
             return $numberOne / $arrayTest[0];
@@ -58,7 +58,7 @@ class ServiceResolverTest extends TestCase
      */
     public function testResolveClassMethodPattern()
     {
-        $this->container->add('int', 1);
+        $this->container->register('int', 1);
 
         $result = $this->resolver->resolve(
             'Framework\Tests\Stubs\StubClass:toResolve', 
@@ -71,7 +71,7 @@ class ServiceResolverTest extends TestCase
 
     public function testResolveClassMethodArray()
     {
-        $this->container->add('int', 2);
+        $this->container->register('int', 2);
 
         $result = $this->resolver->resolve(
             ['Framework\Tests\Stubs\StubClass', 'toResolve'], 
@@ -84,7 +84,7 @@ class ServiceResolverTest extends TestCase
 
     public function testResolveObjectMethodCallable()
     {
-        $this->container->add('int', 2);
+        $this->container->register('int', 2);
 
         $stub = new StubClass();
         $result = $this->resolver->resolve([$stub, 'toResolve'], false, ['userDefinedParam' => 5.5]);

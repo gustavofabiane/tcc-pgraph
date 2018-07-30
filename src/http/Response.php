@@ -2,6 +2,7 @@
 
 namespace Framework\Http;
 
+use Psr\Http\Message\StreamInterface;
 use Psr\Http\Message\ResponseInterface;
 
 /**

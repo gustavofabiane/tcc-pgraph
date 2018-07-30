@@ -70,7 +70,7 @@ class Container implements
     public function __construct(array $services = [], ServiceResolverInterface $resolver = null)
     {
         foreach($services as $id => $assembler) {
-            $this->add($id, $assembler);
+            $this->register($id, $assembler);
         }
 
         $this->selfProvide($resolver);
@@ -224,7 +224,7 @@ class Container implements
      * @param boolean $singleton
      * @return void
      */
-    public function add(string $id, $assembler = null, $singleton = false, array $defaults = [])
+    public function register(string $id, $assembler = null, $singleton = false, array $defaults = [])
     {
         if (isset($this->services[$id])) {
             unset($this->services[$id]);
@@ -264,7 +264,7 @@ class Container implements
      */
     public function singleton(string $id, $assembler = null)
     {
-        $this->add($id, $assembler, true);
+        $this->register($id, $assembler, true);
     }
 
     /**
@@ -283,7 +283,7 @@ class Container implements
                 ' must implements ' . $interface
             );
         }
-        $this->add($interface, $implemented, $singleton);
+        $this->register($interface, $implemented, $singleton);
     }
 
     /**
@@ -296,7 +296,7 @@ class Container implements
      */
     public function addWithDefaults($id, $assembler, array $defaults)
     {
-        $this->add($id, $assembler, false, $defaults);
+        $this->register($id, $assembler, false, $defaults);
     }
 
     public function alias(string $alias, string $target)
@@ -359,7 +359,7 @@ class Container implements
 
     public function offsetSet($id, $assembler)
     {
-        $this->add($id, $assembler);
+        $this->register($id, $assembler);
     }
 
     public function offsetUnset($id)
@@ -388,7 +388,7 @@ class Container implements
 
     public function __set($id, $assembler)
     {
-        $this->add($id, $assembler);
+        $this->register($id, $assembler);
     }
 
     public function __isset($id)

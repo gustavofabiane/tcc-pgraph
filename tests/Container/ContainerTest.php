@@ -26,8 +26,8 @@ class ContainerTest extends TestCase
 
     public function testAddClass()
     {
-        $this->container->add(ReflectionClass::class);
-        $this->container->add('argument', Container::class);
+        $this->container->register(ReflectionClass::class);
+        $this->container->register('argument', Container::class);
 
         $this->assertEquals(Container::class, $this->container->get('argument'));
 
@@ -42,7 +42,7 @@ class ContainerTest extends TestCase
      */
     public function testAddCallable()
     {
-        $this->container->add('tal', function (ContainerInterface $c) {
+        $this->container->register('tal', function (ContainerInterface $c) {
             return new ReflectionClass($c);
         });
 
@@ -63,12 +63,12 @@ class ContainerTest extends TestCase
     public function testAddInstance()
     {
         $test = new Container;
-        $this->container->add('argument', $test);
+        $this->container->register('argument', $test);
 
         $assertTest = $this->container->get('argument');
         $this->assertEquals($test, $assertTest);
 
-        $this->container->add(ReflectionClass::class);
+        $this->container->register(ReflectionClass::class);
         $reflectedContainer = $this->container->get(ReflectionClass::class);
         $this->assertInstanceOf(ReflectionClass::class, $reflectedContainer);
         $this->assertEquals(Container::class, $reflectedContainer->getName());
@@ -86,15 +86,15 @@ class ContainerTest extends TestCase
         $float = 1.23;
         $string = 'abc';
 
-        $this->container->add('array', $array);
-        $this->container->add('int', $integer);
-        $this->container->add('float', $float);
-        $this->container->add('string', $string);
+        $this->container->register('array', $array);
+        $this->container->register('int', $integer);
+        $this->container->register('float', $float);
+        $this->container->register('string', $string);
 
-        $this->container->add('intfloat', function (int $integer, $float) {
+        $this->container->register('intfloat', function (int $integer, $float) {
             return $integer + $float;
         });
-        $this->container->add('stringarray', function (string $string, array $array) {
+        $this->container->register('stringarray', function (string $string, array $array) {
             return $string . $array['b'];
         });
 
@@ -117,7 +117,7 @@ class ContainerTest extends TestCase
 
     public function testAlias()
     {
-        $this->container->add(StubClass::class);
+        $this->container->register(StubClass::class);
         $this->container->alias('stub', StubClass::class);
 
         $stub = $this->container->get('stub');

@@ -2,6 +2,7 @@
 
 namespace Framework\Http\Handlers;
 
+use Exception;
 use Framework\Http\Response;
 use Framework\Container\Container;
 use Psr\Http\Message\ResponseInterface;
@@ -11,9 +12,9 @@ use Psr\Http\Server\RequestHandlerInterface;
 use Framework\Container\ServiceResolverInterface;
 use Framework\Http\Middleware\ResolvableMiddleware;
 use Framework\Http\Handlers\ResolvableRequestHandler;
-use Framework\Http\Middleware\ClassMethodCallMiddleware;
+use Framework\Http\Handlers\ErrorRequestHandlerInterface;
 
-class RequestHandler implements RequestHandlerInterface
+trait RequestHandlerTrait
 {
     /**
      * Dependency Container
@@ -23,22 +24,29 @@ class RequestHandler implements RequestHandlerInterface
     protected $serviceResolver;
 
     /**
-     * A to be used if no response is produced by the middleware stack
+     * A handler to be used if no response is produced by the middleware stack.
      *
      * @var RequestHandlerInterface
      */
     protected $nextHandler;
 
     /**
+     * A handler used to handle errors throwed by the handler and middlware.
+     *
+     * @var ErrorRequestHandlerInterface
+     */
+    protected $errorHandler;
+
+    /**
      * An array of MiddlewareInterface to be
-     * proccessed by the handler
+     * proccessed by the handler.
      *
      * @var array
      */
     protected $middleware = [];
 
     /**
-     * Creates the request handler instance
+     * Creates the request handler instance.
      *
      * @param ServiceResolverInterface $serviceResolver
      *      The application service resolver implementation
@@ -47,30 +55,16 @@ class RequestHandler implements RequestHandlerInterface
      */
     public function __construct(
         ServiceResolverInterface $serviceResolver,
-        RequestHandlerInterface $next
+        RequestHandlerInterface $next,
+        ErrorRequestHandlerInterface $errorHandler = null
     ) {
         $this->serviceResolver = $serviceResolver;
         $this->nextHandler = $next;
+        $this->errorHandler = $errorHandler;
     }
 
     /**
-     * Handle the server request recieved and then
-     * returns a response after middleware stack process
-     *
-     * @param ServerRequestInterface $request
-     * @return ResponseInterface
-     */
-    public function handle(ServerRequestInterface $request): ResponseInterface
-    {
-        if ($this->hasMiddleware()) {
-            return $this->processMiddleware($request);
-        }
-
-        return $this->nextHandler->handle($request);
-    }
-
-    /**
-     * Checks if the handler has middleware in its stack
+     * Checks if the handler has middleware in its stack.
      *
      * @return bool
      */
@@ -80,7 +74,7 @@ class RequestHandler implements RequestHandlerInterface
     }
 
     /**
-     * Process the middleware at the top of the stack
+     * Process the middleware at the top of the stack.
      *
      * @param RequestInterface $request
      * @return ResponseInterface
@@ -92,7 +86,7 @@ class RequestHandler implements RequestHandlerInterface
     }
 
     /**
-     * Add a middleware at the top of the stack
+     * Add a middleware at the top of the stack.
      *
      * @param MiddlewareInterface|callable $middleware
      * @return void
@@ -110,7 +104,7 @@ class RequestHandler implements RequestHandlerInterface
     }
 
     /**
-     * Add a list of middleware
+     * Add a list of middleware.
      *
      * @see add()
      *
@@ -126,9 +120,9 @@ class RequestHandler implements RequestHandlerInterface
     }
 
     /**
-     * Filter a middleware argument
+     * Filter a middleware argument.
      *
-     * Expects an object, Closure or class string
+     * Expects an object, Closure or class string.
      *
      * Returns FALSE if the middleware is not valid
      *

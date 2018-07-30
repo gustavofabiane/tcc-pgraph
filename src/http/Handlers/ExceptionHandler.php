@@ -2,21 +2,21 @@
 
 namespace Framework\Http\Handlers;
 
+use Exception;
 use Framework\Http\Body;
 use Framework\Http\Response;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use Psr\Http\Server\RequestHandlerInterface;
 
 /**
  * Produces a default not found response for the given http request
  */
-class NotFoundHandler implements RequestHandlerInterface
+class ExceptionHandler implements RequestErrorHandlerInterface
 {
     /**
      * Handle the request and return a response.
      */
-    public function handle(ServerRequestInterface $request): ResponseInterface
+    public function handle(ServerRequestInterface $request, Exception $exception): ResponseInterface
     {
         $acceptHeader = $request->getHeader('Accept');
         $contentType = $acceptHeader ? $acceptHeader[0] : 'text/html';
@@ -33,7 +33,7 @@ class NotFoundHandler implements RequestHandlerInterface
         $body = new Body();
         $body->write($content);
 
-        return new Response(404, ['Content-Type' => $contentType], $body);
+        return new Response(500, ['Content-Type' => $contentType], $body);
     }
 
     public function plain(ServerRequestInterface $request)
