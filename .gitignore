@@ -1,2 +1,5 @@
 # ignore composer vendor
 vendor/
+
+# ignore PHPUnit cache file
+.phpunit.result.cache

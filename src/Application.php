@@ -6,6 +6,7 @@ use Framework\Http\Uri;
 use Framework\Http\Request;
 use Framework\Http\UploadedFile;
 use Framework\Container\Container;
+use Framework\Router\RouteInterface;
 use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -61,11 +62,11 @@ class Application extends Container implements RequestHandlerInterface
         try {
             if ($this->hasMiddleware()) {
                 $response = $this->processMiddleware($request);
-            } elseif (!$response = $this($request)) {
-                $response = $this->get('notFoundHandler')->handle($request);
+            } elseif (($response = $this($request)) === null) {
+                $response = $this->notFoundHandler->handle($request);
             }
         } catch (Exception $exception) {
-            if (!$this->errorHandler) {
+            if (!$this->has('errorHandler')) {
                 throw $exception;
             }
             $response = $this->errorHandler->handle($request, $exception);
@@ -74,16 +75,62 @@ class Application extends Container implements RequestHandlerInterface
         return $response;
     }
 
-    public function __invoke(ServerRequestInterface $request): ResponseInterface
+    public function __invoke(ServerRequestInterface $request): ?ResponseInterface
     {
+        $route = $request->getAttribute('route');
+        if ($route === null) {
+            $route = $this->router->match($request);
+            $request = $request->withAttribute('route', $route);
+        }
 
+        if ($route->found()) {
+            $response = $this->executeRoute($route, $request);
+        } elseif ($route->notAllowed()) {
+            $response = $this->notAllowedHandler->handle($request);
+        } else {
+            $response = $this->notFoundHandler->handle($request);
+        }
 
         return $response;
     }
 
+    protected function executeRoute(RouteInterface $route, ServerRequestInterface $request): ResponseInterface
+    {
+        $handler = $route->getHandler();
+
+        if ($handler instanceof RequestHandlerInterface) {
+            return $handler->handle($request);
+        }
+        
+        return $this->resolver->resolve($handler, false, compact('request'));
+    }
+
+    /**
+     * Emit an HTTP response.
+     *
+     * @param ResponseInterface $response
+     * @return void
+     */
     public function emitResponse(ResponseInterface $response)
     {
-        //
+        $reasonPhrase = $response->getReasonPhrase();
+        $statusCode   = $response->getStatusCode();
+        header(sprintf(
+            'HTTP/%s %d%s',
+            $response->getProtocolVersion(),
+            $statusCode,
+            ($reasonPhrase ? ' ' . $reasonPhrase : '')
+        ), true, $statusCode);
+
+        foreach ($response->getHeaders() as $name => $values) {
+            $filtered = str_replace('-', ' ', $name);
+            $filtered = ucwords($filtered);
+            $name = str_replace(' ', '-', $filtered);
+
+            header(sprintf('%s: %s', $name, implode(', ', $values)), true, $statusCode);
+        }
+
+        echo $response->getBody();
     }
 
     /**
@@ -94,34 +141,19 @@ class Application extends Container implements RequestHandlerInterface
     private function registerDefaultServices()
     {
         /**
-         * Register the server request
+         * Register router
          */
-        if (!$this->has('request')) {
-            $this->singleton('request', function (ContainerInterface $container) {
-                return new Request(
-                    $_SERVER["REQUEST_METHOD"] ?? 'GET',
-                    $_SERVER ?? [],
-                    Uri::createFromServerParams($_SERVER),
-                    [],
-                    $_COOKIES,
-                    new Body('php://input', 'r'),
-                    UploadedFile::filterNativeUploadedFiles($_FILES)
-                );
-            });
-        }
-
         if (!$this->has('router')) {
-            $this->singleton('router', function (ContainerInterface $container) {
-                ///
-            });
+            $this->implemented('\Framework\Router\RouterInterface', '\Framework\Router\Router', true);
+            $this->alias('router', '\Framework\Router\RouterInterface');
         }
 
         /**
          * Register the not found request handler
          */
         if (!$this->has('notFoundHandler')) {
-            $this->register(\Framework\Http\Handlers\NotFoundHandler::class);
-            $this->alias('notFoundHandler', \Framework\Http\Handlers\NotFoundHandler::class);
+            $this->register('\Framework\Http\Handlers\NotFoundHandler');
+            $this->alias('notFoundHandler', '\Framework\Http\Handlers\NotFoundHandler');
         }
         
         /**
@@ -129,17 +161,22 @@ class Application extends Container implements RequestHandlerInterface
          */
         if (!$this->has('errorHandler')) {
             $this->implemented(
-                \Framework\Http\Handlers\ErrorRequestHandlerInterface::class,
-                \Framework\Http\Handlers\ErrorRequestHandler::class
+                '\Framework\Http\Handlers\ErrorRequestHandlerInterface',
+                '\Framework\Http\Handlers\ErrorRequestHandler'
             );
             $this->alias(
-                \Framework\Http\Handlers\ErrorRequestHandler::class, 
-                \Framework\Http\Handlers\ErrorRequestHandlerInterface::class
+                '\Framework\Http\Handlers\ErrorRequestHandler',
+                '\Framework\Http\Handlers\ErrorRequestHandlerInterface'
             );
-            $this->alias('errorHandler', \Framework\Http\Handlers\ErrorRequestHandlerInterface::class);
+            $this->alias('errorHandler', '\Framework\Http\Handlers\ErrorRequestHandlerInterface');
         }
     }
 
+    /**
+     * Boot services that need initialization
+     *
+     * @return void
+     */
     private function bootServices()
     {
         if (isset($this->settings['boot.services.file'])) {

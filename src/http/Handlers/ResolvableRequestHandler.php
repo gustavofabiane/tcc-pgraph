@@ -2,12 +2,18 @@
 
 namespace Framework\Http\Handlers;
 
-use Psr\Http\Message\RequestInterface;
 use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Server\RequestHandlerInterface;
 use Framework\Container\ServiceResolverInterface;
 
-class ResolvableRequestHandler extends RequestHandler
+/**
+ * Treats a resolvable as a request handler
+ */
+class ResolvableRequestHandler implements RequestHandlerInterface
 {
+    use HasMiddlewareTrait;
+
     /**
      * A valid resolvable by the ServiceResolverInterface implementation
      *
@@ -34,7 +40,7 @@ class ResolvableRequestHandler extends RequestHandler
      * @param ServerRequestInterface $request
      * @return ResponseInterface
      */
-    public function handle(RequestInterface $request): ResponseInterface
+    public function handle(ServerRequestInterface $request): ResponseInterface
     {
         if (!$this->hasMiddleware()) {
             return $this->processMiddleware($request);
