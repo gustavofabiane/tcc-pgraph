@@ -62,6 +62,4 @@ class NotFoundHandlerTest extends TestCase
             $response->getBody()->getContents()
         );
     }
-    
-
 }

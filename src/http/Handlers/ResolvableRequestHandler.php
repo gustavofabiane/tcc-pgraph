@@ -19,7 +19,7 @@ class ResolvableRequestHandler implements RequestHandlerInterface
      *
      * @var Closure|string|object|callable
      */
-    private $resolvable;
+    protected $resolvable;
 
     /**
      * Creates the resolvable request handler instance
@@ -30,7 +30,7 @@ class ResolvableRequestHandler implements RequestHandlerInterface
     public function __construct($resolvable, ServiceResolverInterface $resolver)
     {
         $this->resolvable = $resolvable;
-        $this->serviceResolver = $resolver;
+        $this->resolver = $resolver;
     }
 
     /**
@@ -42,20 +42,17 @@ class ResolvableRequestHandler implements RequestHandlerInterface
      */
     public function handle(ServerRequestInterface $request): ResponseInterface
     {
-        if (!$this->hasMiddleware()) {
+        if ($this->hasMiddleware()) {
             return $this->processMiddleware($request);
         }
 
-        $queryParams = $request->getQueryParams();
+        $queryParams = $request->getQueryParams() ?: [];
         $parameters = [
             'request' => $request,
             'params' => $queryParams
         ];
         $parameters += $queryParams;
 
-        return $this->serviceResolver->resolve(
-            $resolvable, false, 
-            $parameters
-        );
+        return $this->resolver->resolve($this->resolvable, false, $parameters);
     }
 }

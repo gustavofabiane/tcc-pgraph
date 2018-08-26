@@ -8,8 +8,6 @@ use Framework\Http\Handlers\HasMiddlewareTrait;
 
 class Route implements RouteInterface
 {
-    use HasMiddlewareTrait;
-
     /**
      * The route request handler.
      *
@@ -36,42 +34,35 @@ class Route implements RouteInterface
      *
      * @param RequestHandlerInterface $handler
      */
-    public function __construct($handler, int $status = null)
-    {
-        $this->handler = $handler;
+    public function __construct(
+        int $status,
+        ?RequestHandlerInterface $handler = null,
+        ?array $arguments = []
+    ) {
         $this->status = $status;
+        $this->handler = $handler;
+        $this->arguments = $arguments ?: [];
     }
 
     /**
      * Get the route's request handler.
      *
-     * @return RequestHandlerInterface|callable
+     * @return RequestHandlerInterface
      */
-    public function getHandler()
+    public function getHandler(): RequestHandlerInterface
     {
         return $this->handler;
     }
 
     /**
-     * Set the route arguments
-     *
-     * @param array $arguments
-     * @return void
-     */
-    public function setArguments(array $arguments)
-    {
-        $this->arguments = $arguments;
-    }
-
-    /**
-     * Set the route status
+     * Get route arguments
      *
      * @param int $status
-     * @return void
+     * @return array
      */
-    public function setStatus(int $status)
+    public function getArguments(): array
     {
-        $this->status = $status;
+        return $this->arguments;
     }
 
     /**

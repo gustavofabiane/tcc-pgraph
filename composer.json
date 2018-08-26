@@ -10,12 +10,16 @@
     "autoload": {
         "psr-4": {
             "Framework\\": "src/"
-        }
+        },
+        "files": [
+            "src/functions.php"
+        ]
     },
     "autoload-dev": {
         "psr-4": {
             "Framework\\Tests\\": "tests/"
-        }
+        },
+        "files": ["tests/utils/functions.php"]
     },
     "require": {
         "php": ">=7.1",
@@ -31,6 +35,9 @@
     "scripts": {
         "test": [
             "vendor\\bin\\phpunit"
+        ],
+        "test-debug": [
+            "vendor\\bin\\phpunit --debug"
         ],
         "update-split-bb": [
             "build\\subsplit-bit-bucket.sh"

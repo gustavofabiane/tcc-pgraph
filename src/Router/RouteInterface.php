@@ -17,20 +17,11 @@ interface RouteInterface
     public function getHandler();
 
     /**
-     * Set the route status
+     * Get the route arguments
      *
-     * @param int $status
-     * @return void
+     * @return array
      */
-    public function setStatus(int $status);
-
-    /**
-     * Set the route arguments
-     *
-     * @param array $arguments
-     * @return void
-     */
-    public function setArguments(array $arguments);
+    public function getArguments(): array;
 
     /**
      * Checks whether the route is found.

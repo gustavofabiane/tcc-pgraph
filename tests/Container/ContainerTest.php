@@ -130,4 +130,19 @@ class ContainerTest extends TestCase
         
         $this->container->alias('stub', StubClass::class);
     }
+
+    public function testRegisterListener()
+    {
+        $this->container->register(StubClass::class);
+
+        $stub = $this->container->get(StubClass::class);
+        $this->assertInternalType('null', $stub->getFooBar());
+
+        $this->container->registerListener(StubClass::class, function ($stub, $c) {
+            $stub->setFooBar('bazbaz');
+        });
+
+        $stub = $this->container->get(StubClass::class);
+        $this->assertEquals('bazbaz', $stub->getFooBar());
+    }
 }

@@ -33,7 +33,7 @@ class ServiceResolver implements ServiceResolverInterface
 
         if (is_string($resolvable) && preg_match(static::RESOLVABLE_PATTERN, $resolvable, $matches)) {
             $resolvable = [$matches[1], $matches[2]];
-        } elseif (is_string($resolvable)) {
+        } elseif (is_string($resolvable) && !function_exists($resolvable)) {
             $resolvable = [$resolvable];
         }
         
@@ -46,12 +46,15 @@ class ServiceResolver implements ServiceResolverInterface
                 new ReflectionMethod($resolvable[0], $resolvable[1]);
         }
 
-        if ($resolvable instanceof \Closure) {
+        if ($resolvable instanceof \Closure || (is_string($resolvable) && function_exists($resolvable))) {
             $reflected = new ReflectionFunction($resolvable);
         }
 
         if (!$reflected) {
-            throw new RuntimeException('Cannot resolve ' . $resolvable);
+            if (is_array($resolvable)) {
+                $resolvable = implode('::', $resolvable);
+            }
+            throw new RuntimeException('Cannot resolve \'' . $resolvable . '\'');
         }
 
         if ($deffered) {

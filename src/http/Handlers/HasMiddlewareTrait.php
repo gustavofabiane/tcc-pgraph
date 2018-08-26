@@ -2,6 +2,13 @@
 
 namespace Framework\Http\Handlers;
 
+use function Framework\isImplementerOf;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Server\RequestHandlerInterface;
+use Framework\Container\ServiceResolverInterface;
+use Framework\Http\Middleware\ResolvableMiddleware;
+
 /**
  * Define behaviors for implementations that have middleware
  */
@@ -14,6 +21,13 @@ trait HasMiddlewareTrait
      * @var array
      */
     protected $middleware = [];
+
+    /**
+     * Servive resolver instance.
+     *
+     * @var ServiceResolverInterface
+     */
+    protected $resolver;
 
     /**
      * Get the middleware stack.
@@ -39,12 +53,14 @@ trait HasMiddlewareTrait
      * Process the middleware at the top of the stack.
      *
      * @param RequestInterface $request
-     * @return ResponseInterface
+     * @return ResponseInterface|null
      */
-    protected function processMiddleware(RequestInterface $request): ResponseInterface
+    protected function processMiddleware(ServerRequestInterface $request): ?ResponseInterface
     {
-        $middleware = array_shift($this->middleware);
-        return $middleware->process($request, $this);
+        if ($this->hasMiddleware()) {
+            $middleware = array_shift($this->middleware);
+            return $middleware->process($request, $this);
+        }
     }
 
     /**
@@ -53,7 +69,7 @@ trait HasMiddlewareTrait
      * @param MiddlewareInterface|callable $middleware
      * @return void
      */
-    public function add($middleware, bool $top = true): RequestHandler
+    public function add($middleware): RequestHandlerInterface
     {
         if (!$middleware = $this->filterMiddleware($middleware)) {
             throw new \InvalidArgumentException(
@@ -73,7 +89,7 @@ trait HasMiddlewareTrait
      * @param array $middlewareGroup
      * @return void
      */
-    public function middleware(array $middlewareGroup): RequestHandler
+    public function middleware(array $middlewareGroup): RequestHandlerInterface
     {
         foreach ($middlewareGroup as $middleware) {
             $this->add($middleware);
@@ -94,22 +110,15 @@ trait HasMiddlewareTrait
     protected function filterMiddleware($middleware)
     {
         if (is_object($middleware) &&
-            Container::implements($middleware, MiddlewareInterface::class)
+            isImplementerOf($middleware, MiddlewareInterface::class)
         ) {
             return $middleware;
         }
 
-        if (is_string($middleware) && class_exists($middleware) &&
-            Container::implements($middleware, MiddlewareInterface::class)
-        ) {
-            return $this->serviceResolver->resolve($middleware);
-        }
-
-        if (is_callable($middleware) || $middleware instanceof \Closure ||
-        //    (class_exists($middleware) &&  Container::implements($middleware, MiddlewareInterface::class)) ||
+        if (is_callable($middleware) || $middleware instanceof \Closure || 
            (preg_match(ServiceResolverInterface::RESOLVABLE_PATTERN, $middleware, $matches))
         ) {
-            return new ResolvableMiddleware($middleware, $this->serviceResolver);
+            return new ResolvableMiddleware($middleware, $this->resolver);
         }
 
         return false;

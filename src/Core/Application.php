@@ -1,6 +1,6 @@
 <?php
 
-namespace Framework;
+namespace Framework\Core;
 
 use Framework\Http\Uri;
 use Framework\Http\Request;
@@ -84,7 +84,7 @@ class Application extends Container implements RequestHandlerInterface
         }
 
         if ($route->found()) {
-            $response = $this->executeRoute($route, $request);
+            $response = $route->getHandler()->handle($request);
         } elseif ($route->notAllowed()) {
             $response = $this->notAllowedHandler->handle($request);
         } else {
@@ -92,17 +92,6 @@ class Application extends Container implements RequestHandlerInterface
         }
 
         return $response;
-    }
-
-    protected function executeRoute(RouteInterface $route, ServerRequestInterface $request): ResponseInterface
-    {
-        $handler = $route->getHandler();
-
-        if ($handler instanceof RequestHandlerInterface) {
-            return $handler->handle($request);
-        }
-        
-        return $this->resolver->resolve($handler, false, compact('request'));
     }
 
     /**
@@ -144,6 +133,14 @@ class Application extends Container implements RequestHandlerInterface
          * Register router
          */
         if (!$this->has('router')) {
+            $this->register('router', function () {
+                
+                return new \Framework\Router\Router(
+                    $this->settings['router']['type'] ?? 'simple', 
+                    (array) $this->settings['router']['routesFile'],
+                    $this->settings['router']['routesCacheFile'] ?? null
+                );
+            });
             $this->implemented('\Framework\Router\RouterInterface', '\Framework\Router\Router', true);
             $this->alias('router', '\Framework\Router\RouterInterface');
         }

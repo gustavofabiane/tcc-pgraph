@@ -13,8 +13,6 @@ use IteratorAggregate;
 use ReflectionFunction;
 use ReflectionParameter;
 use InvalidArgumentException;
-use Psr\Container\ContainerInterface;
-use Framework\Container\ServiceResolver;
 use Framework\Container\Exception\ContainerException;
 use Framework\Container\Exception\EntryNotFoundException;
 use Framework\Container\Exception\AliasTargetNotFoundException;
@@ -62,6 +60,13 @@ class Container implements
     private $aliases = [];
 
     /**
+     * Service resolving listener callbacks
+     *
+     * @var array
+     */
+    private $listeners = [];
+
+    /**
      * Contructs the container with an array of services and a resolver
      *
      * @param array $values
@@ -90,8 +95,9 @@ class Container implements
         $this->implemented(ServiceResolverInterface::class, $this->resolver);
         $this->alias(ServiceResolver::class, ServiceResolverInterface::class);
 
-        $this->implemented(ContainerInterface::class, $this);
-        $this->alias(static::class, ContainerInterface::class);
+        $this->register(static::class, $this);
+        $this->alias(ContainerInterface::class, static::class);
+        $this->alias(\Psr\Container\ContainerInterface::class, static::class);
     }
 
     /**
@@ -112,11 +118,11 @@ class Container implements
             );
         }
 
-        if (isset($this->aliases[$id])) {
-            return $this->build($this->services[$this->aliases[$id]]);
-        }
-        
-        return $this->build($this->services[$id]);
+        return $this->build(
+            isset($this->aliases[$id]) 
+                ? $this->services[$this->aliases[$id]] 
+                : $this->services[$id]
+        );
     }
 
     /**
@@ -148,7 +154,7 @@ class Container implements
         $instance = null;
 
         if (isset($this->instances[$service['id']])) {
-            $instance = $this->instances[$service['id']];
+            return $this->instances[$service['id']];
         } elseif (
             in_array($service['type'], static::PHP_SIMPLE_TYPES) && !$service['implemented'] || 
             is_object($service['assembler']) && !($service['assembler'] instanceof \Closure)
@@ -159,10 +165,6 @@ class Container implements
         if (!$instance && $this->resolver) {
             $instance = $this->buildAsResolvable($service);
         }
-        
-        // if (!$instance && $service['assembler'] instanceof \Closure) {
-        //     $instance = $service['assembler']($this);
-        // }
             
         if (!$instance) {
             throw new ContainerException('Cannot resolve service \'' . $service['id'] . '\'');
@@ -171,6 +173,8 @@ class Container implements
         if ($service['singleton']) {
             $this->instances[$service['id']] = $instance;
         }
+
+        $this->callListeners($instance, $service['id']);
 
         return $instance;
     }
@@ -249,6 +253,7 @@ class Container implements
         ];
 
         $this->services[$id] = $service;
+        $this->listeners[$id] = [];
     }
 
     /**
@@ -287,24 +292,64 @@ class Container implements
     }
 
     /**
-     * Adds a service with default resolvable parameters
+     * Register a service with default resolvable parameters
      *
      * @param string $id
      * @param mixed $assembler
      * @param array $defaults
      * @return void
      */
-    public function addWithDefaults($id, $assembler, array $defaults)
+    public function registerWithDefaults($id, $assembler, array $defaults)
     {
         $this->register($id, $assembler, false, $defaults);
     }
 
+    /**
+     * Register a service name alias
+     *
+     * @param string $alias
+     * @param string $target
+     * @return void
+     */
     public function alias(string $alias, string $target)
     {
         if (!$this->has($target)) {
             throw new AliasTargetNotFoundException($target . ' is not registered in the container');
         }
         $this->aliases[$alias] = $target;
+    }
+
+    /**
+     * Call service resolved registered listeners
+     *
+     * @param mixed $instance
+     * @param string $id
+     * @return void
+     */
+    protected function callListeners($instance, string $id)
+    {
+        if (!empty($this->listeners[$id])) {
+            foreach ($this->listeners[$id] as $listener) {
+                $listener($instance, $this);
+            }
+        }
+    }
+
+    /**
+     * Register a listener to be executed after the service is resolved
+     *
+     * @param string $id
+     * @param callable $callback
+     * @return void
+     */
+    public function registerListener(string $id, callable $callback)
+    {
+        if (in_array($callback, $this->listeners[$id])) {
+            throw new ContainerException(
+                'Duplicated service resolving listener'
+            );
+        }
+        $this->listeners[$id][] = $callback;
     }
 
     /**
@@ -323,7 +368,7 @@ class Container implements
      *
      * @return ServiceResolverInterface
      */
-    public function getResolver()
+    public function getResolver(): ServiceResolverInterface
     {
         return $this->resolver;
     }
