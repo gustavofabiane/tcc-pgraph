@@ -10,7 +10,7 @@ use Psr\Container\NotFoundExceptionInterface;
  *
  * @author gusta
  */
-class EntryNotFoundException extends Exception implements NotFoundExceptionInterface
+class EntryNotFoundException extends ContainerException implements NotFoundExceptionInterface
 {
     //
 }

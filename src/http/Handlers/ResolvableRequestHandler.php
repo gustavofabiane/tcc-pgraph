@@ -53,6 +53,6 @@ class ResolvableRequestHandler implements RequestHandlerInterface
         ];
         $parameters += $queryParams;
 
-        return $this->resolver->resolve($this->resolvable, false, $parameters);
+        return $this->resolver->resolve($this->resolvable, $parameters);
     }
 }

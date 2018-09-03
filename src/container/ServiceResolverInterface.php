@@ -16,7 +16,7 @@ interface ServiceResolverInterface
     
     /**
      * Resolves a class, method or Closure|callable
-     * 
+     *
      * MUST accept the following structures:
      * -> a class name
      * -> a string with a class name and a method name separated by ':', ex: class:method
@@ -24,10 +24,9 @@ interface ServiceResolverInterface
      * -> a callable
      *
      * @param mixed $resolvable
-     * @param bool $deffered define that the resolver instance will return a Closure for deffered resolving
-     * @return callable
+     * @return mixed
      */
-    public function resolve($resolvable, bool $deffered = false, array $parameters = []);
+    public function resolve($resolvable, array $parameters = []);
 
     /**
      * Defines a ContainerInterface instance to be used by the resolver

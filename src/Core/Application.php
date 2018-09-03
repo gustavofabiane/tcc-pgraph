@@ -11,11 +11,11 @@ use Psr\Container\ContainerInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
-use Framework\Http\Handlers\RequestHandlerTrait;
+use Framework\Http\Handlers\HasMiddlewareTrait;
 
 class Application extends Container implements RequestHandlerInterface
 {
-    use RequestHandlerTrait;
+    use HasMiddlwareTrait;
 
     /**
      * Array of the application settings

@@ -40,7 +40,6 @@ class ResolvableMiddleware implements MiddlewareInterface
     ): ResponseInterface {
         return $this->resolver->resolve(
             $this->resolvable, 
-            false,
             compact('request', 'handler')
         );
     }

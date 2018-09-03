@@ -2,13 +2,14 @@
 
 namespace Framework\Container;
 
+use Closure;
 use ReflectionClass;
 use ReflectionMethod;
 use RuntimeException;
 use ReflectionFunction;
 use ReflectionParameter;
 use Psr\Container\ContainerInterface;
-use Framework\Container\Exception\EntryNotFoundException;
+use Framework\Container\Exception\ContainerException;
 
 class ServiceResolver implements ServiceResolverInterface
 {
@@ -24,63 +25,78 @@ class ServiceResolver implements ServiceResolverInterface
      *
      * @param mixed $resolvable
      * @param ContainerInterface $container
-     * @param bool $deffered
+     * @return mixed
+     *
+     * @throws \RuntimeException
+     */
+    public function resolve($resolvable, array $parameters = [])
+    {
+        if ($resolvable instanceof Closure || (is_string($resolvable) && function_exists($resolvable))) {
+            return $this->resolveFunctionCall($resolvable, $parameters);
+        } elseif (is_array($resolvable) || is_string($resolvable)) {
+            return $this->resolveClassCall($resolvable, $parameters);
+        }
+
+        if (is_array($resolvable)) {
+            $resolvable = implode('::', $resolvable);
+        }
+        throw new \RuntimeException('Cannot resolve \'' . $resolvable . '\'');
+    }
+
+    /**
+     * Resolve a function or Closure
+     *
+     * @param string|CLosure $resolvable
+     * @param array $parameters
      * @return mixed
      */
-    public function resolve($resolvable, bool $deffered = false, array $parameters = [])
+    protected function resolveFunctionCall($resolvable, array $parameters = [])
     {
-        $reflected = null;
+        return $this->buildReflected(new ReflectionFunction($resolvable), $parameters);
+    }
 
+    /**
+     * Resolve a class instance or class method call
+     *
+     * @param string|array $resolvable
+     * @param array $parameters
+     * @return mixed
+     */
+    protected function resolveClassCall($resolvable, array $parameters = [])
+    {
         if (is_string($resolvable) && preg_match(static::RESOLVABLE_PATTERN, $resolvable, $matches)) {
             $resolvable = [$matches[1], $matches[2]];
         } elseif (is_string($resolvable) && !function_exists($resolvable)) {
             $resolvable = [$resolvable];
         }
         
-        if (is_array($resolvable) && 
-            (is_object($resolvable[0]) || 
-            (is_string($resolvable[0]) && class_exists($resolvable[0])))
-        ) {
-            $reflected = !isset($resolvable[1]) ? 
-                new ReflectionClass($resolvable[0]) : 
-                new ReflectionMethod($resolvable[0], $resolvable[1]);
+        if (count($resolvable) > 1) {
+            return $this->buildReflected(
+                new ReflectionMethod($resolvable[0], $resolvable[1]),
+                $parameters,
+                $resolvable[0]
+            );
         }
 
-        if ($resolvable instanceof \Closure || (is_string($resolvable) && function_exists($resolvable))) {
-            $reflected = new ReflectionFunction($resolvable);
-        }
-
-        if (!$reflected) {
-            if (is_array($resolvable)) {
-                $resolvable = implode('::', $resolvable);
-            }
-            throw new RuntimeException('Cannot resolve \'' . $resolvable . '\'');
-        }
-
-        if ($deffered) {
-            return function () use ($reflected, $parameters) {
-                return $this->buildReflected($reflected, $parameters);
-            };
-        }
-
-        return $this->buildReflected($reflected, $parameters);
+        return $this->buildReflected(new ReflectionClass($resolvable[0]), $parameters);
     }
 
 
     /**
-     * Resolve a class, method or \Closure instance using reflection
+     * Resolve a class, method or Closure instance using reflection
      *
      * @param ReflectionClass|ReflectionMethod|ReflectionFunction $reflected
-     * @param ContainerInterface
+     * @param array $parameters Default parameters to bind to the called reflection
+     * @param object $declaringClass for reflection methods, the method declaring class instance or name
      * @return void
      */
-    protected function buildReflected($reflected, array $parameters = [])
+    protected function buildReflected($reflected, array $parameters = [], $declaringClass = null)
     {
         if (!($reflected instanceof ReflectionClass ||
               $reflected instanceof ReflectionMethod ||
               $reflected instanceof ReflectionFunction)
         ) {
-            throw new InvalidArgumentException(
+            throw new \InvalidArgumentException(
                 'Invalid argument 1 in ' . __METHOD__ . ' must be instance 
                 of ReflectionClass, ReflectionMethod or ReflectionFunction, '
                 . get_class($reflected) . ' given',
@@ -90,7 +106,7 @@ class ServiceResolver implements ServiceResolverInterface
 
         if ($reflected instanceof ReflectionClass && $reflected->hasMethod('__construct')) {
             $class = $reflected;
-            $reflected = $reflected->getMethod('__construct');
+            $reflected = $reflected->getConstructor();
         } elseif ($reflected instanceof ReflectionClass) {
             return $reflected->newInstance();
         }
@@ -102,8 +118,11 @@ class ServiceResolver implements ServiceResolverInterface
             if (isset($class)) {
                 $resolved = $class->newInstanceArgs($resolvedParams);
             } elseif ($reflected instanceof ReflectionMethod) {
-                $resolvedClassObject = $this->buildReflected($reflected->getDeclaringClass(), $parameters);
-                $resolved = $reflected->invokeArgs($resolvedClassObject, $resolvedParams);
+                $declaringClassObject = is_object($declaringClass)
+                    ? $declaringClass
+                    : $this->buildReflected(new ReflectionClass($declaringClass), $parameters);
+            
+                $resolved = $reflected->invokeArgs($declaringClassObject, $resolvedParams);
             } elseif ($reflected instanceof ReflectionFunction) {
                 $resolved = $reflected->invokeArgs($resolvedParams);
             }
@@ -134,7 +153,7 @@ class ServiceResolver implements ServiceResolverInterface
             } else {
                 try {
                     $resolvedParameters[] = $this->resolveParameterWithContainer($parameter);
-                } catch (EntryNotFoundException $e) {
+                } catch (ContainerException $e) {
                     if (!$parameter->isDefaultValueAvailable()) {
                         throw $e;
                     }
@@ -148,7 +167,15 @@ class ServiceResolver implements ServiceResolverInterface
         return $resolvedParameters;
     }
 
-    protected function resolveParameterWithContainer(ReflectionParameter $parameter) 
+    /**
+     * Resolve reflection parameter using the dependency container
+     *
+     * @param ReflectionParameter $parameter
+     * @return mixed
+     *
+     * @throws ContainerException
+     */
+    protected function resolveParameterWithContainer(ReflectionParameter $parameter)
     {
         $paramIdentifier = $parameter->getName();
         if (!$this->container->has($paramIdentifier) && $parameter->hasType()) {
@@ -158,11 +185,22 @@ class ServiceResolver implements ServiceResolverInterface
         return $this->container->get($paramIdentifier);
     }
 
+    /**
+     * Set the resolver container implementation
+     *
+     * @param ContainerInterface $container
+     * @return void
+     */
     public function setContainer(ContainerInterface $container)
     {
         $this->container = $container;
     }
 
+    /**
+     * Get the resolver container implementation
+     *
+     * @return ContainerInterface
+     */
     public function getContainer(): ContainerInterface
     {
         return $this->container;

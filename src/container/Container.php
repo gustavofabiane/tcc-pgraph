@@ -114,14 +114,14 @@ class Container implements
     {
         if (!$this->has($id)) {
             throw new EntryNotFoundException(
-                'Entry \'' . $id . '\' not found in Dependency Injection Container'
+                sprintf('Entry \'%s\' not found in Dependency Injection Container', $id)
             );
         }
-
+        
         return $this->build(
             isset($this->aliases[$id]) 
-                ? $this->services[$this->aliases[$id]] 
-                : $this->services[$id]
+            ? $this->services[$this->aliases[$id]] 
+            : $this->services[$id]
         );
     }
 
@@ -179,16 +179,21 @@ class Container implements
         return $instance;
     }
 
+    /**
+     * Resolves the service as a resolvable entry
+     *
+     * @param array $service
+     * @return mixed
+     */
     protected function buildAsResolvable(array $service)
     {
         try {
-            $instance = $this->resolver->resolve(
-                $this->serviceToResolvable($service), false, $service['defaults']
+            return $this->resolver->resolve(
+                $this->serviceToResolvable($service), $service['defaults']
             );
-            return $instance;
         } catch (Exception $e) {
             throw new ContainerException(
-                'Cannot resolve service \'' . $service['id'] . '\'',
+                sprintf('Cannot resolve service \'%s\'', $service['id']),
                 $e->getCode(),
                 $e
             );
@@ -218,6 +223,48 @@ class Container implements
         }
 
         return $resolvable;
+    }
+    
+    /**
+     * Wrap resolving in a closure instance to
+     *
+     * @param string $id
+     * @return \Closure
+     */
+    public function wrap($id)
+    {
+        if ($this->has($id)) {
+            return function () use ($id) {
+                return $this->get($id);
+            };
+        }
+
+        throw new EntryNotFoundException(
+            sprintf('Entry \'%s\' not found in Dependency Injection Container', $id)
+        );
+    }
+
+    public function resolve($resolvable, array $parameters = [], bool $wrap = false)
+    {
+        if ($wrap) {
+            return function () use ($resolvable, $parameters) {
+                $this->resolve($resolvable, $parameters);
+            };
+        }
+
+        if ($this->has($resolvable)) {
+            return $this->get($resolvable);
+        }
+
+        try {
+            return $this->resolver->resolve($resolvable, $parameters);
+        } catch (Exception $e) {
+            throw new ContainerException(
+                sprintf('Cannot resolve \'%s\'', $resolvable),
+                $e->getCode(),
+                $e
+            );
+        }
     }
 
     /**

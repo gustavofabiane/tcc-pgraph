@@ -5,6 +5,7 @@ namespace Framework\Router;
 use function Framework\isImplementerOf;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Server\RequestHandlerInterface;
 use Framework\Http\Handlers\ResolvableRequestHandler;
 
 /**
@@ -21,7 +22,7 @@ class RouteRequestHandler extends ResolvableRequestHandler
      */
     public function handle(ServerRequestInterface $request): ResponseInterface
     {
-        if (!isImplementerOf($this->resolvable)) {
+        if (!isImplementerOf($this->resolvable, RequestHandlerInterface::class)) {
             $this->resolvable = [$this->resolvable, 'handle'];
         }
 

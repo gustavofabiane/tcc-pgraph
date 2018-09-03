@@ -44,7 +44,7 @@ class ServiceResolverTest extends TestCase
             return $numberOne / $arrayTest[0];
         };
         
-        $result = $this->resolver->resolve($closure, false, ['arrayTest' => [3, 2, 1]]);
+        $result = $this->resolver->resolve($closure, ['arrayTest' => [3, 2, 1]]);
         $this->assertEquals(3, $result);
 
         $resultOnlyContainer = $this->resolver->resolve($closure);
@@ -62,7 +62,6 @@ class ServiceResolverTest extends TestCase
 
         $result = $this->resolver->resolve(
             'Framework\Tests\Stubs\StubClass:toResolve', 
-            false, 
             ['userDefinedParam' => 5]
         );
 
@@ -75,7 +74,6 @@ class ServiceResolverTest extends TestCase
 
         $result = $this->resolver->resolve(
             ['Framework\Tests\Stubs\StubClass', 'toResolve'], 
-            false, 
             ['userDefinedParam' => 5]
         );
 
@@ -87,7 +85,7 @@ class ServiceResolverTest extends TestCase
         $this->container->register('int', 2);
 
         $stub = new StubClass();
-        $result = $this->resolver->resolve([$stub, 'toResolve'], false, ['userDefinedParam' => 5.5]);
+        $result = $this->resolver->resolve([$stub, 'toResolve'], ['userDefinedParam' => 5.5]);
 
         $this->assertEquals(7.5, $result);
     }
@@ -103,15 +101,5 @@ class ServiceResolverTest extends TestCase
         $this->expectException(EntryNotFoundException::class);
 
         $result = $this->resolver->resolve('Framework\Tests\Stubs\StubClass:toResolve');
-    }
-
-    public function testResolveDeffered()
-    {
-        $result = $this->resolver->resolve('Framework\Tests\Stubs\StubClass:toResolveDefault', true);
-        $this->assertInstanceOf(\Closure::class, $result);
-
-        $concrete = $result();
-        $this->assertInternalType('int', $concrete);
-        $this->assertEquals(800, $concrete);
     }
 }
