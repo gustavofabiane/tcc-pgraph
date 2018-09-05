@@ -2,6 +2,7 @@
 
 namespace Framework\Container;
 
+use Error;
 use Closure;
 use ReflectionClass;
 use ReflectionMethod;
@@ -27,20 +28,20 @@ class ServiceResolver implements ServiceResolverInterface
      * @param ContainerInterface $container
      * @return mixed
      *
-     * @throws \RuntimeException
+     * @throws RuntimeException
      */
     public function resolve($resolvable, array $parameters = [])
     {
         if ($resolvable instanceof Closure || (is_string($resolvable) && function_exists($resolvable))) {
             return $this->resolveFunctionCall($resolvable, $parameters);
-        } elseif (is_array($resolvable) || is_string($resolvable)) {
+        } elseif (is_array($resolvable) || is_string($resolvable) || class_exists($resolvable)) {
             return $this->resolveClassCall($resolvable, $parameters);
         }
 
         if (is_array($resolvable)) {
             $resolvable = implode('::', $resolvable);
         }
-        throw new \RuntimeException('Cannot resolve \'' . $resolvable . '\'');
+        throw new RuntimeException('Cannot resolve \'' . $resolvable . '\'');
     }
 
     /**
@@ -66,7 +67,7 @@ class ServiceResolver implements ServiceResolverInterface
     {
         if (is_string($resolvable) && preg_match(static::RESOLVABLE_PATTERN, $resolvable, $matches)) {
             $resolvable = [$matches[1], $matches[2]];
-        } elseif (is_string($resolvable) && !function_exists($resolvable)) {
+        } elseif (is_string($resolvable)) {
             $resolvable = [$resolvable];
         }
         
@@ -111,24 +112,29 @@ class ServiceResolver implements ServiceResolverInterface
             return $reflected->newInstance();
         }
 
-        $reflectedParameters = $reflected->getParameters();
-        $resolvedParams = $this->resolveParameters($reflectedParameters, $parameters);
-
         try {
+            $reflectedParameters = $reflected->getParameters();
+            $resolvedParams = $this->resolveParameters($reflectedParameters, $parameters);
+
             if (isset($class)) {
                 $resolved = $class->newInstanceArgs($resolvedParams);
             } elseif ($reflected instanceof ReflectionMethod) {
                 $declaringClassObject = is_object($declaringClass)
                     ? $declaringClass
                     : $this->buildReflected(new ReflectionClass($declaringClass), $parameters);
-            
                 $resolved = $reflected->invokeArgs($declaringClassObject, $resolvedParams);
             } elseif ($reflected instanceof ReflectionFunction) {
                 $resolved = $reflected->invokeArgs($resolvedParams);
             }
         } catch (Exception $e) {
             throw new ContainerException(
-                'Cannot resolve \'' . $reflected->getName() ?: $serviceId . '\'',
+                sprintf('Cannot resolve \'%s\' due to exception: \'%s\'', $reflected->getName(), $e->getMessage()),
+                500,
+                $e
+            );
+        } catch (Error $e) {
+            throw new ContainerException(
+                sprintf('Cannot resolve \'%s\' due to error: \'%s\'', $reflected->getName(), $e->getMessage()),
                 500,
                 $e
             );
@@ -151,12 +157,10 @@ class ServiceResolver implements ServiceResolverInterface
             if (array_key_exists($overrideName, $userDefaultParameters)) {
                 $resolvedParameters[] = $userDefaultParameters[$overrideName];
             } else {
-                try {
-                    $resolvedParameters[] = $this->resolveParameterWithContainer($parameter);
-                } catch (ContainerException $e) {
-                    if (!$parameter->isDefaultValueAvailable()) {
-                        throw $e;
-                    }
+                $resolvedParameter = $this->resolveParameterWithContainer($parameter) ?: $this->resolveParameter($parameter);
+                if ($resolvedParameter) {
+                    $resolvedParameters[] = $resolvedParameter;
+                } elseif ($parameter->isDefaultValueAvailable()) {
                     $resolvedParameters[] = $parameter->getDefaultValue();
                 }
             }
@@ -165,6 +169,20 @@ class ServiceResolver implements ServiceResolverInterface
             $resolvedParameters[] = $this->container;
         }
         return $resolvedParameters;
+    }
+
+    /**
+     * Resolve a parameter not expected to be found in the container
+     *
+     * @param ReflectionParameter $parameter
+     * @return mixed
+     */
+    protected function resolveParameter(ReflectionParameter $parameter)
+    {
+        if ($parameter->hasType() && class_exists($type = $parameter->getType())) {
+            return $this->resolve($type->__toString());
+        }
+        return null;
     }
 
     /**
@@ -181,8 +199,10 @@ class ServiceResolver implements ServiceResolverInterface
         if (!$this->container->has($paramIdentifier) && $parameter->hasType()) {
             $paramIdentifier = $parameter->getType()->__toString();
         }
-        
-        return $this->container->get($paramIdentifier);
+        if ($this->container->has($paramIdentifier)) {
+            return $this->container->get($paramIdentifier);
+        }
+        return null;
     }
 
     /**

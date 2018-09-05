@@ -6,7 +6,7 @@ use PHPUnit\Framework\TestCase;
 use Framework\Container\Container;
 use Framework\Tests\Stubs\StubClass;
 use Framework\Container\ServiceResolver;
-use Framework\Container\Exception\EntryNotFoundException;
+use Framework\Container\Exception\ContainerException;
 
 class ServiceResolverTest extends TestCase
 {
@@ -98,8 +98,7 @@ class ServiceResolverTest extends TestCase
 
     public function testNoDefaultValueAvailableForResolver()
     {
-        $this->expectException(EntryNotFoundException::class);
-
+        $this->expectException(ContainerException::class);
         $result = $this->resolver->resolve('Framework\Tests\Stubs\StubClass:toResolve');
     }
 }

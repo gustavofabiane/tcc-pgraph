@@ -2,17 +2,12 @@
 
 namespace Framework\Container;
 
+use Closure;
 use Countable;
 use Exception;
-use Reflector;
 use ArrayAccess;
 use ArrayIterator;
-use ReflectionClass;
-use ReflectionMethod;
 use IteratorAggregate;
-use ReflectionFunction;
-use ReflectionParameter;
-use InvalidArgumentException;
 use Framework\Container\Exception\ContainerException;
 use Framework\Container\Exception\EntryNotFoundException;
 use Framework\Container\Exception\AliasTargetNotFoundException;
@@ -29,7 +24,7 @@ class Container implements
     /**
      * PHP types for service retrieving
      */
-    const PHP_SIMPLE_TYPES = ['integer', 'int', 'string', 'double', 'float', 'null', 'array'];
+    const PHP_INTERNAL_TYPES = ['integer', 'int', 'string', 'double', 'float', 'null', 'array'];
     
     /**
      * Instance of a resolver that MUST implement the ServiceResolverInterface
@@ -156,13 +151,13 @@ class Container implements
         if (isset($this->instances[$service['id']])) {
             return $this->instances[$service['id']];
         } elseif (
-            in_array($service['type'], static::PHP_SIMPLE_TYPES) && !$service['implemented'] || 
-            is_object($service['assembler']) && !($service['assembler'] instanceof \Closure)
+            in_array($service['type'], static::PHP_INTERNAL_TYPES) && !$service['implemented'] || 
+            is_object($service['assembler']) && !($service['assembler'] instanceof Closure)
         ) {
             $instance = $service['assembler'];
         }
         
-        if (!$instance && $this->resolver) {
+        if ($instance === null && $this->resolver) {
             $instance = $this->buildAsResolvable($service);
         }
             
@@ -229,7 +224,7 @@ class Container implements
      * Wrap resolving in a closure instance to
      *
      * @param string $id
-     * @return \Closure
+     * @return Closure
      */
     public function wrap($id)
     {
@@ -244,6 +239,14 @@ class Container implements
         );
     }
 
+    /**
+     * Resolve a given callback, class, or method
+     *
+     * @param callable|string|array $resolvable
+     * @param array $parameters
+     * @param bool $wrap
+     * @return mixed
+     */
     public function resolve($resolvable, array $parameters = [], bool $wrap = false)
     {
         if ($wrap) {
@@ -252,7 +255,7 @@ class Container implements
             };
         }
 
-        if ($this->has($resolvable)) {
+        if (is_string($resolvable) && $this->has($resolvable)) {
             return $this->get($resolvable);
         }
 
@@ -260,7 +263,7 @@ class Container implements
             return $this->resolver->resolve($resolvable, $parameters);
         } catch (Exception $e) {
             throw new ContainerException(
-                sprintf('Cannot resolve \'%s\'', $resolvable),
+                sprintf('Cannot resolve \'%s\'', ($resolvable instanceof Closure) ? 'closure' : $resolvable),
                 $e->getCode(),
                 $e
             );
@@ -283,24 +286,47 @@ class Container implements
         if (isset($this->instances[$id])) {
             unset($this->instances[$id]);
         }
-        
-        $type = $assembler ? gettype($assembler) : null;
+
+        [$assembler, $type, $isInternalType] = $this->filterAssembler($assembler);
 
         $service = [
             'id' => $id,
             'assembler' => $assembler,
-            'singleton' => in_array($type, static::PHP_SIMPLE_TYPES) || $singleton,
-            'class' => class_exists($id) && !$assembler,
+            'singleton' => $isInternalType || $singleton,
+            'class' => class_exists($id),
             'implemented' => interface_exists($id) && 
                              (is_callable($assembler) || 
-                             ($assembler && static::implements($assembler, $id))),
-            'callable' => is_callable($assembler) || $assembler instanceof \Closure,
+                             ($assembler !== null && static::implements($assembler, $id))),
+            'callable' => !$isInternalType && (is_callable($assembler) || $assembler instanceof Closure),
             'type' => $type,
             'defaults' => $defaults
         ];
 
         $this->services[$id] = $service;
         $this->listeners[$id] = [];
+    }
+
+    /**
+     * Filter the provided service assembler
+     * 
+     * @see register()
+     *
+     * @param mixed $assembler
+     * @return mixed
+     */
+    protected function filterAssembler($assembler)
+    {
+        if (is_bool($assembler)) {
+            $value = $assembler;
+            $assembler = function () use ($value) {
+                return $value;
+            };
+        }
+        
+        $type = $assembler !== null ? gettype($assembler) : null;
+        $isInternalType = in_array($type, static::PHP_INTERNAL_TYPES);
+
+        return [$assembler, $type, $isInternalType];
     }
 
     /**

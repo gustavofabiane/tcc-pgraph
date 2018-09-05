@@ -6,6 +6,7 @@ use ReflectionClass;
 use PHPUnit\Framework\TestCase;
 use Framework\Container\Container;
 use Framework\Tests\Stubs\StubClass;
+use Framework\Tests\Stubs\Stub2Class;
 use Psr\Container\ContainerInterface;
 use Framework\Tests\Stubs\StubInterface;
 use Framework\Container\Exception\AliasTargetNotFoundException;
@@ -144,5 +145,68 @@ class ContainerTest extends TestCase
 
         $stub = $this->container->get(StubClass::class);
         $this->assertEquals('bazbaz', $stub->getFooBar());
+    }
+
+    public function testResolveClosure()
+    {
+        $this->container->register(StubClass::class);
+        $closureResult = $this->container->resolve(function (StubClass $stub) {
+            return $stub->setFooBar('bazbaz');
+        });
+        $this->assertEquals(
+            $this->container->get(StubClass::class)->setFooBar('bazbaz'), 
+            $closureResult
+        );
+    }
+    
+    public function testResolveRegistered()
+    {
+        $this->container->register('bar', ['foo', 'baz']);
+        $resolved = $this->container->resolve('bar');
+        $this->assertEquals($this->container->get('bar'), $resolved);
+    }
+
+    public function testResolveRegisteredComplex()
+    {
+        $this->container->register('bar', 'true...');
+        $this->container->register('baz', 'test-stub-resolve-complex');
+        $this->container->register('foo', true);
+
+        $resolved = $this->container->resolve(StubClass::class);
+        $this->assertEquals('true...test-stub-resolve-complex', $resolved->getFooBar());
+
+        $clos = function ($bar, string $baz, bool $foo) {
+            return $foo ? $bar . $baz : null;
+        };
+        $resolved = $this->container->resolve($clos);
+        $this->assertEquals('true...test-stub-resolve-complex', $resolved);
+    }
+
+    public function testResolveNonRegisteredParameterDependency()
+    {
+        // Stub2Class depends on StubClass, that is not registered
+        $resolved = $this->container->resolve(Stub2Class::class);
+        
+        $this->assertInstanceOf(Stub2Class::class, $resolved);
+        $this->assertInstanceOf(StubClass::class, $resolved->getStub());
+        $this->assertInternalType('null', $resolved->getStub()->getFooBar());
+    }
+
+    public function testResolveNonRegisteredParameterDependencyWithRegisteredDependencies()
+    {
+        $this->container->register('bar', 'true...');
+        $this->container->register('baz', 'test-stub-resolve-non-registered-dependency');
+        $this->container->register('foo', true);
+
+        // Stub2Class depends on StubClass, that is not registered, 
+        // and will be resolved using registered dependencies
+        $resolved = $this->container->resolve(Stub2Class::class);
+        
+        $this->assertInstanceOf(Stub2Class::class, $resolved);
+        $this->assertInstanceOf(StubClass::class, $resolved->getStub());
+        $this->assertEquals(
+            'true...test-stub-resolve-non-registered-dependency', 
+            $resolved->getStub()->getFooBar()
+        );
     }
 }

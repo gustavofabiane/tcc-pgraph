@@ -12,6 +12,11 @@ class StubClass implements StubInterface
 {
     private $fooBar;
 
+    public function __construct($bar = null, string $baz = 'ok', bool $foo = false)
+    {
+        $this->fooBar = $foo ? $bar . $baz : null;
+    }
+
     public function getFooBar()
     {
         return $this->fooBar;
