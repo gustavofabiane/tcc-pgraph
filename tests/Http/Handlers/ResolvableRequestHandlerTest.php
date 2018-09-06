@@ -10,8 +10,8 @@ use PHPUnit\Framework\TestCase;
 use Framework\Container\Container;
 use function Framework\Tests\request;
 use Psr\Http\Message\ResponseInterface;
+use Framework\Container\ContainerInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use Framework\Container\ServiceResolverInterface;
 use Framework\Http\Handlers\ResolvableRequestHandler;
 
 class ResolvableRequestHandlerTest extends TestCase
@@ -19,9 +19,9 @@ class ResolvableRequestHandlerTest extends TestCase
     /**
      * Resolver instance
      *
-     * @var ServiceResolverInterface
+     * @var ContainerInterface
      */
-    protected $resolver;
+    protected $container;
 
     /**
      * Request used for tests
@@ -32,14 +32,14 @@ class ResolvableRequestHandlerTest extends TestCase
 
     public function setUp()
     {
-        $this->resolver = (new Container())->getResolver();
+        $this->container = new Container();
 
         $this->request = request('POST');
     }
 
     protected function handler($resolvable)
     {
-        return new ResolvableRequestHandler($resolvable, $this->resolver);
+        return new ResolvableRequestHandler($resolvable, $this->container);
     }
 
     public function testHandleFunction()

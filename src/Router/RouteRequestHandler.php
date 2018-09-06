@@ -22,7 +22,7 @@ class RouteRequestHandler extends ResolvableRequestHandler
      */
     public function handle(ServerRequestInterface $request): ResponseInterface
     {
-        if (!isImplementerOf($this->resolvable, RequestHandlerInterface::class)) {
+        if (isImplementerOf($this->resolvable, RequestHandlerInterface::class)) {
             $this->resolvable = [$this->resolvable, 'handle'];
         }
 

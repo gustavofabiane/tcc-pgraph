@@ -2,8 +2,10 @@
 
 namespace Framework\Http\Handlers;
 
+use Closure;
 use function Framework\isImplementerOf;
 use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use Framework\Container\ServiceResolverInterface;
@@ -25,9 +27,9 @@ trait HasMiddlewareTrait
     /**
      * Servive resolver instance.
      *
-     * @var ServiceResolverInterface
+     * @var ContainerInterface
      */
-    protected $resolver;
+    protected $container;
 
     /**
      * Get the middleware stack.
@@ -109,16 +111,18 @@ trait HasMiddlewareTrait
      */
     protected function filterMiddleware($middleware)
     {
-        if (is_object($middleware) &&
+
+        if (is_callable($middleware) || $middleware instanceof \Closure || 
+           is_string($middleware) && (preg_match(ServiceResolverInterface::RESOLVABLE_PATTERN, $middleware, $matches))
+        ) {
+            return new ResolvableMiddleware($middleware, $this->container);
+        }
+
+        if (is_object($middleware) || is_string($middleware) && 
+            ! ($middleware instanceof Closure) && 
             isImplementerOf($middleware, MiddlewareInterface::class)
         ) {
             return $middleware;
-        }
-
-        if (is_callable($middleware) || $middleware instanceof \Closure || 
-           (preg_match(ServiceResolverInterface::RESOLVABLE_PATTERN, $middleware, $matches))
-        ) {
-            return new ResolvableMiddleware($middleware, $this->resolver);
         }
 
         return false;

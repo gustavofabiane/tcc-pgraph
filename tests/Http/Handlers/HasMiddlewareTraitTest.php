@@ -17,14 +17,13 @@ class HasMiddlewareTraitTest extends TestCase implements RequestHandlerInterface
 
     public function setUp()
     {
-        $this->resolver = $this->mockResolver();
+        $this->container = $this->mockContainer();
         $this->middleware = [];
     }
 
-    protected function mockResolver()
+    protected function mockContainer()
     {
-        $container = new Container();
-        return $container->getResolver();
+        return new Container();
     }
 
     public function testInvalidMiddleware()
@@ -38,7 +37,7 @@ class HasMiddlewareTraitTest extends TestCase implements RequestHandlerInterface
         return [
             [
                 ['\Framework\Tests\Stubs\StubClass:middleware'],
-                [new ResolvableMiddleware('\Framework\Tests\Stubs\StubClass:middleware', $this->mockResolver())]
+                [new ResolvableMiddleware('\Framework\Tests\Stubs\StubClass:middleware', $this->mockContainer())]
             ],
             [
                 [
@@ -52,9 +51,9 @@ class HasMiddlewareTraitTest extends TestCase implements RequestHandlerInterface
                         function ($request, $handler) {
                             return $handler->handle($request);
                         },
-                        $this->mockResolver()
+                        $this->mockContainer()
                     ),
-                    new ResolvableMiddleware('\Framework\Tests\testMiddlewareFunction', $this->mockResolver()),
+                    new ResolvableMiddleware('\Framework\Tests\testMiddlewareFunction', $this->mockContainer()),
                 ]
             ],
         ];

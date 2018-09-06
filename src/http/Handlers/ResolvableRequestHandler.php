@@ -3,9 +3,9 @@
 namespace Framework\Http\Handlers;
 
 use Psr\Http\Message\ResponseInterface;
+use Framework\Container\ContainerInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
-use Framework\Container\ServiceResolverInterface;
 
 /**
  * Treats a resolvable as a request handler
@@ -27,10 +27,10 @@ class ResolvableRequestHandler implements RequestHandlerInterface
      * @param object|callable|string $resolvable
      * @param ServiceResolverInterface $resolver
      */
-    public function __construct($resolvable, ServiceResolverInterface $resolver)
+    public function __construct($resolvable, ContainerInterface $container)
     {
         $this->resolvable = $resolvable;
-        $this->resolver = $resolver;
+        $this->container = $container;
     }
 
     /**
@@ -53,6 +53,6 @@ class ResolvableRequestHandler implements RequestHandlerInterface
         ];
         $parameters += $queryParams;
 
-        return $this->resolver->resolve($this->resolvable, $parameters);
+        return $this->container->resolve($this->resolvable, $parameters);
     }
 }

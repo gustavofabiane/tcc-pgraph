@@ -3,11 +3,10 @@
 namespace Framework\Http\Middleware;
 
 use Psr\Http\Message\ResponseInterface;
-use Framework\Container\resolver;
+use Framework\Container\ContainerInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
-use Framework\Container\ServiceResolverInterface;
 
 class ResolvableMiddleware implements MiddlewareInterface
 {
@@ -24,21 +23,34 @@ class ResolvableMiddleware implements MiddlewareInterface
     /**
      * Resolver
      *
-     * @var ServiceResolverInterface
+     * @var Container
      */
-    private $resolver;
+    private $container;
 
-    public function __construct($resolvable, ServiceResolverInterface $resolver)
+    /**
+     * Creates a new resolvable middleware instance
+     *
+     * @param mixed $resolvable
+     * @param ContainerInterface $container
+     */
+    public function __construct($resolvable, ContainerInterface $container)
     {
         $this->resolvable = $resolvable;
-        $this->resolver = $resolver;
+        $this->container = $container;
     }
 
+    /**
+     * Process the resolvable as middleware of a request handler
+     *
+     * @param ServerRequestInterface $request
+     * @param RequestHandlerInterface $handler
+     * @return ResponseInterface
+     */
     public function process(
         ServerRequestInterface $request, 
         RequestHandlerInterface $handler
     ): ResponseInterface {
-        return $this->resolver->resolve(
+        return $this->container->resolve(
             $this->resolvable, 
             compact('request', 'handler')
         );

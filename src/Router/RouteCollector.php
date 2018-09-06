@@ -2,12 +2,14 @@
 
 namespace Framework\Router;
 
-use function Framework\isImplementerOf;
+use Closure;
+use FastRoute\RouteParser;
+use FastRoute\DataGenerator;
+use Framework\Router\RouteRequestHandler;
+use Framework\Container\ContainerInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
-use Framework\Container\ServiceResolverInterface;
 use FastRoute\RouteCollector as FastRouteCollector;
-use Framework\Router\RouteRequestHandler;
 
 /**
  * Adapter for FastRoute's RouteCollector to work with Request Handlers.
@@ -15,11 +17,11 @@ use Framework\Router\RouteRequestHandler;
 class RouteCollector extends FastRouteCollector
 {
     /**
-     * The service resolver instance.
+     * The app container instance.
      *
-     * @var ServiceResolverInterface
+     * @var ContainerInterface
      */
-    protected $resolver;
+    protected $container;
 
     /**
      * Route group middleware
@@ -36,12 +38,12 @@ class RouteCollector extends FastRouteCollector
      * @param DataGenerator $dataGenerator
      */
     public function __construct(
-        ServiceResolverInterface $resolver,
+        ContainerInterface $container,
         RouteParser $routeParser,
         DataGenerator $dataGenerator
     ) {
         parent::__construct($routeParser, $dataGenerator);
-        $this->resolver = $resolver;
+        $this->container = $container;
     }
 
     /**
@@ -55,7 +57,7 @@ class RouteCollector extends FastRouteCollector
      */
     public function addRoute($httpMethod, $route, $handler)
     {
-        $handler = new RouteRequestHandler($resolvable, $this->resolver);
+        $handler = new RouteRequestHandler($handler, $this->container);
         $handler->middleware($this->currentGroupMiddleware);
 
         $route = $this->currentGroupPrefix . $route;
@@ -76,12 +78,17 @@ class RouteCollector extends FastRouteCollector
      *
      * @param string $prefix
      * @param callable $callback
+     * @param array $groupMiddleware
      */
     public function addGroup($prefix, callable $callback, array $groupMiddleware = [])
     {
         $previousGroupMiddleware = $this->currentGroupMiddleware;
         $this->currentGroupMiddleware = array_merge($previousGroupMiddleware, $groupMiddleware);
         
+        if ($callback instanceof Closure) {
+            $callback = $callback->bindTo($this);
+        }
+
         parent::addGroup($prefix, $callback);
         
         $this->currentGroupMiddleware = $previousGroupMiddleware;
@@ -99,7 +106,7 @@ class RouteCollector extends FastRouteCollector
      */
     public function prefix($routePrefix, callable $callback, array $middleware = [])
     {
-        parent::addGroup($routePrefix, $callback, $middleware);
+        $this->addGroup($routePrefix, $callback, $middleware);
     }
 
     /**
