@@ -2,13 +2,27 @@
 
 namespace Framework\Router;
 
+use RuntimeException;
 use FastRoute\RouteCollector;
 use FastRoute\Dispatcher\GroupCountBased;
 use Psr\Http\Message\ServerRequestInterface;
-use FastRoute\RouteParser\Std as RouteParser;
-use Framework\Container\ServiceResolverInterface;
-use FastRoute\DataGenerator\GroupCountBased as DataGenerator;
+use Psr\Http\Server\RequestHandlerInterface;
 
+/**
+ * Match a server request URI path with a set of routes.
+ *
+ * Based on nikic/fast-route.
+ *
+ * @method \Framework\Router\RouteCollector get(string $pattern, $handler)
+ * @method \Framework\Router\RouteCollector post(string $pattern, $handler)
+ * @method \Framework\Router\RouteCollector put(string $pattern, $handler)
+ * @method \Framework\Router\RouteCollector patch(string $pattern, $handler)
+ * @method \Framework\Router\RouteCollector head(string $pattern, $handler)
+ * @method \Framework\Router\RouteCollector delete(string $pattern, $handler)
+ * @method \Framework\Router\RouteCollector all(string $pattern, $handler)
+ * @method \Framework\Router\RouteCollector prefix($routePrefix, callable $callback, array $middleware = [])
+ *
+ */
 class Router implements RouterInterface
 {
     /**
@@ -19,27 +33,11 @@ class Router implements RouterInterface
     protected $dispatcher;
 
     /**
-     * Resolver instance.
-     *
-     * @var ServiceResolverInterface
-     */
-    protected $resolver;
-
-    /**
      * Route collector implementation
      *
      * @var RouteCollector
      */
     protected $routeCollector;
-
-    /**
-     * Dispatcher type.
-     *
-     * Can assume value of 'simple' or 'cached'
-     *
-     * @var string
-     */
-    protected $dispatcherType;
 
     /**
      * An array with all routes files registered.
@@ -56,22 +54,18 @@ class Router implements RouterInterface
     protected $routesCacheFile;
 
     /**
-     * Creates a new Router instance.
+     * Create a new Router instance.
      *
-     * @param string $dispatcherType
+     * @param RouteCollector $routeCollector
      * @param array $routesFiles
      * @param string|null $routesCacheFile
      */
     public function __construct(
-        ServiceResolverInterface $resolver,
         RouteCollector $routeCollector,
-        string $dispatcherType,
-        array $routesFiles,
+        array $routesFiles = null,
         ?string $routesCacheFile = null
     ) {
-        $this->resolver = $resolver;
         $this->routeCollector = $routeCollector;
-        $this->dispatcherType = $dispatcherType;
         $this->routesFiles = $routesFiles;
         $this->routesCacheFile = $routesCacheFile;
     }
@@ -99,12 +93,13 @@ class Router implements RouterInterface
     {
         if (method_exists($this->routeCollector, $name)) {
             return call_user_func_array(
-                [$this->routeCollector, $name], $arguments
+                [$this->routeCollector, $name],
+                $arguments
             );
         }
 
-        throw new \RuntimeException(
-            sprintf('Undefined method \'%s\' called for %s', $name, __CLASS__)
+        throw new RuntimeException(
+            sprintf('Undefined method \'%d\' called for %s', $name, __CLASS__)
         );
     }
 
@@ -122,8 +117,15 @@ class Router implements RouterInterface
             $request->getMethod(),
             $request->getUri()->getPath()
         );
-
-        return new Route($routeData[0], $routeData[1], $routeData[2]);
+        
+        return new Route(
+            $request->getUri()->getPath(),
+            $routeData[0],
+            isset($routeData[1]) && $routeData[1] instanceof RequestHandlerInterface
+                ? $routeData[1]
+                : null,
+            $routeData[2] ?? null
+        );
     }
 
     /**
@@ -135,25 +137,29 @@ class Router implements RouterInterface
     {
         if (!$this->dispatcher) {
             $files = $this->routesFiles;
-            $routeDefinitionCallback = function (RouteCollector $router) use ($files) {
-                foreach ($files as $file) {
-                    require $file;
-                }
-            };
+            if (!empty($files)) {
+                $routeDefinitionCallback = function (RouteCollector $router) use ($files) {
+                    foreach ($files as $file) {
+                        require $file;
+                    }
+                };
+            }
 
             $cacheDisabled = is_null($this->routesCacheFile);
     
             if (!$cacheDisabled && file_exists($this->routesCacheFile)) {
                 $dispatchData = require $this->routesCacheFile;
                 if (!is_array($dispatchData)) {
-                    throw new \RuntimeException(
+                    throw new RuntimeException(
                         sprintf('Invalid cache file \'%s\'', $this->routesCacheFile)
                     );
                 }
             }
             
             if (!isset($dispatchData)) {
-                $routeDefinitionCallback($this->routeCollector);
+                if (isset($routeDefinitionCallback)) {
+                    $routeDefinitionCallback($this->routeCollector);
+                }
 
                 /** @var RouteCollector $routeCollector */
                 $dispatchData = $this->routeCollector->getData();

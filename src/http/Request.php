@@ -588,7 +588,7 @@ class Request extends Message implements ServerRequestInterface
     public function getParsedBody()
     {
         if (!$this->parsedBody) {
-            $contentTypeHeader = $this->getHeader('Content-Type')[0];
+            $contentTypeHeader = $this->getHeader('Content-Type')[0] ?? '';
             $contentType = preg_split('/\s*[;,]\s*/', $contentTypeHeader);
             $parser = $this->bodyParsers[strtolower($contentType[0])] ?? null;
             if (!is_null($parser)) {

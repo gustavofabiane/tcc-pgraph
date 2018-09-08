@@ -12,9 +12,16 @@ interface RouteInterface
     /**
      * Get the request handler of the route.
      *
-     * @return RequestHandlerInterface
+     * @return RequestHandlerInterface|null
      */
-    public function getHandler(): RequestHandlerInterface;
+    public function getHandler(): ?RequestHandlerInterface;
+
+    /**
+     * Get the route path
+     *
+     * @return string
+     */
+    public function getPath(): string;
 
     /**
      * Get the route arguments

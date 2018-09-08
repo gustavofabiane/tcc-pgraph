@@ -56,12 +56,26 @@ class RouteCollectorTest extends TestCase
 
     public function testAddGroup()
     {
-        $this->collector->prefix('/prefix', function () {
-            $this->get('/ok', function ($id) {
-                return (new Response())->withStatus((int) $id);
-            });
+        $groupedRouteHandler = function ($id) {
+            return (new Response())->withStatus((int) $id);
+        };
+        $this->collector->prefix('/prefix', function () use ($groupedRouteHandler) {
+            $this->get('/ok', $groupedRouteHandler);
+            $this->post('/ok-post', $groupedRouteHandler)->add(XmlBody::class);
         }, [XmlBody::class, ResponseWithErrorStatus::class]);
 
-        $this->assertSame(false, empty($this->collector->getData()));
+        $this->assertSame(false, empty($this->collector->getData())); 
+        $this->assertEquals(
+            [[
+                'GET' => [
+                    '/prefix/ok' => (new RouteRequestHandler($groupedRouteHandler, $this->container))
+                                    ->middleware([XmlBody::class, ResponseWithErrorStatus::class])
+                ],
+                'POST' => [
+                    '/prefix/ok-post' => (new RouteRequestHandler($groupedRouteHandler, $this->container))
+                                        ->middleware([XmlBody::class, ResponseWithErrorStatus::class, XmlBody::class])
+                ]
+            ], []], 
+            $this->collector->getData());
     }
 }
