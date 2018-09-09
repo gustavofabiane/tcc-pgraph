@@ -54,6 +54,7 @@ class NotFoundHandler implements RequestHandlerInterface
     public function html(ServerRequestInterface $request)
     {
         return <<<END
+<!DOCTYPE html>
 <html>
     <head>
         <title>Page Not Found</title>
