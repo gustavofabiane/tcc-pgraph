@@ -13,6 +13,7 @@
         },
         "files": [
             "src/functions.php",
+            "src/Container/functions.php",
             "src/Http/functions.php"
         ]
     },

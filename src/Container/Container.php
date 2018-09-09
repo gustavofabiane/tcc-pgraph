@@ -62,6 +62,13 @@ class Container implements
     private $listeners = [];
 
     /**
+     * Container singleton instance
+     *
+     * @var static
+     */
+    protected static $instance;
+
+    /**
      * Contructs the container with an array of services and a resolver
      *
      * @param array $values
@@ -72,7 +79,6 @@ class Container implements
         foreach($services as $id => $assembler) {
             $this->register($id, $assembler);
         }
-
         $this->selfProvide($resolver);
     }
 
@@ -162,7 +168,7 @@ class Container implements
         }
             
         if (!$instance) {
-            throw new ContainerException('Cannot resolve service \'' . $service['id'] . '\'');
+            throw new ContainerException(sprintf('Cannot resolve service \'%s\'', $service['id']));
         }
 
         if ($service['singleton']) {
@@ -214,7 +220,9 @@ class Container implements
         }
 
         if (!$resolvable) {
-            throw new ContainerException($service['id'] . ' cannot be converted to resolvable.');
+            throw new ContainerException(
+                sprintf('\'%s\' cannot be converted to resolvable.', $service['id'])
+            );
         }
 
         return $resolvable;
@@ -357,8 +365,9 @@ class Container implements
     {
         if (!static::implements($implemented, $interface)) {
             throw new ContainerException(
-                (is_string($implemented) ? $implemented : get_class($implemented)) .
-                ' must implements ' . $interface
+                sprintf('\'%s\' must implements \'%s\'')
+                (is_string($implemented) ? $implemented : get_class($implemented)),
+                $interface
             );
         }
         $this->register($interface, $implemented, $singleton);
@@ -387,7 +396,9 @@ class Container implements
     public function alias(string $alias, string $target)
     {
         if (!$this->has($target)) {
-            throw new AliasTargetNotFoundException($target . ' is not registered in the container');
+            throw new AliasTargetNotFoundException(
+                sprintf('\'%s\' is not registered in the container', $target)
+            );
         }
         $this->aliases[$alias] = $target;
     }
@@ -456,9 +467,33 @@ class Container implements
     public static function implements($class, string $interface): bool
     {
         if (is_string($class) && !class_exists($class)) {
-            throw new ContainerException('Class \'' . $class . '\' does not exists.');
+            throw new ContainerException(sprintf('Class \'%s\' does not exists', $class));
         }
         return array_key_exists($interface, class_implements($class));
+    }
+    
+    /**
+     * Get the container singleton instance or creates one if none exists.
+     *
+     * @return static
+     */
+    public static function getInstance()
+    {
+        if (static::$instance === null) {
+            static::$instance = new static();
+        }
+        return static::$instance;
+    }
+
+    /**
+     * Set the singleton container instance
+     *
+     * @param static $instance
+     * @return void
+     */
+    public static function setInstance(Container $instance)
+    {
+        static::$instance = $instance;
     }
 
     /*

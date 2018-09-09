@@ -21,6 +21,8 @@ class Application extends Container implements RequestHandlerInterface
     public function __construct(array $services)
     {
         parent::__construct($services);
+        static::setInstance($this);
+        
         (new DefaultProvider())($this);
     }
 
