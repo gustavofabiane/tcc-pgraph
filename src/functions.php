@@ -3,7 +3,7 @@
 namespace Framework;
 
 /**
- * Check whether the concrete type implements the given interface
+ * Check whether the concrete type implements the given interface.
  *
  * @param string|object $concrete
  * @param string $interface

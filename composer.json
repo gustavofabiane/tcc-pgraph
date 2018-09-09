@@ -12,7 +12,8 @@
             "Framework\\": "src/"
         },
         "files": [
-            "src/functions.php"
+            "src/functions.php",
+            "src/Http/functions.php"
         ]
     },
     "autoload-dev": {

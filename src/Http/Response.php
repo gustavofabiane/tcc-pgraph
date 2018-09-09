@@ -37,6 +37,7 @@ class Response extends Message implements ResponseInterface
         StreamInterface $body = null
     ) {
         $this->statusCode = $statusCode;
+        $this->reasonPhrase = ResponseStatusCode::STATUS_REASON_PHRASES[$statusCode] ?? null;
         $this->body = $body ?: new Body('php://temp', 'r+');
 
         foreach ($headers as $name => $value) {

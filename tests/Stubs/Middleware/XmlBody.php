@@ -2,6 +2,7 @@
 
 namespace Framework\Tests\Stubs\Middleware;
 
+use Framework\Http\Body;
 use Framework\Http\ResponseStatusCode;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Server\MiddlewareInterface;
