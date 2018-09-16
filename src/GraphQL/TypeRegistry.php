@@ -13,7 +13,7 @@ use GraphQL\Type\Definition\BooleanType;
 use Framework\Container\ContainerInterface;
 use Framework\GraphQL\Exception\InvalidTypeException;
 
-class TypeRegistry extends Type
+class TypeRegistry implements TypeRegistryInterface
 {
     /**
      * Global type registry instance
@@ -44,49 +44,165 @@ class TypeRegistry extends Type
     protected $types = [];
 
     /**
+     * Registered fields
+     *
+     * @var array
+     */
+    protected $fields = [];
+
+    /**
      * Create a new type registry instance
      *
      * @param ContainerInterface $container
      */
     public function __construct(
         ContainerInterface $container, 
-        array $types = [], 
         $typesNamespace = ''
     ) {
         $this->container = $container;
         $this->typesNamespace = rtrim($typesNamespace, '\\');
         
-        foreach($types as $type) {
-            $this->set($type);
-        }
-
         static::$instance = $this;
     }
 
-    public function setType(Type $type)
+    public function exists(string $entryTypeOrField): bool
     {
-        
-        return $this;
+        return isset($this->types[$entryTypeOrField]) || 
+               isset($this->types[$entryTypeOrField]);
     }
 
-    public function setField(Field $field)
+    protected function assertExistsInRegistry($entryTypeOrField)
     {
+        if (!$this->exists($entryTypeOrField)) {
+            throw new \RuntimeException(sprintf(
+                'Entry [%s] does not exists in the type registry',
+                $entryTypeOrField
+            ));
+        }
+    }
 
+    public function addType($type, string $name = null)
+    {
+        $typeKey = $name ?: $this->keyForType($type);
+        $this->types[$typeKey] = $type;
+    }
+    
+    public function addField($field, string $name = null)
+    {
+        $typeKey = $name ?: $this->keyForType($type);
+        $this->fields[$typeKey] = $type;
+    }
+
+    /**
+     * Get a type from the registry
+     *
+     * @param string $type
+     * @return Type
+     */
+    public function type(string $type): Type
+    {
+        $this->assertExistsInRegistry($type);
+        
+        if ($this->types[$type] instanceof Type) {
+            return $this->types[$type];
+        }
+
+        $type = $this->container->resolve($this->types[$type]);
+        if (method_exists($type, 'make')) {
+            $type->make();
+        }
+
+        return $this->types[$type] = $type;
     }
     
     /**
-     * Get a type from the registry
+     * Get a field from the registry
      *
      * @param string $type
      * @param array $resolveWith
      * @return Type
      */
-    public function field(string $type): Type
+    public function field(string $field, string $name = null): Field
     {
-        $this->assertValidType($type);
-        $type = $this->normalizeTypeName($type);
+        $this->assertExistsInRegistry($field);
         
-        return $this->types[$type] ?? $this->buildType($type);
+        if (! $this->fields[$field] instanceof Field) {
+            $this->fields[$field] = $this->container->resolve($this->fields[$field]);
+        }
+        $field = $this->fields[$field];
+        return $field->make($name);
+    }
+
+    /**
+     * Try to create a key value for a given type definition
+     *
+     * @param string|Type|Field $type
+     * @return string
+     */
+    protected function keyForType($type): string
+    {
+        if ($type instanceof Type) {
+            return $type->name;
+        }
+
+        if ($type instanceof Field) {
+            return $type->name();
+        }
+
+        if(is_string($type)) {
+            if (is_subclass_of($type, Type::class)) {
+                return end(explode('\\', str_replace('Type', '', $type)));
+            }
+            if (is_subclass_of($type, Field::class)) {
+                return end(explode('\\', str_replace('Field', '', $type)));
+            }
+        }
+
+        throw new \InvalidArgumentException(
+            sprintf('Cannot create key for given type \'%s\'', (string) $type)
+        );
+    }
+
+    /**
+     * Get a field or type definition from the registry
+     *
+     * @param string $typeOrField
+     * @return Field|Type
+     */
+    public function get(string $typeOrField)
+    {
+        $this->assertExistsInRegistry($typeOrField);
+
+        if (isset($this->types[$typeOrField])) {
+            return $this->type($typeOrField);
+        }
+        return $this->field($typeOrField);
+    }
+
+    /**
+     * Translates the type or field name call as a registry method to the get() method
+     *
+     * @param string $typeOrField
+     * @param array $arguments
+     * @return Field|Type
+     */
+    public function __call(string $typeOrField, array $arguments = null)
+    {
+        $typeOrField = ucfirst($typeOrField);
+        return $this->get($typeOrField, ...$arguments);
+    }
+
+    /**
+     * Translates the type or field name call method on static 
+     * to the get() method of the global registry instance
+     *
+     * @param string $typeOrField
+     * @param array $arguments
+     * @return Field|Type
+     */
+    public static function __callStatic(string $typeOrField, array $arguments = null)
+    {
+        return static::$instance->{$typeOrField}(...$arguments);
     }
 
     /**
@@ -96,7 +212,7 @@ class TypeRegistry extends Type
      */
     public function id(): IDType
     {
-        return static::id();
+        return Type::id();
     }
 
     /**
@@ -106,7 +222,7 @@ class TypeRegistry extends Type
      */
     public function int(): IntType
     {
-        return static::int();
+        return Type::int();
     }
 
     /**
@@ -116,7 +232,7 @@ class TypeRegistry extends Type
      */
     public function string(): StringType
     {
-        return static::string();
+        return Type::string();
     }
 
     /**
@@ -126,7 +242,7 @@ class TypeRegistry extends Type
      */
     public function float(): FloatType
     {
-        return static::float();
+        return Type::float();
     }
 
     /**
@@ -136,18 +252,6 @@ class TypeRegistry extends Type
      */
     public function boolean(): BooleanType
     {
-        return static::boolean();
-    }
-
-
-
-    public function __call($type, $arguments): Type
-    {
-        return $this->get($type, $arguments);
-    }
-
-    public static function __callStatic($name, $arguments): Type
-    {
-        return static::getInstance()->get($type, $arguments);
+        return Type::boolean();
     }
 }
