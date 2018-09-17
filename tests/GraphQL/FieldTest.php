@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Framework\Tests\GraphQL;
 
 use Framework\GraphQL\Field;
@@ -8,19 +10,24 @@ use GraphQL\Type\Definition\Type;
 use Framework\Container\Container;
 use Framework\GraphQL\TypeRegistry;
 use Framework\GraphQL\Definition\Field\PadField;
+use Framework\GraphQL\Definition\Enum\PadDirection;
 
 class FieldTest extends TestCase
 {
     public function fieldClassImplProvider()
     {
         $registry = new TypeRegistry(new Container());
+        $registry->addType(PadDirection::class);
+        
         return [
             [
                 new class($registry) extends Field {
-                    public function name(): string {
+                    public function name(): string
+                    {
                         return 'padRight';
                     }
-                    public function type(): Type {
+                    public function type(): Type
+                    {
                         return $this->types->string();
                     }
                     public function args(): array
@@ -33,7 +40,8 @@ class FieldTest extends TestCase
                             'size' => $this->types->int()
                         ];
                     }
-                    public function resolve($src, $args) {
+                    public function resolve($src, $args)
+                    {
                         $value = $src->{$this->key};
                         return str_pad($value, $args['size'], $args['pad']);
                     }
@@ -66,8 +74,14 @@ class FieldTest extends TestCase
     /**
      * @dataProvider fieldClassImplProvider
      */
-    public function testFieldImplementation($field, $defaultName, $srcKey, $arguments, $src, $resolved)
-    {
+    public function testFieldImplementation(
+        $field,
+        $defaultName,
+        $srcKey,
+        $arguments,
+        $src,
+        $resolved
+    ) {
         $this->assertInstanceOf(Field::class, $field);
         $this->assertEquals($defaultName, $field->name());
         $this->assertSame($resolved, $field->make(null, $srcKey)->resolve($src(), $arguments));

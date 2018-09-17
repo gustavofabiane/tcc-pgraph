@@ -13,25 +13,32 @@ use GraphQL\Type\Definition\EnumType;
 abstract class Enum extends EnumType
 {
     /**
+     * The type resgitry implementation instance
+     *
+     * @var TypeRegistryInterface
+     */
+    protected $types;
+
+    /**
      * The enum type name
      *
      * @var string
      */
-    protected $name;
+    public $name;
 
     /**
      * The enum type description
      *
      * @var string
      */
-    protected $description;
+    public $description;
 
     /**
      * The values accepted by the enum type
      *
      * @var array
      */
-    protected $values;
+    public $values;
 
     /**
      * The enum type instance
@@ -41,12 +48,22 @@ abstract class Enum extends EnumType
     protected static $instance;
 
     /**
+     * Create a new enum type instance
+     *
+     * @param TypeRegistryInterface $types
+     */
+    public function __construct(TypeRegistryInterface $types)
+    {
+        $this->types = $types;
+    }
+
+    /**
      * Make the enum type definition
      *
      * @param string $name
-     * @return EnumType
+     * @return void
      */
-    public final function make(): EnumType
+    public final function make()
     {
         if ($this->config) {
             parent::__construct([

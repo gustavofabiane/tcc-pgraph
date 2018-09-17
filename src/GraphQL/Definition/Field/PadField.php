@@ -7,6 +7,7 @@ namespace Framework\GraphQL\Definition\Field;
 use ArrayAccess;
 use Framework\GraphQL\Field;
 use GraphQL\Type\Definition\Type;
+use Framework\GraphQL\Definition\Enum\PadDirection;
 
 /**
  * Abstract implementation of custom field definitions
@@ -31,6 +32,10 @@ class PadField extends Field
             'pad' => [
                 'type' => $this->types->string(),
                 'default_value' => '0'
+            ], 
+            'deirection' => [
+                'type' => $this->types->padDirection(),
+                'default_value' => PadDirection::PAD_LEFT
             ],
             'size' => $this->types->int()
         ];

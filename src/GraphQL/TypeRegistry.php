@@ -7,7 +7,9 @@ namespace Framework\GraphQL;
 use GraphQL\Type\Definition\Type;
 use GraphQL\Type\Definition\IDType;
 use GraphQL\Type\Definition\IntType;
+use GraphQL\Type\Definition\NonNull;
 use GraphQL\Type\Definition\FloatType;
+use GraphQL\Type\Definition\ListOfType;
 use GraphQL\Type\Definition\StringType;
 use GraphQL\Type\Definition\BooleanType;
 use Framework\Container\ContainerInterface;
@@ -51,7 +53,7 @@ class TypeRegistry implements TypeRegistryInterface
     protected $fields = [];
 
     /**
-     * Create a new type registry instance
+     * Create a new type registry instance.
      *
      * @param ContainerInterface $container
      */
@@ -65,12 +67,26 @@ class TypeRegistry implements TypeRegistryInterface
         static::$instance = $this;
     }
 
+    /**
+     * Check whether a given entry idntifier exists in the registry.
+     *
+     * @param string $entryTypeOrField
+     * @return bool
+     */
     public function exists(string $entryTypeOrField): bool
     {
+        $entryTypeOrField = strtolower($entryTypeOrField);
+
         return isset($this->types[$entryTypeOrField]) || 
                isset($this->types[$entryTypeOrField]);
     }
 
+    /**
+     * Assert if an entry exists in regitry.
+     *
+     * @param string $entryTypeOrField
+     * @return void
+     */
     protected function assertExistsInRegistry($entryTypeOrField)
     {
         if (!$this->exists($entryTypeOrField)) {
@@ -81,16 +97,34 @@ class TypeRegistry implements TypeRegistryInterface
         }
     }
 
+    /**
+     * Add a type to the register.
+     *
+     * @param Type|string $type
+     * @param string $name
+     * @return void
+     */
     public function addType($type, string $name = null)
     {
+        if (is_string($type) && !class_exists($type)) {
+            $type = sprintf('%s\%s', $this->typesNamespace, ltrim($type, '\\'));
+        }
         $typeKey = $name ?: $this->keyForType($type);
+        
         $this->types[$typeKey] = $type;
     }
     
+    /**
+     * Add a field to the registry.
+     *
+     * @param Field|string $field
+     * @param string $name
+     * @return void
+     */
     public function addField($field, string $name = null)
     {
-        $typeKey = $name ?: $this->keyForType($type);
-        $this->fields[$typeKey] = $type;
+        $fieldKey = $name ?: $this->keyForType($field);
+        $this->fields[$fieldKey] = $field;
     }
 
     /**
@@ -102,17 +136,21 @@ class TypeRegistry implements TypeRegistryInterface
     public function type(string $type): Type
     {
         $this->assertExistsInRegistry($type);
+        $type = strtolower($type);
         
         if ($this->types[$type] instanceof Type) {
             return $this->types[$type];
         }
 
-        $type = $this->container->resolve($this->types[$type]);
+        $typeKey = $type;
+        $type = $this->container->resolve(
+            $this->types[$type], ['types' => $this]
+        );
         if (method_exists($type, 'make')) {
             $type->make();
         }
-
-        return $this->types[$type] = $type;
+        
+        return $this->types[$typeKey] = $type;
     }
     
     /**
@@ -122,15 +160,19 @@ class TypeRegistry implements TypeRegistryInterface
      * @param array $resolveWith
      * @return Type
      */
-    public function field(string $field, string $name = null): Field
+    public function field(string $field, string $name = null, string $key = null): Field
     {
         $this->assertExistsInRegistry($field);
+        $field = strtolower($field);
         
         if (! $this->fields[$field] instanceof Field) {
-            $this->fields[$field] = $this->container->resolve($this->fields[$field]);
+            $this->fields[$field] = $this->container->resolve(
+                $this->fields[$field], 
+                ['types' => $this]
+            );
         }
         $field = $this->fields[$field];
-        return $field->make($name);
+        return $field->make($name, $key);
     }
 
     /**
@@ -142,19 +184,21 @@ class TypeRegistry implements TypeRegistryInterface
     protected function keyForType($type): string
     {
         if ($type instanceof Type) {
-            return $type->name;
+            return strtolower($type->name);
         }
 
         if ($type instanceof Field) {
-            return $type->name();
+            return strtolower($type->name());
         }
 
-        if(is_string($type)) {
+        if(class_exists($type)) {
             if (is_subclass_of($type, Type::class)) {
-                return end(explode('\\', str_replace('Type', '', $type)));
+                $explodedTypeName = explode('\\', str_replace('Type', '', $type));
+                return strtolower(end($explodedTypeName));
             }
             if (is_subclass_of($type, Field::class)) {
-                return end(explode('\\', str_replace('Field', '', $type)));
+                $explodedFieldName = explode('\\', str_replace('Field', '', $type));
+                return strtolower(end($explodedFieldName));
             }
         }
 
@@ -169,14 +213,15 @@ class TypeRegistry implements TypeRegistryInterface
      * @param string $typeOrField
      * @return Field|Type
      */
-    public function get(string $typeOrField)
+    public function get(string $typeOrField, string $name = null, string $key = null)
     {
         $this->assertExistsInRegistry($typeOrField);
+        $typeOrField = strtolower($typeOrField);
 
         if (isset($this->types[$typeOrField])) {
             return $this->type($typeOrField);
         }
-        return $this->field($typeOrField);
+        return $this->field($typeOrField, $name, $key);
     }
 
     /**
@@ -188,7 +233,6 @@ class TypeRegistry implements TypeRegistryInterface
      */
     public function __call(string $typeOrField, array $arguments = null)
     {
-        $typeOrField = ucfirst($typeOrField);
         return $this->get($typeOrField, ...$arguments);
     }
 
@@ -253,5 +297,35 @@ class TypeRegistry implements TypeRegistryInterface
     public function boolean(): BooleanType
     {
         return Type::boolean();
+    }
+
+    /**
+     * Wrap a type as Non Null
+     *
+     * @param Type|string $wrappedType
+     * @return NonNull
+     */
+    public function nonNull($wrappedType): NonNull
+    {
+        return Type::nonNull(
+            $wrappedType instanceOf Type 
+            ? $wrappedType 
+            : $this->type($wrappedType)
+        );
+    }
+
+    /**
+     * Wrap a type as a list
+     *
+     * @param Type|string $wrappedType
+     * @return ListOfType
+     */
+    public function listOf($wrappedType): ListOfType
+    {
+        return Type::listOf(
+            $wrappedType instanceOf Type 
+            ? $wrappedType 
+            : $this->type($wrappedType)
+        );
     }
 }
