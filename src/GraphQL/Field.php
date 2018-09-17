@@ -164,7 +164,7 @@ abstract class Field implements ArrayAccess
      * @param array $args
      * @return mixed
      */
-    abstract public function resolve($obj, array $args);
+    abstract public function resolve($obj, array $args = []);
 
     /**
      * ArrayAccess implementation

@@ -69,5 +69,8 @@ class TypeRegistryTest extends TestCase
 
         $this->assertTrue($this->types->exists('StubType'));
         $this->assertInstanceOf(ObjectType::class, $this->types->stubType());
+
+        // $type = $this->types->type('StubType');
+        // $type->
     }
 }

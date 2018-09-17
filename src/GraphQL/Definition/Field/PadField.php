@@ -41,7 +41,7 @@ class PadField extends Field
         ];
     }
 
-    public function resolve($src, array $args)
+    public function resolve($src, array $args = [])
     {
         $value = $src->{$this->key};
         $args += ['size' => strlen($value)];

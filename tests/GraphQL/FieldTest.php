@@ -40,7 +40,7 @@ class FieldTest extends TestCase
                             'size' => $this->types->int()
                         ];
                     }
-                    public function resolve($src, $args)
+                    public function resolve($src, array $args = [])
                     {
                         $value = $src->{$this->key};
                         return str_pad($value, $args['size'], $args['pad']);
