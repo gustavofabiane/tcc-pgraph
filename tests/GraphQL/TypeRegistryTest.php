@@ -4,16 +4,18 @@ declare(strict_types=1);
 
 namespace Framework\Tests\GraphQL;
 
+use Framework\GraphQL\Field;
 use PHPUnit\Framework\TestCase;
+use GraphQL\Type\Definition\Type;
 use Framework\Container\Container;
 use Framework\GraphQL\TypeRegistry;
 use GraphQL\Type\Definition\IDType;
 use GraphQL\Type\Definition\IntType;
 use GraphQL\Type\Definition\FloatType;
+use GraphQL\Type\Definition\ObjectType;
 use GraphQL\Type\Definition\StringType;
 use GraphQL\Type\Definition\BooleanType;
 use Framework\GraphQL\TypeRegistryInterface;
-use GraphQL\Type\Definition\ObjectType;
 
 class TypeRegistryTest extends TestCase
 {
@@ -35,6 +37,41 @@ class TypeRegistryTest extends TestCase
             new Container(),
             'Framework\Tests\GraphQL\Type'
         );
+        $this->types->addType($this->stubType('StubForTest'));
+        $this->types->addField($this->stubField('stubFieldForTest'));
+    }
+
+    protected function stubType($name = null)
+    {
+        return new ObjectType([
+            'name' => $name ?: 'StubType',
+            'fields' => [
+                'id' => $this->types->id(),
+                'name' => $this->types->string()
+            ],
+            'resolve' => function ($src) {
+                return [
+                    'id' => '12345',
+                    'name' => 'Stub Name'
+                ];
+            }
+        ]);
+    }
+
+    protected function stubField($name = null)
+    {
+        $field = new class($this->types) extends Field {
+            public function type(): Type
+            {
+                return $this->types->int();
+            }
+            public function resolve($src, array $args = [])
+            {
+                return $src->stubField * 2;
+            }
+        };
+
+        return $field->make($name);
     }
 
     public function testCreateInstance()
@@ -53,24 +90,48 @@ class TypeRegistryTest extends TestCase
 
     public function testAddType()
     {
-        $this->types->addType(new ObjectType([
-            'name' => 'StubType',
-            'fields' => [
-                'id' => $this->types->id(),
-                'name' => $this->types->string()
-            ],
-            'resolve' => function ($src) {
-                return [
-                    'id' => '12345',
-                    'name' => 'Stub Name'
-                ];
-            }
-        ]));
+        $this->types->addType($this->stubType('StubType'));
 
         $this->assertTrue($this->types->exists('StubType'));
         $this->assertInstanceOf(ObjectType::class, $this->types->stubType());
+    }
 
-        // $type = $this->types->type('StubType');
-        // $type->
+    public function testAddField()
+    {
+        $this->types->addField($this->stubField('stubField'));
+
+        $this->assertTrue($this->types->exists('stubField'));
+        $this->assertInstanceOf(Field::class, $this->types->stubField());
+    }
+
+    public function testCallStatic()
+    {   
+        $typeFromStatic = TypeRegistry::stubForTest();
+        $this->assertInstanceOf(Type::class, $typeFromStatic);
+        $this->assertEquals('StubForTest', $typeFromStatic->name);
+    }
+
+    public function testGetNonExistentType()
+    {
+        $this->expectException(\RuntimeException::class);
+        $this->expectExceptionMessage('Entry [notRegistered] does not exists in the type registry');
+
+        $this->types->notRegistered();
+    }
+    
+    public function testGetTypeAsField()
+    {   
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Given entry [StubForTest] is not a valid registered field');
+
+        $this->types->field('StubForTest');
+    }
+    
+    public function testGetFieldAsType()
+    {
+        $this->expectException(\InvalidArgumentException::class);
+        $this->expectExceptionMessage('Given entry [stubFieldForTest] is not a valid registered type');
+
+        $this->types->type('stubFieldForTest');
     }
 }

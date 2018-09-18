@@ -78,7 +78,7 @@ class TypeRegistry implements TypeRegistryInterface
         $entryTypeOrField = strtolower($entryTypeOrField);
 
         return isset($this->types[$entryTypeOrField]) || 
-               isset($this->types[$entryTypeOrField]);
+               isset($this->fields[$entryTypeOrField]);
     }
 
     /**
@@ -136,8 +136,15 @@ class TypeRegistry implements TypeRegistryInterface
     public function type(string $type): Type
     {
         $this->assertExistsInRegistry($type);
+        $hold = $type;
         $type = strtolower($type);
         
+        if (!isset($this->types[$type])) {
+            throw new \InvalidArgumentException(
+                sprintf('Given entry [%s] is not a valid registered type', $hold)
+            );
+        }
+
         if ($this->types[$type] instanceof Type) {
             return $this->types[$type];
         }
@@ -163,8 +170,15 @@ class TypeRegistry implements TypeRegistryInterface
     public function field(string $field, string $name = null, string $key = null): Field
     {
         $this->assertExistsInRegistry($field);
+        $hold = $field;
         $field = strtolower($field);
         
+        if (!isset($this->fields[$field])) {
+            throw new \InvalidArgumentException(
+                sprintf('Given entry [%s] is not a valid registered field', $hold)
+            );
+        }
+
         if (! $this->fields[$field] instanceof Field) {
             $this->fields[$field] = $this->container->resolve(
                 $this->fields[$field], 
@@ -193,17 +207,17 @@ class TypeRegistry implements TypeRegistryInterface
 
         if(class_exists($type)) {
             if (is_subclass_of($type, Type::class)) {
-                $explodedTypeName = explode('\\', str_replace('Type', '', $type));
+                $explodedTypeName = explode('\\', preg_replace('/(T|t)ype$/', '', $type));
                 return strtolower(end($explodedTypeName));
             }
             if (is_subclass_of($type, Field::class)) {
-                $explodedFieldName = explode('\\', str_replace('Field', '', $type));
+                $explodedFieldName = explode('\\', preg_replace('/(F|f)ield$/', '', $type));
                 return strtolower(end($explodedFieldName));
             }
         }
 
         throw new \InvalidArgumentException(
-            sprintf('Cannot create key for given type \'%s\'', (string) $type)
+            sprintf('Cannot create key for given type or field \'%s\'', (string) $type)
         );
     }
 

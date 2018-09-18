@@ -108,8 +108,11 @@ abstract class Field implements ArrayAccess
      */
     public function name(): string 
     {
-        $explodedFieldName = explode('\\', str_replace('Field', '', get_class($this)));
-        return $this->name = lcfirst(end($explodedFieldName));
+        if (!$this->name) {
+            $explodedFieldName = explode('\\', str_replace('Field', '', get_class($this)));
+            $this->name = lcfirst(end($explodedFieldName));
+        }
+        return $this->name;
     }
 
     /**

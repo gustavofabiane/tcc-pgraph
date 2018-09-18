@@ -5,13 +5,13 @@ declare(strict_types=1);
 namespace Framework\GraphQL;
 
 use Exception;
-use GraphQL\Server\StandardServer;
+use GraphQL\Error\FormattedError;
 use Framework\Http\ResponseStatusCode;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 
-use function Framework\Http\jsonResponse;
+use function Framework\Http\response;
 
 /**
  * Handle request for the GraphQL server.
@@ -21,7 +21,7 @@ class GraphQLRequestHandler implements RequestHandlerInterface
     /**
      * GraphQL server instance
      *
-     * @var StandardServer
+     * @var GraphQLServerInterface
      */
     protected $graphqlServer;
 
@@ -35,12 +35,12 @@ class GraphQLRequestHandler implements RequestHandlerInterface
     /**
      * Create a new graphql server handler instance
      *
-     * @param StandardServer $graphqlServer
+     * @param GraphQLServerInterface $graphqlServer
      * @param bool $debug
      */
-    public function __construct(StandardServer $graphqlServer, bool $debug = false)
+    public function __construct(GraphQLServerInterface $graphqlServer, bool $debug = false)
     {
-        $this->graphqlSerber = $graphqlServer;
+        $this->graphqlServer = $graphqlServer;
         $this->debug = $debug;
     }
 
@@ -54,7 +54,7 @@ class GraphQLRequestHandler implements RequestHandlerInterface
     {
         $responseStatusCode = ResponseStatusCode::OK;
         try {
-            $output = $this->graphqlServer->executePsrRequest($request);
+            $output = $this->graphqlServer->execute($request);
         } catch (Exception $error) {
             $output = [
                 'errors' => [
@@ -63,6 +63,6 @@ class GraphQLRequestHandler implements RequestHandlerInterface
             ];
             $responseStatusCode = ResponseStatusCode::INTERNAL_SERVER_ERROR;
         }
-        return jsonResponse($output, $responseStatusCode);
+        return response()->withJson($output, $responseStatusCode, JSON_PRETTY_PRINT);
     }
 }
