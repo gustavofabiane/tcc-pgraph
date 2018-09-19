@@ -14,7 +14,8 @@
         "files": [
             "src/functions.php",
             "src/Container/functions.php",
-            "src/Http/functions.php"
+            "src/Http/functions.php",
+            "src/GraphQL/functions.php"
         ]
     },
     "autoload-dev": {

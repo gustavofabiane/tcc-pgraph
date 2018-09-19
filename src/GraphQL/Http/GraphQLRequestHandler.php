@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Framework\GraphQL;
+namespace Framework\GraphQL\Http;
 
 use Exception;
 use GraphQL\Error\FormattedError;

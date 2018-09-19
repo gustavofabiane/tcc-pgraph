@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace Framework\GraphQL\Definition\Enum;
 
-use Framework\GraphQL\Enum;
+use Framework\GraphQL\EnumType;
 
 /**
  * Determines the direction of a PAD string field
  */
-class PadDirection extends Enum
+class PadDirection extends EnumType
 {
     public const PAD_BOTH = STR_PAD_BOTH;
     public const PAD_LEFT = STR_PAD_LEFT;

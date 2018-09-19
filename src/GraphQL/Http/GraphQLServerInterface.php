@@ -1,6 +1,8 @@
 <?php
 
-namespace Framework\GraphQL;
+declare(strict_types=1);
+
+namespace Framework\GraphQL\Http;
 
 use Psr\Http\Message\ServerRequestInterface;
 use GraphQL\Executor\ExecutionResult;

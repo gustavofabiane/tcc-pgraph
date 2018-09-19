@@ -7,16 +7,22 @@ namespace Framework\Tests\GraphQL;
 use Framework\GraphQL\Field;
 use PHPUnit\Framework\TestCase;
 use GraphQL\Type\Definition\Type;
-use Framework\Container\Container;
-use Framework\GraphQL\TypeRegistry;
 use Framework\GraphQL\Definition\Field\PadField;
 use Framework\GraphQL\Definition\Enum\PadDirection;
 
 class FieldTest extends TestCase
 {
+    use GraphQLTestCaseTrait;
+
+    public function setup()
+    {
+        $registry = $this->registry();
+        $registry->addType(PadDirection::class);
+    }
+
     public function fieldClassImplProvider()
     {
-        $registry = new TypeRegistry(new Container());
+        $registry = $this->registry();
         $registry->addType(PadDirection::class);
         
         return [
@@ -85,5 +91,27 @@ class FieldTest extends TestCase
         $this->assertInstanceOf(Field::class, $field);
         $this->assertEquals($defaultName, $field->name());
         $this->assertSame($resolved, $field->make(null, $srcKey)->resolve($src(), $arguments));
+    }
+
+    public function testArrayAcessible()
+    {
+        $field = new PadField($this->registry());
+
+        $this->assertArrayHasKey('name', $field);
+        $this->assertEquals('pad', $field['name']);
+
+        $field = $field->make('numberFixed', 'yearsOld');
+        $this->assertEquals('numberFixed', $field['name']);
+        $this->assertEquals('yearsOld', $field['key']);
+        $this->assertEquals(
+            'This field defines a string with a minimum ' .
+            'length and complete its missing characters ' . 
+            'with a PAD string defined by the client', 
+            $field['description']
+        );
+        $this->assertTrue(isset($field['args']));
+
+        $field['key'] = 'years';
+        $this->assertEquals('years', $field->key());
     }
 }

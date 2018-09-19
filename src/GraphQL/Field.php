@@ -6,12 +6,15 @@ namespace Framework\GraphQL;
 
 use ArrayAccess;
 use GraphQL\Type\Definition\Type;
+use Framework\GraphQL\Util\ArrayAccessTrait;
 
 /**
  * Abstract implementation of custom field definitions.
  */
 abstract class Field implements ArrayAccess
 {
+    use ArrayAccessTrait;
+
     /**
      * The source object field key name.
      *
@@ -55,6 +58,25 @@ abstract class Field implements ArrayAccess
     protected $resolve;
 
     /**
+     * Used to restrict query complexity. 
+     * Implement a method called 'complexity' with the proper signature to use this property.
+     * 
+     * Note: The feature is disabled by default, read about Security to use it.
+     * 
+     * @see http://webonyx.github.io/graphql-php/security/#query-complexity-analysis
+     * 
+     * @var callable
+     */
+    protected $complexity;
+
+    /**
+     * The field deprecated reason.
+     *
+     * @var string
+     */
+    protected $deprecationReason;
+
+    /**
      * Type registry instance.
      *
      * @var TypeRegistry
@@ -74,8 +96,10 @@ abstract class Field implements ArrayAccess
         $this->key = $this->key ?: $this->key();
         $this->args = $this->args ?: $this->args();
         $this->description = $this->description ?: $this->description();
+        $this->deprecationReason = $this->deprecationReason ?: $this->deprecationReason();
         $this->type = $this->type ?: $this->type();
         $this->resolve = [$this, 'resolve'];
+        $this->complexity = method_exists($this, 'complexity') ? [$this, 'complexity'] : null;
     }
 
     /**
@@ -84,7 +108,7 @@ abstract class Field implements ArrayAccess
      * @param string $name
      * @return array
      */
-    public final function make(?string $name = null, ?string $key = null)
+    public final function make(?string $name = null, ?string $key = null, ?string $deprecationReason = null)
     {
         $clone = clone $this;
         
@@ -93,6 +117,12 @@ abstract class Field implements ArrayAccess
         }
         if ($key) {
             $clone->key = $key;
+        }
+        if ($deprecationReason) {
+            $clone->deprecationReason = $deprecationReason;
+        }
+        if ($this->complexity) {
+            $clone->complexity = [$clone, 'complexity'];
         }
         $clone->resolve = [$clone, 'resolve'];
 
@@ -140,6 +170,18 @@ abstract class Field implements ArrayAccess
             'Custom field defined as \'%s\'', $this->name
         );
     }
+
+    /**
+     * The field deprecation reason.
+     * 
+     * Note: Override this method to mark the field as deprecated in all schema.
+     *
+     * @return string
+     */
+    public function deprecationReason(): ?string
+    {
+        return null;
+    }
     
     /**
      * The definition of the field's arguments
@@ -168,40 +210,4 @@ abstract class Field implements ArrayAccess
      * @return mixed
      */
     abstract public function resolve($obj, array $args = []);
-
-    /**
-     * ArrayAccess implementation
-     */
-    public function offsetGet($offset)
-    {
-        return $this->{$offset} ?? null;
-    }
-
-    /**
-     * ArrayAccess implementation
-     */
-    public function offsetSet($offset, $value)
-    {
-        if ($this->offsetExists($offset)) {
-            $this->{$offset} = $value;
-        }
-    }
-
-    /**
-     * ArrayAccess implementation
-     */
-    public function offsetExists($offset)
-    {
-        return isset($this->{$offset});
-    }
-
-    /**
-     * ArrayAccess implementation
-     */
-    public function offsetUnset($offset)
-    {
-        if ($this->offsetExists($offset)) {
-            $this->{$offset} = null;
-        }
-    }
 }
