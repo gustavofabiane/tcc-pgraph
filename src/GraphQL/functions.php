@@ -8,34 +8,17 @@ use GraphQL\Type\Definition\Type;
 use Framework\GraphQL\TypeRegistry;
 
 /**
- * Resolve given parameters as a enum value entry
+ * Get type from the type registry.
  *
- * @param string $name
- * @param mixed $value
- * @param string $description
- * @param string $deprecationReason
- * @return array
+ * @param string|Type $type
+ * @return Type
  */
-function enumValue(
-    string $name,
-    $value = null,
-    string $description = null,
-    string $deprecationReason = null
-): array {
-    $name = str_replace(' ', '_', strtoupper($name));
-
-    $enumValue = compact('name', 'value');
-    if (!$value) {
-        $enumValue['value'] = $name;
+function type($type): Type
+{
+    if ($type instanceof Type) {
+        return $type;
     }
-    if ($description) {
-        $enumValue['description'] = $description;
-    }
-    if ($deprecationReason) {
-        $enumValue['deprecationReason'] = $deprecationReason;
-    }
-
-    return $enumValue;
+    return TypeRegistry::getInstance()->type($type);
 }
 
 /**
@@ -78,4 +61,54 @@ function field(
     }
 
     return $field;
+}
+
+/**
+ * Resolve parameters to field argument structure.
+ *
+ * @param string $name
+ * @param string|Type $type
+ * @param mixed $defaultValue
+ * @param string $description
+ * @return iterable
+ */
+function argument(string $name, $type, $defaultValue = null, string $description = null): iterable
+{
+    return [
+        'name' => $name,
+        'type' => $type instanceof Type ? $type : TypeRegistry::getInstance()->type($type),
+        'default_value' => $defaultValue,
+        'description' => $description
+    ];
+}
+
+/**
+ * Resolve given parameters as a enum value entry
+ *
+ * @param string $name
+ * @param mixed $value
+ * @param string $description
+ * @param string $deprecationReason
+ * @return array
+ */
+function enumValue(
+    string $name,
+    $value = null,
+    string $description = null,
+    string $deprecationReason = null
+): array {
+    $name = str_replace(' ', '_', strtoupper($name));
+
+    $enumValue = compact('name', 'value');
+    if (!$value) {
+        $enumValue['value'] = $name;
+    }
+    if ($description) {
+        $enumValue['description'] = $description;
+    }
+    if ($deprecationReason) {
+        $enumValue['deprecationReason'] = $deprecationReason;
+    }
+
+    return $enumValue;
 }

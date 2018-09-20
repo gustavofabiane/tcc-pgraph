@@ -13,13 +13,6 @@ use GraphQL\Type\Definition\EnumType as BaseEnumType;
 abstract class EnumType extends BaseEnumType
 {
     use TypeTrait;
-    
-    /**
-     * The type resgitry implementation instance
-     *
-     * @var TypeRegistryInterface
-     */
-    protected $types;
 
     /**
      * The values accepted by the enum type
@@ -27,16 +20,6 @@ abstract class EnumType extends BaseEnumType
      * @var array
      */
     public $values;
-
-    /**
-     * Create a new enum type instance
-     *
-     * @param TypeRegistryInterface $types
-     */
-    public function __construct(TypeRegistryInterface $types)
-    {
-        $this->types = $types;
-    }
 
     /**
      * Make the enum type definition
@@ -62,7 +45,7 @@ abstract class EnumType extends BaseEnumType
     public function description(): string
     {
         return $this->description = sprintf(
-            'An enum type defined as \'%s\'', $this->name()
+            'An enum type defined as \'%s\'', $this->name
         );
     }
 

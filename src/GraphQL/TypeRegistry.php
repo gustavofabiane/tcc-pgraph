@@ -150,9 +150,9 @@ class TypeRegistry implements TypeRegistryInterface
         }
 
         $typeKey = $type;
-        $type = $this->container->resolve(
-            $this->types[$type], ['types' => $this]
-        );
+        $type = $this->container->resolve($this->types[$type]);
+        $type->setTypeRegistry($this);
+        
         if (method_exists($type, 'make')) {
             $type->make();
         }
@@ -165,9 +165,9 @@ class TypeRegistry implements TypeRegistryInterface
      *
      * @param string $type
      * @param array $resolveWith
-     * @return Type
+     * @return Field
      */
-    public function field(string $field, string $name = null, string $key = null): Field
+    public function field(string $field, string $name = null, string $key = null, string $deprecationReason = null): Field
     {
         $this->assertExistsInRegistry($field);
         $hold = $field;
@@ -186,7 +186,7 @@ class TypeRegistry implements TypeRegistryInterface
             );
         }
         $field = $this->fields[$field];
-        return $field->make($name, $key);
+        return $field->make($name, $key, $deprecationReason);
     }
 
     /**

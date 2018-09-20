@@ -33,7 +33,7 @@ class PadField extends Field
                 'type' => $this->types->string(),
                 'default_value' => '0'
             ], 
-            'deirection' => [
+            'direction' => [
                 'type' => $this->types->padDirection(),
                 'default_value' => PadDirection::PAD_LEFT
             ],

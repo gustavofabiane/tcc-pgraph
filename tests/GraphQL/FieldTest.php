@@ -114,4 +114,38 @@ class FieldTest extends TestCase
         $field['key'] = 'years';
         $this->assertEquals('years', $field->key());
     }
+
+    public function testIteratorAggregateImplementation()
+    {
+        $field = new PadField($this->registry());
+        $field = $field->make('numberFixed', 'yearsOld');
+
+        $this->assertInstanceOf(\Traversable::class, $field);
+
+        $stub = [
+            'name' => 'numberFixed',
+            'type' => $this->types->string(),
+            'description' => 'This field defines a string with a minimum ' .
+                             'length and complete its missing characters ' . 
+                             'with a PAD string defined by the client',
+            'args' => [
+                'pad' => [
+                    'type' => $this->types->string(),
+                    'default_value' => '0'
+                ], 
+                'direction' => [
+                    'type' => $this->types->padDirection(),
+                    'default_value' => PadDirection::PAD_LEFT
+                ],
+                'size' => $this->types->int()
+            ],
+            'deprecationReason' => null,
+            'complexity' => null
+        ];
+
+        foreach ($field as $property => $value) {
+            $this->assertArrayHasKey($property, $stub);
+            $this->assertEquals($stub[$property], $value);
+        }
+    }
 }

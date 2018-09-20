@@ -4,11 +4,22 @@ declare(strict_types=1);
 
 namespace Framework\GraphQL\Util;
 
+use Framework\GraphQL\TypeRegistryInterface;
+use GraphQL\Type\Definition\FieldDefinition;
+
+
 /**
  * Type implementations common behaviors.
  */
 trait TypeTrait
 {
+    /**
+     * The type resgistry instance.
+     *
+     * @var TypeRegistryInterface
+     */
+    protected $types;
+
     /**
      * The enum type name.
      *
@@ -29,6 +40,46 @@ trait TypeTrait
      * @var static
      */
     protected static $instance;
+
+    /**
+     * Empty constructor for dependency injection in containers. 
+     * Note: You can override the constructor with registered application dependencies.
+     * 
+     */
+    public function __construct()
+    {
+        ///
+    }
+
+    /**
+     * Try to infer the field resolver method defined in the type implementation.
+     *
+     * @param string $fieldName
+     * @return callable|null
+     */
+    public final function getFieldResolver(string $fieldName): ?callable
+    {
+        $formats = ['get%sField', 'get%s', 'resolve%sField'];
+        foreach ($formats as $format) {
+            $fieldResolverName = sprintf($format, ucfirst($fieldName));
+            if (method_exists($this, $fieldResolverName)) {
+                return [$this, $fieldResolverName];
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Set the types registry.
+     *
+     * @param TypeRegistryInterface $registry
+     * @return static
+     */
+    public function setTypeRegistry(TypeRegistryInterface $registry)
+    {
+        $this->types = $registry;
+        return $this;
+    }
 
     /**
      * Get the type global instance.

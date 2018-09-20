@@ -20,7 +20,8 @@ class EnumTypeTest extends TestCase
 
     public function setup()
     {
-        $this->enum = new StubEnumType($this->registry());
+        $this->enum = new StubEnumType();
+        $this->enum->setTypeRegistry($this->registry());
         $this->enum->make();
     }
 

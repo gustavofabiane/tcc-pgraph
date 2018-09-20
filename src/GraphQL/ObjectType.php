@@ -4,42 +4,33 @@ declare(strict_types=1);
 
 namespace Framework\GraphQL;
 
-use ArrayAccess;
+use Framework\GraphQL\Fields;
 use Framework\GraphQL\Util\TypeTrait;
+use Framework\GraphQL\Util\TypeWithFields;
+use Framework\GraphQL\Util\ImplementsInterface;
 use GraphQL\Type\Definition\ObjectType as BaseObjectType;
 
 /**
- * Abstract implementation of custom enum type definitions
+ * Abstract implementation of an object type definitions.
  */
-abstract class ObjectType extends BaseObjectType
+abstract class ObjectType extends BaseObjectType implements TypeWithFields, ImplementsInterface
 {
     use TypeTrait;
-    
-    /**
-     * The type resgitry implementation instance.
-     *
-     * @var TypeRegistryInterface
-     */
-    protected $types;
 
     /**
-     * Create a new object type instance.
+     * Make base type from implemented library.
      *
-     * @param TypeRegistryInterface $types
+     * @return void
      */
-    public function __construct(TypeRegistryInterface $types)
-    {
-        $this->types = $types;
-    }
-
     public final function make()
     {
         if (!$this->config) {
             parent::__construct([
                 'description'  => $this->description(),
-                'fields'       => $this->fields(), 
-                'interfaces'   => $this->implements() ?: null,
-                'resolveField' => $this->resoler()
+                'fields'       => Fields::create($this), 
+                'interfaces'   => [$this, 'implements'],
+                'resolveField' => $this->getTypeResolver(),
+                // 'isTypeOf' ----> can override parent::isTypeOf
             ]);
         }
     }
@@ -68,17 +59,12 @@ abstract class ObjectType extends BaseObjectType
      *
      * @return callable|null
      */
-    public final function resolver(): ?callable
+    public final function getTypeResolver(): ?callable
     {
         if (method_exists($this, 'resolve')) {
             return [$this, 'resolve'];
         }
         return null;
-    }
-
-    protected function getFieldResolver($fieldName): callable
-    {
-        
     }
 
     /**
@@ -89,10 +75,5 @@ abstract class ObjectType extends BaseObjectType
     public function implements(): array
     {
         return [];
-    }
-
-    public function isValidSource($value, $context, ResolveInfo $info): bool
-    {
-        return null;
     }
 }

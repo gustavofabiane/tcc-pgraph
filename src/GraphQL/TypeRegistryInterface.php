@@ -14,5 +14,5 @@ interface TypeRegistryInterface
     public function exists(string $entry): bool;
 
     public function type(string $type): Type;
-    public function field(string $field, string $withName = null, string $withKey = null): Field;
+    public function field(string $field, string $withName = null, string $withKey = null, string $withDeprecationReason = null): Field;
 }

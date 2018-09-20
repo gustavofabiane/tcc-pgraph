@@ -5,13 +5,15 @@ declare(strict_types=1);
 namespace Framework\GraphQL;
 
 use ArrayAccess;
+use ArrayIterator;
+use IteratorAggregate;
 use GraphQL\Type\Definition\Type;
 use Framework\GraphQL\Util\ArrayAccessTrait;
 
 /**
  * Abstract implementation of custom field definitions.
  */
-abstract class Field implements ArrayAccess
+abstract class Field implements ArrayAccess, IteratorAggregate
 {
     use ArrayAccessTrait;
 
@@ -92,12 +94,14 @@ abstract class Field implements ArrayAccess
     {
         $this->types = $types;
         
-        $this->name = $this->name ?: $this->name();
         $this->key = $this->key ?: $this->key();
+        $this->name = $this->name ?: $this->name();
         $this->args = $this->args ?: $this->args();
+        $this->type = $this->type ?: $this->type();
+        
         $this->description = $this->description ?: $this->description();
         $this->deprecationReason = $this->deprecationReason ?: $this->deprecationReason();
-        $this->type = $this->type ?: $this->type();
+
         $this->resolve = [$this, 'resolve'];
         $this->complexity = method_exists($this, 'complexity') ? [$this, 'complexity'] : null;
     }
@@ -210,4 +214,21 @@ abstract class Field implements ArrayAccess
      * @return mixed
      */
     abstract public function resolve($obj, array $args = []);
+
+    /**
+     * Implements IteratorAggregate interface
+     *
+     * @return ArrayIterator
+     */
+    public function getIterator()
+    {
+        return new ArrayIterator([
+            'name' => $this->name,
+            'type' => $this->type,
+            'args' => $this->args,
+            'description' => $this->description,
+            'deprecationReason' => $this->deprecationReason,
+            'complexity' => $this->complexity
+        ]);
+    }
 }
