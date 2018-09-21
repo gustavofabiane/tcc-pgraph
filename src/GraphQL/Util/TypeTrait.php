@@ -18,7 +18,7 @@ trait TypeTrait
      *
      * @var TypeRegistryInterface
      */
-    protected $types;
+    protected $registry;
 
     /**
      * The enum type name.
@@ -52,6 +52,19 @@ trait TypeTrait
     }
 
     /**
+     * Get the type name if possible.
+     *
+     * @return string
+     */
+    public function name(): string
+    {
+        if (!$this->name && method_exists($this, 'tryInferName')) {
+            $this->name = $this->tryInferName();
+        }
+        return $this->name;
+    }
+
+    /**
      * Try to infer the field resolver method defined in the type implementation.
      *
      * @param string $fieldName
@@ -77,7 +90,7 @@ trait TypeTrait
      */
     public function setTypeRegistry(TypeRegistryInterface $registry)
     {
-        $this->types = $registry;
+        $this->registry = $registry;
         return $this;
     }
 
@@ -95,9 +108,9 @@ trait TypeTrait
      * Set the type global instance.
      *
      * @param static $instance
-     * @return static
+     * @return void
      */
-    public static function setInstance(self $instance): self
+    public static function setInstance(self $instance)
     {
         static::$instance = $instance;
     }

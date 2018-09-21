@@ -83,16 +83,16 @@ abstract class Field implements ArrayAccess, IteratorAggregate
      *
      * @var TypeRegistry
      */
-    protected $types;
+    protected $registry;
 
     /**
      * Create a new field instance
      *
      * @param TypeRegistryInterface $types
      */
-    public function __construct(TypeRegistryInterface $types)
+    public function __construct(TypeRegistryInterface $registry)
     {
-        $this->types = $types;
+        $this->registry = $registry;
         
         $this->key = $this->key ?: $this->key();
         $this->name = $this->name ?: $this->name();

@@ -5,11 +5,11 @@ namespace Framework\GraphQL\Util;
 interface TypeWithFields
 {
     /**
-     * Return an iterable instance defining the type fields.
+     * Return an array defining the type fields.
      *
-     * @return iterable
+     * @return array
      */
-    public function fields(): iterable;
+    public function fields(): array;
     
     /**
      * Must try to infer the field resolver method if exists.

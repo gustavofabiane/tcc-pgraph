@@ -63,7 +63,7 @@ class TypeRegistryTest extends TestCase
         $field = new class($this->types) extends Field {
             public function type(): Type
             {
-                return $this->types->int();
+                return $this->registry->int();
             }
             public function resolve($src, array $args = [])
             {

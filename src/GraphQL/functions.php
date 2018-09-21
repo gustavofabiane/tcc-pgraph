@@ -6,6 +6,8 @@ namespace Framework\GraphQL;
 
 use GraphQL\Type\Definition\Type;
 use Framework\GraphQL\TypeRegistry;
+use GraphQL\Type\Definition\ListOfType;
+use GraphQL\Type\Definition\NonNull;
 
 /**
  * Get type from the type registry.
@@ -22,13 +24,34 @@ function type($type): Type
 }
 
 /**
+ * Wrap the given type into a ListOf type.
+ *
+ * @param string|Type $type
+ * @return ListOfType
+ */
+function listOf($type): ListOfType
+{
+    return TypeRegistry::getInstance()->listOf($type);
+}
+
+/**
+ * Wrap the given type into a NonNull type.
+ *
+ * @param string|Type $type
+ * @return NonNull
+ */
+function nonNull($type): NonNull
+{
+    return TypeRegistry::getInstance()->nonNull($type);
+}
+
+/**
  * Resolve parameters to a valid type field.
  *
  * @param string|Type $type
  * @param string $name
  * @param array $args
  * @param callable $resolve
- * @param mixed $defaultValue
  * @param string $description
  * @param string $deprecationReason
  * @param callable $complexity
@@ -39,27 +62,50 @@ function field(
     $name,
     array $args = [],
     callable $resolve = null,
-    $defaultValue = null,
     string $description = null,
     string $deprecationReason = null,
     callable $complexity = null
 ): iterable {
-
-    if (count(func_get_args()) === 2 && 
+    if (count(func_get_args()) === 2 &&
         TypeRegistry::getInstance()->exists($type)
     ) {
         $field = TypeRegistry::getInstance()->field($type, $name);
     } else {
         $field = compact(
-            'name', 'type', 'args', 'resolve',
-            'defaultValue', 'description', 
-            'deprecationReason', 'complexity'
+            'name',
+            'type',
+            'args',
+            'resolve',
+            'description',
+            'deprecationReason',
+            'complexity'
         );
         if (! $type instanceof Type) {
-            $field['type'] = TypeRegistry::getInstance()->type($type);
+            $field['type'] = type($type);
         }
     }
 
+    return $field;
+}
+
+/**
+ * Resolve parameters to a valid input type field.
+ *
+ * @param string $name
+ * @param string|Type $type
+ * @param string $description
+ * @param mixed $defaultValue
+ * @return array
+ */
+function inputField(string $name, $type, string $description = null, $defaultValue = null): array
+{
+    $field = compact('name', 'type', 'description');
+    if (! $type instanceof Type) {
+        $field['type'] = type($type);
+    }
+    if ($defaultValue) {
+        $field['defaultValue'] = $defaultValue;
+    }
     return $field;
 }
 
@@ -74,12 +120,15 @@ function field(
  */
 function argument(string $name, $type, $defaultValue = null, string $description = null): iterable
 {
-    return [
+    $argument = [
         'name' => $name,
-        'type' => $type instanceof Type ? $type : TypeRegistry::getInstance()->type($type),
-        'default_value' => $defaultValue,
+        'type' => $type instanceof Type ? $type : type($type),
         'description' => $description
     ];
+    if ($defaultValue) {
+        $argument['defaultValue'] = $defaultValue;
+    }
+    return $argument;
 }
 
 /**

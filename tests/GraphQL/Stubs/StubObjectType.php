@@ -13,12 +13,12 @@ class StubObjectType extends ObjectType
         return 'There is a stub description for an object type.';
     }
 
-    public function fields(): iterable
+    public function fields(): array
     {
         return [
-            'id' => $this->types->id(),
+            'id' => $this->registry->id(),
             // 'name' => $this->types->string(),
-            'floatNumber' => $this->types->float()
+            'floatNumber' => $this->registry->float()
         ];
     }
 
@@ -40,7 +40,7 @@ class StubObjectType extends ObjectType
     public function implements(): array
     {
         return [
-            $this->types->type('StubInterface')       
+            $this->registry->type('StubInterface')       
         ];
     }
 }

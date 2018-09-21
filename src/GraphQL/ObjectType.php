@@ -13,7 +13,9 @@ use GraphQL\Type\Definition\ObjectType as BaseObjectType;
 /**
  * Abstract implementation of an object type definitions.
  */
-abstract class ObjectType extends BaseObjectType implements TypeWithFields, ImplementsInterface
+abstract class ObjectType extends BaseObjectType implements 
+    TypeWithFields, 
+    ImplementsInterface
 {
     use TypeTrait;
 
@@ -32,6 +34,7 @@ abstract class ObjectType extends BaseObjectType implements TypeWithFields, Impl
                 'resolveField' => $this->getTypeResolver(),
                 // 'isTypeOf' ----> can override parent::isTypeOf
             ]);
+            $this->setInstance($this);
         }
     }
 
@@ -46,13 +49,6 @@ abstract class ObjectType extends BaseObjectType implements TypeWithFields, Impl
             'An object type defined as \'%s\'', $this->name()
         );
     }
-
-    /**
-     * Return an iterable instance defining the type fields.
-     *
-     * @return iterable
-     */
-    abstract public function fields(): iterable;
 
     /**
      * Get the field resolver if its exists.

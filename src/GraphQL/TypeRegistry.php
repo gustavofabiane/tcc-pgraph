@@ -13,7 +13,6 @@ use GraphQL\Type\Definition\ListOfType;
 use GraphQL\Type\Definition\StringType;
 use GraphQL\Type\Definition\BooleanType;
 use Framework\Container\ContainerInterface;
-use Framework\GraphQL\Exception\InvalidTypeException;
 
 class TypeRegistry implements TypeRegistryInterface
 {
@@ -30,13 +29,6 @@ class TypeRegistry implements TypeRegistryInterface
      * @var ContainerInterface
      */
     protected $container;
-
-    /**
-     * Types namespace used for class implemented types
-     *
-     * @var string
-     */
-    protected $typesNamespace;
 
     /**
      * Registered types
@@ -57,14 +49,26 @@ class TypeRegistry implements TypeRegistryInterface
      *
      * @param ContainerInterface $container
      */
-    public function __construct(
-        ContainerInterface $container, 
-        $typesNamespace = ''
-    ) {
+    public function __construct(ContainerInterface $container) 
+    {
         $this->container = $container;
-        $this->typesNamespace = rtrim($typesNamespace, '\\');
         
+        $this->registerInternalTypes();
         static::$instance = $this;
+    }
+
+    /**
+     * Register GraphQL internal types in the registry.
+     *
+     * @return void
+     */
+    private function registerInternalTypes()
+    {
+        $this->addType($this->id(), 'id');
+        $this->addType($this->int(), 'int');
+        $this->addType($this->float(), 'float');
+        $this->addType($this->string(), 'string');
+        $this->addType($this->boolean(), 'boolean');
     }
 
     /**
@@ -112,6 +116,8 @@ class TypeRegistry implements TypeRegistryInterface
         $typeKey = $name ?: $this->keyForType($type);
         
         $this->types[$typeKey] = $type;
+
+        return $typeKey;
     }
     
     /**
@@ -125,6 +131,8 @@ class TypeRegistry implements TypeRegistryInterface
     {
         $fieldKey = $name ?: $this->keyForType($field);
         $this->fields[$fieldKey] = $field;
+
+        return $fieldKey;
     }
 
     /**
@@ -195,7 +203,7 @@ class TypeRegistry implements TypeRegistryInterface
      * @param string|Type|Field $type
      * @return string
      */
-    protected function keyForType($type): string
+    public function keyForType($type): string
     {
         if ($type instanceof Type) {
             return strtolower($type->name);
@@ -261,6 +269,16 @@ class TypeRegistry implements TypeRegistryInterface
     public static function __callStatic(string $typeOrField, array $arguments = null)
     {
         return static::$instance->{$typeOrField}(...$arguments);
+    }
+
+    /**
+     * Get type global instance.
+     *
+     * @return static
+     */
+    public static function getInstance(): self
+    {
+        return static::$instance;
     }
 
     /**

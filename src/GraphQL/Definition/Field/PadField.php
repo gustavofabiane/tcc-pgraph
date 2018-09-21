@@ -23,21 +23,21 @@ class PadField extends Field
 
     public function type(): Type
     {
-        return $this->types->string();
+        return $this->registry->string();
     }
 
     public function args(): array
     {
         return [
             'pad' => [
-                'type' => $this->types->string(),
+                'type' => $this->registry->string(),
                 'default_value' => '0'
             ], 
             'direction' => [
-                'type' => $this->types->padDirection(),
+                'type' => $this->registry->padDirection(),
                 'default_value' => PadDirection::PAD_LEFT
             ],
-            'size' => $this->types->int()
+            'size' => $this->registry->int()
         ];
     }
 

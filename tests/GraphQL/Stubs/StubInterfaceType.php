@@ -11,10 +11,10 @@ class StubInterfaceType extends InterfaceType
         return 'There is a stub description for an interface type.';
     }
 
-    public function fields(): iterable
+    public function fields(): array
     {
         return [
-            'name' => $this->types->string(),
+            'name' => $this->registry->string(),
         ];
     }
 }

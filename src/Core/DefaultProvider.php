@@ -8,9 +8,9 @@ use Framework\Container\ContainerInterface;
 use FastRoute\RouteParser\Std as RouteParser;
 use FastRoute\DataGenerator\GroupCountBased as RouteDataGenerator;
 
-class DefaultProvider
+class DefaultProvider implements ProviderInterface
 {
-    public function __invoke(Application $app)
+    public function provide(Application $app)
     {
         if (!$app->has('routeCollector')) {
             $app->register('routeCollector', function (ContainerInterface $c) {

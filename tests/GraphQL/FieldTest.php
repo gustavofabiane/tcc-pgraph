@@ -34,16 +34,17 @@ class FieldTest extends TestCase
                     }
                     public function type(): Type
                     {
-                        return $this->types->string();
+                        
+                        return $this->registry->string();
                     }
                     public function args(): array
                     {
                         return [
                             'pad' => [
-                                'type' => $this->types->string(),
+                                'type' => $this->registry->string(),
                                 'default_value' => '0'
                             ],
-                            'size' => $this->types->int()
+                            'size' => $this->registry->int()
                         ];
                     }
                     public function resolve($src, array $args = [])

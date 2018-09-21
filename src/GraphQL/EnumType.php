@@ -34,6 +34,7 @@ abstract class EnumType extends BaseEnumType
                 'description' => $this->description ?: $this->description(),
                 'values'      => $this->values ?: $this->values()
             ]);
+            $this->setInstance($this);
         }
     }
 

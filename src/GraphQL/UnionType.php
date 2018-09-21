@@ -4,20 +4,18 @@ declare(strict_types=1);
 
 namespace Framework\GraphQL;
 
-use Framework\GraphQL\Fields;
 use Framework\GraphQL\Util\TypeTrait;
-use Framework\GraphQL\Util\TypeWithFields;
-use GraphQL\Type\Definition\InterfaceType as BaseInterfaceType;
+use GraphQL\Type\Definition\UnionType as BaseUnionType;
 
 /**
- * Abstract implementation of an interface type definitions.
+ * Abstract implementation of an union type definitions.
  */
-abstract class InterfaceType extends BaseInterfaceType implements TypeWithFields
+abstract class UnionType extends BaseUnionType
 {
     use TypeTrait;
 
     /**
-     * Make base type from implemented library.
+     * Make base union type from implemented library.
      *
      * @return void
      */
@@ -25,24 +23,31 @@ abstract class InterfaceType extends BaseInterfaceType implements TypeWithFields
     {
         if (!$this->config) {
             parent::__construct([
-                'fields'      => Fields::create($this), 
                 'description' => $this->description(),
+                'types' => [$this, 'types'],
                 'resolveType' => [$this, 'resolveType'] 
-                // ---> can override parent::resolveType()
+                // -------> MUST overide resolveType() to bypass this parameter
             ]);
             $this->setInstance($this);
         }
     }
 
     /**
-     * The interface type description.
+     * Must return the list of types that the union provide.
+     *
+     * @return array
+     */
+    abstract public function types(): array;
+
+    /**
+     * The union type description.
      *
      * @return string
      */
     public function description(): string
     {
         return $this->description = sprintf(
-            'An object type defined as \'%s\'', $this->name()
+            'An union type defined as \'%s\'', $this->name()
         );
     }
 }
