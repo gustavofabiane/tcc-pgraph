@@ -14,20 +14,20 @@ class GraphQLProvider implements ProviderInterface
 {
     protected function mapConfiguration(array $default, array $configuration): array
     {
+        $goRecursive = ['security'];
         $mappedConfiguration = [];
-
         foreach ($default as $key => $value) {
             if (!isset($configuration[$key])) {
-                $mappedConfiguration[$key] = $value;
-                continue;
-            }
-            if (is_array($value)) {
-                $mappedConfiguration[$key] = $this->mapConfiguration($default[$key], $configuration[$key]);
+                ///
+            } elseif (in_array($key, $goRecursive)) {
+                $value = $this->mapConfiguration($value, $configuration[$key]);
+            } elseif (is_array($value)) {
+                $value = array_merge($value, $configuration[$key]);    
             } else {
-                $mappedConfiguration[$key] = $configuration[$key];
+                $value = $configuration[$key];
             }
+            $mappedConfiguration[$key] = $value;
         }
-
         return $mappedConfiguration;
     }
 
@@ -50,11 +50,10 @@ class GraphQLProvider implements ProviderInterface
                 'disable_introspection' => false
             ],
             'http' => [
-                'path' => '/graphql',
-                'methods' => ['GET', 'POST'],
-                'headers' => [],
+                'endpoint' => '/graphql',
+                'methods'  => ['GET', 'POST'],
+                'headers'  => [],
                 'middleware' => [],
-
             ]
         ];
         
@@ -90,11 +89,34 @@ class GraphQLProvider implements ProviderInterface
             });
         }
 
+        /**
+         * GraphQL http request handler.
+         */
         if (!$app->has('graphqlRequestHandler')) {
             $app->register('graphqlRequestHandler', function (ContainerInterface $c) use ($config) {
-                return new GraphQLRequestHandler(
+                $handler = new GraphQLRequestHandler(
                     $c->get('graphqlServer'), 
                     $config['debug']
+                );
+                $handler->middleware($config['http']['middleware']);
+                if ($config['http']['headers']) {
+                    $handler->add(function ($request, $handler) use ($config) {
+                        $response = $handler->handle($request);
+                        foreach ($config['http']['headers'] as $name => $value) {
+                            $response = $response->withAddedHeader($name, $value);
+                        }
+                        return $response;
+                    });
+                }
+                return $handler;
+            });
+        }
+
+        if ($config['http']) {
+            $app->router->collect(function($router) use ($config, $app) {
+                $router->addRoute(
+                    $config['http']['endpoint'], 
+                    $app->get('graphqlRequestHandler')
                 );
             });
         }

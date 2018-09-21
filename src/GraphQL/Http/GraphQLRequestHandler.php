@@ -12,12 +12,15 @@ use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 
 use function Framework\Http\response;
+use Framework\Http\Handlers\HasMiddlewareTrait;
 
 /**
  * Handle request for the GraphQL server.
  */
 class GraphQLRequestHandler implements RequestHandlerInterface
 {
+    use HasMiddlewareTrait;
+    
     /**
      * GraphQL server instance
      *

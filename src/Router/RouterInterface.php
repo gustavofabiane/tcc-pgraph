@@ -16,4 +16,12 @@ interface RouterInterface
      * @return RouteInterface
      */
     public function match(ServerRequestInterface $request): RouteInterface;
+
+    /**
+     * Collect routes defined in the given callable
+     *
+     * @param callable $routeDefinitionCallback
+     * @return void
+     */
+    public function collect(callable $routeDefinitionCallback);
 }

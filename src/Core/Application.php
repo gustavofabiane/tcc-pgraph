@@ -14,16 +14,85 @@ class Application extends Container implements RequestHandlerInterface
     use HasMiddlewareTrait;
 
     /**
-     * Creates a new application instance
+     * App configuration container.
+     *
+     * @var Configuration
+     */
+    public $config;
+
+    /**
+     * List of deffered service providers that were not loaded yet.
+     *
+     * @var array
+     */
+    protected $providers = [];
+
+    /**
+     * Creates a new application instance.
      *
      * @param array $services
      */
-    public function __construct(array $services)
+    public function __construct(array $services, Configuration $config = null)
     {
         parent::__construct($services);
+
+        $this->config = $config ?: Configuration::create([
+            'prefix' => 'config'
+        ]);
+        
         static::setInstance($this);
         
         (new DefaultProvider())->provide($this);
+    }
+
+    /**
+     * Provide dependencies for application.
+     *
+     * @param string|ProviderInterface $provider
+     * @return void
+     */
+    public function provide($provider, array $services = null)
+    {
+        if (!is_null($provide)) {
+            $this->providers[] = compact('provider', 'services');
+        } elseif (! $provider instanceof ProviderInterface) {
+            $provider = $this->resolve($provider);
+        }
+        $provider->provide($this);
+    }
+
+    /**
+     * Try to find entry in deffered providers.
+     *
+     * @param string $id
+     * @return void
+     */
+    public function findInDefferedProviders(string $id)
+    {
+        foreach ($this->providers as $key => &$provider) {
+            if (in_array($id, $provider['services'])) {
+                $provider = $provider['provider'] instanceof ProviderInterface 
+                    ? $provider['provider'] 
+                    : $this->resolve($provider['provider']);
+                $provider->provide($this);
+                unset($this->providers[$key]);
+                break;
+            }
+        }
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function get($id)
+    {
+        if ($this->config->isConfiguration($id)) {
+            return $this->config->get($id);
+        }
+        if (!$this->has($id)) {
+            $this->findInDefferedProviders($id);
+        }
+        return parent::get($id);
     }
 
     /**
