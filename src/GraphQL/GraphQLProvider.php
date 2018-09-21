@@ -3,12 +3,13 @@
 namespace Framework\GraphQL;
 
 use Framework\Core\Application;
-use Psr\Container\ContainerInterface;
-use Framework\GraphQL\Resolution\DefaultFieldResolver;
-use Framework\GraphQL\Http\GraphQLRequestHandler;
+use Framework\GraphQL\Http\Server;
 use Framework\Core\ProviderInterface;
-use Framework\GraphQL\Definition\Enum\PadDirection;
+use Psr\Container\ContainerInterface;
 use Framework\GraphQL\Definition\Field\PadField;
+use Framework\GraphQL\Http\GraphQLRequestHandler;
+use Framework\GraphQL\Definition\Enum\PadDirection;
+use Framework\GraphQL\Resolution\DefaultFieldResolver;
 
 class GraphQLProvider implements ProviderInterface
 {
@@ -47,7 +48,8 @@ class GraphQLProvider implements ProviderInterface
             'security' => [
                 'max_complexity' => null,
                 'max_depth' => null,
-                'disable_introspection' => false
+                'disable_introspection' => false,
+                'rules' => []
             ],
             'http' => [
                 'endpoint' => '/graphql',
@@ -64,7 +66,7 @@ class GraphQLProvider implements ProviderInterface
          */
         if (!$app->has('typeRegistry')) {
             $app->singleton(TypeRegistry::class, function (ContainerInterface $c) {
-                return new SchemaFactory($c->get('typeRegistry'));
+                return new TypeRegistry($c);
             });
             $app->alias('typeRegistry', TypeRegistry::class);
             $app->implemented(TypeRegistryInterface::class, TypeRegistry::class);
@@ -83,9 +85,22 @@ class GraphQLProvider implements ProviderInterface
         /**
          * Schema default field resolver
          */
-        if (!$app->has('defaultFieldResolver')) {
-            $app->singleton('defaultFieldResolver', function (ContainerInterface $c) {
+        if (!$app->has('graphqlDefaultFieldResolver')) {
+            $app->singleton('graphqlDefaultFieldResolver', function (ContainerInterface $c) {
                 return new DefaultFieldResolver();
+            });
+        }
+
+        if (!$app->has('graphqlServer')) {
+            $app->register('graphqlServer', function (ContainerInterface $c) use ($config) {
+                return new Server([
+                    'debug' => $config['debug'],
+                    'schema' => $c->get('graphqlSchema'),
+                    'context' => $c,
+                    'fieldResolver' => $c->get('graphqlDefaultFieldResolver'),
+                    'queryBatching' => $config['allow_query_batching'],
+                    'validationRules' => $config['security']['rules']
+                ]);
             });
         }
 
@@ -99,7 +114,7 @@ class GraphQLProvider implements ProviderInterface
                     $config['debug']
                 );
                 $handler->middleware($config['http']['middleware']);
-                if ($config['http']['headers']) {
+                if (!empty($config['http']['headers'])) {
                     $handler->add(function ($request, $handler) use ($config) {
                         $response = $handler->handle($request);
                         foreach ($config['http']['headers'] as $name => $value) {

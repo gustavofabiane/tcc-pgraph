@@ -192,14 +192,30 @@ class Application extends Container implements RequestHandlerInterface
             ($reasonPhrase ? ' ' . $reasonPhrase : '')
         ), true, $statusCode);
 
+        
         foreach ($response->getHeaders() as $name => $values) {
+            
             $filtered = str_replace('-', ' ', $name);
             $filtered = ucwords($filtered);
             $name = str_replace(' ', '-', $filtered);
 
-            header(sprintf('%s: %s', $name, implode(', ', $values)), true, $statusCode);
+            $first = stripos($name, 'Set-Cookie') === 0 ? false : true;
+            foreach ($values as $value) {
+                header(sprintf('%s: %s', $name, $value), $first);
+                $first = false;
+            }
         }
 
-        echo $response->getBody();
+        $body = $response->getBody();
+
+        if ($body->isSeekable()) {
+            $body->rewind();
+        }
+        while (!$body->eof()) {
+            echo $body->read(2048);
+            if (connection_status() != CONNECTION_NORMAL) {
+                break;
+            }
+        }
     }
 }
