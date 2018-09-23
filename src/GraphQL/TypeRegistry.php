@@ -247,6 +247,17 @@ class TypeRegistry implements TypeRegistryInterface
     }
 
     /**
+     * Call for registry is callable to retrieve the given type.
+     *
+     * @param string $type
+     * @return Type
+     */
+    public function __invoke(string $type): Type
+    {
+        return $this->type($type);
+    }
+
+    /**
      * Translates the type or field name call as a registry method to the get() method
      *
      * @param string $typeOrField

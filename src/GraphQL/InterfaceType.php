@@ -42,7 +42,7 @@ abstract class InterfaceType extends BaseInterfaceType implements TypeWithFields
     public function description(): string
     {
         return $this->description = sprintf(
-            'An object type defined as \'%s\'', $this->name()
+            'An interface type defined as \'%s\'', $this->name()
         );
     }
 }

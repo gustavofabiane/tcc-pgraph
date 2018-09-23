@@ -2,14 +2,20 @@
 
 namespace Framework\GraphQL;
 
+use GraphQL\GraphQL;
 use Framework\Core\Application;
+use GraphQL\Error\FormattedError;
 use Framework\GraphQL\Http\Server;
 use Framework\Core\ProviderInterface;
 use Psr\Container\ContainerInterface;
+use GraphQL\Type\Definition\Directive;
+use GraphQL\Validator\DocumentValidator;
 use Framework\GraphQL\Definition\Field\PadField;
 use Framework\GraphQL\Http\GraphQLRequestHandler;
 use Framework\GraphQL\Definition\Enum\PadDirection;
+use GraphQL\Validator\Rules\AbstractValidationRule;
 use Framework\GraphQL\Resolution\DefaultFieldResolver;
+use GraphQL\Error\Debug;
 
 class GraphQLProvider implements ProviderInterface
 {
@@ -35,13 +41,14 @@ class GraphQLProvider implements ProviderInterface
     public function provide(Application $app)
     {
         $defaultConfig = [
-            'debug' => false,
+            'debug' => Debug::INCLUDE_DEBUG_MESSAGE | Debug::INCLUDE_TRACE,
+            'internal_error_message' => 'Unexpected Error', 
             'allow_query_batching' => true,
             'query' => [],
-            'mutation' => [],
-            'types' => [
-                PadDirection::class
-            ],
+            'mutation' => [], 
+            'directives' => GraphQL::getStandardDirectives(),
+            'types' => [],
+            'unreachable_types' => [],
             'fields' => [
                 PadField::class
             ],
@@ -58,8 +65,51 @@ class GraphQLProvider implements ProviderInterface
                 'middleware' => [],
             ]
         ];
-        
         $config = $this->mapConfiguration($defaultConfig, $app->get('config.graphql'));
+
+        /**
+         * Set default internal error message
+         */
+        FormattedError::setInternalErrorMessage($config['internal_error_message']);
+
+        /**
+         * Default rules configuration
+         */
+        $maxQueryComplexity = $config['security']['max_complexity'];
+        if ($maxQueryComplexity !== null) {
+            $queryComplexity = DocumentValidator::getRule('QueryComplexity');
+            $queryComplexity->setMaxQueryComplexity($maxQueryComplexity);
+        }
+        $maxQueryDepth = $config['security']['max_depth'];
+        if ($maxQueryDepth !== null) {
+            $queryDepth = DocumentValidator::getRule('QueryDepth');
+            $queryDepth->setMaxQueryDepth($maxQueryDepth);
+        }
+        $disableIntrospection = $config['security']['disable_introspection'];
+        if ($disableIntrospection === true) {
+            $disableIntrospection = DocumentValidator::getRule('DisableIntrospection');
+            $disableIntrospection->setEnabled(DisableIntrospection::ENABLED);
+        }
+
+        /**
+         * Register custom validation rules to the schema
+         */
+        foreach ($config['security']['rules'] as $rule) {
+            DocumentValidator::addRule(
+                $rule instanceof AbstractValidationRule
+                    ? $rule 
+                    : $app->resolve($rule)
+            );
+        }
+
+        /**
+         * Set up directives
+         */
+        foreach ($config['directives'] as &$directive) {
+            if (!$directive instanceof Directive) {
+                $directive = $app->resolve($directive);
+            }
+        } 
 
         /**
          * Type registry
@@ -70,6 +120,15 @@ class GraphQLProvider implements ProviderInterface
             });
             $app->alias('typeRegistry', TypeRegistry::class);
             $app->implemented(TypeRegistryInterface::class, TypeRegistry::class);
+
+            $app->registerListener('typeRegistry', function (TypeRegistry $registry) use ($config) {
+                foreach ($config['types'] as $name => $type) {
+                    $registry->addType($type, is_string($name) ? $name : '');
+                }
+                foreach ($config['fields'] as $defaultName => $field) {
+                    $registry->addType($type, is_string($name) ? $name : '');
+                }
+            });
         }
 
         /**
@@ -91,6 +150,46 @@ class GraphQLProvider implements ProviderInterface
             });
         }
 
+        /**
+         * GraphQL query type
+         */
+        if (!$app->has('graphqlQuery')) {
+            $app->singleton('graphqlQuery', function (ContainerInterface $c) use ($config) {
+                return $config['query'] instanceof QueryType 
+                    ? $config['query']
+                    : QueryType::createFromFields($config['query']);
+            });
+        }
+
+        /**
+         * GraphQL mutation type
+         */
+        if (!$app->has('graphqlMutation')) {
+            $app->singleton('graphqlMutation', function (ContainerInterface $c) use ($config) {
+                return $config['mutation'] instanceof MutationType 
+                    ? $config['mutation']
+                    : MutationType::createFromFields($config['mutation']);
+            });
+        }
+
+        /**
+         * GraphQL schema
+         */
+        if (!$app->has('graphqlSchema')) {
+            $app->singleton('graphqlSchema', function (ContainerInterface $c) use ($config) {
+                return $c->get('graphqlSchema')->create(
+                    $c->get('graphqlQuery'),
+                    $c->get('graphqlMutation'),
+                    $config['directives'],
+                    $config['unreachable_types'],
+                    $c->get('typeRegistry')
+                );
+            });
+        }
+
+        /**
+         * GraphQL server
+         */
         if (!$app->has('graphqlServer')) {
             $app->register('graphqlServer', function (ContainerInterface $c) use ($config) {
                 return new Server([
@@ -98,8 +197,7 @@ class GraphQLProvider implements ProviderInterface
                     'schema' => $c->get('graphqlSchema'),
                     'context' => $c,
                     'fieldResolver' => $c->get('graphqlDefaultFieldResolver'),
-                    'queryBatching' => $config['allow_query_batching'],
-                    'validationRules' => $config['security']['rules']
+                    'queryBatching' => $config['allow_query_batching']
                 ]);
             });
         }

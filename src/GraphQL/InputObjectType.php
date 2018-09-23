@@ -32,4 +32,16 @@ abstract class InputObjectType extends BaseInputObjectType implements TypeWithFi
             $this->setInstance($this);
         }
     }
+
+    /**
+     * The input object type description.
+     *
+     * @return string
+     */
+    public function description(): string
+    {
+        return $this->description = sprintf(
+            'An input object type defined as \'%s\'', $this->name()
+        );
+    }
 }

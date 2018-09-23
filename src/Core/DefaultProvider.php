@@ -27,8 +27,8 @@ class DefaultProvider implements ProviderInterface
             $app->register('router', function (ContainerInterface $c) {
                 return new Router(
                     $c->get('routeCollector'), 
-                    $c->get('settings')['router']['routesFile'] ?? [],
-                    $c->get('settings')['router']['routesCacheFile'] ?? null
+                    $c->config->get('router', 'routesFile') ?? [],
+                    $c->config->get('router', 'routesCacheFile') ?? null
                 );
             }, true);
             $app->alias('Framework\Router\Router', 'router');

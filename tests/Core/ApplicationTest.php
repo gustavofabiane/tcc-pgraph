@@ -19,7 +19,7 @@ class ApplicationTest extends TestCase
 
     public function setup()
     {
-        $this->application = new Application(['settings' => ['router' => []]]);
+        $this->application = new Application();
     }
 
     public function testCreateApplicationInstance()

@@ -28,7 +28,7 @@ class Configuration implements ContainerInterface
     protected $configurations = [];
 
     /**
-     * The core application instance
+     * The core application instance.
      *
      * @var Application
      */
@@ -74,7 +74,7 @@ class Configuration implements ContainerInterface
      */
     public function isConfiguration(string $entry): bool
     {
-        $pattern = sprintf('/%s.[a-zA-Z0-9\-\_]+/', $this->configurationPrefix);
+        $pattern = sprintf('/%s.[a-zA-Z0-9\-\_]+$/', $this->configurationPrefix);
         return (bool) preg_match($pattern, $entry, $matched);
     }
 
@@ -86,10 +86,18 @@ class Configuration implements ContainerInterface
      */
     public function has($conf)
     {
-        if (isset($this->configurations[$conf])) {
-            return true;
-        }
-        return $this->checkConfFileExists($conf);
+        return isset($this->configurations[$conf]) || $this->checkConfFileExists($conf);
+    }
+
+    /**
+     * Check whether the configuration is loaded from its file or not.
+     *
+     * @param string $conf
+     * @return bool
+     */
+    public function loaded(string $conf): bool
+    {
+        return isset($this->configurations[$conf]) && $this->checkConfFileExists($conf);
     }
 
     /**
@@ -101,13 +109,30 @@ class Configuration implements ContainerInterface
      */
     public function get($conf, string $key = null)
     {
-        if (!$this->has($conf)) {
+        $conf = $this->filterPrefix($conf);
+        if (!$this->has($conf) || !$this->loaded($conf)) {
             $this->loadConfigurationFile($conf);
         }
         if ($key) {
             return $this->configurations[$conf][$key] ?? null;
         }
         return $this->configurations[$conf] ?? null;
+    }
+
+    /**
+     * Remove configuration prefix from given config entry.
+     *
+     * @param string $conf
+     * @return string
+     */
+    protected function filterPrefix(string $conf): string 
+    {
+        if ($this->isConfiguration($conf)) {
+            $conf = str_replace(
+                sprintf('%s.', $this->configurationPrefix), '', $conf
+            );
+        }
+        return $conf;
     }
 
     /**
@@ -130,8 +155,10 @@ class Configuration implements ContainerInterface
     protected function loadConfigurationFile(string $conf)
     {
         $files = glob(sprintf('%s/%s.php', $this->getConfigurationsFolder(), $conf));
-        $confFile = $files[0];
-        $this->configurations[$conf] = require $confFile;
+        if ($files) {
+            $confFile = $files[0];
+            $this->configurations[$conf] = require $confFile;
+        }
     }
 
 

@@ -50,7 +50,7 @@ class SchemaFactory
             if (! $query instanceof QueryType) {
                 $query = QueryType::createFromFields($query, $this->registry); 
             }
-            $schemaConfig->setMutation($mutation);
+            $schemaConfig->setQuery($query);
         }
         if ($mutation) {
             if (! $mutation instanceof MutationType) {

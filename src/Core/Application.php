@@ -32,7 +32,7 @@ class Application extends Container implements RequestHandlerInterface
      *
      * @param array $services
      */
-    public function __construct(array $services, Configuration $config = null)
+    public function __construct(array $services = [], Configuration $config = null)
     {
         parent::__construct($services);
 
