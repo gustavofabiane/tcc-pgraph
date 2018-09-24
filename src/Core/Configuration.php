@@ -143,7 +143,7 @@ class Configuration implements ContainerInterface
      */
     protected function checkConfFileExists(string $conf): bool
     {
-        return !empty(glob(sprintf('%s/%s.php', $this->getConfigurationsFolder(), $conf)));
+        return file_exists(sprintf('%s/%s.php', $this->getConfigurationsFolder(), $conf));
     }
 
     /**
@@ -154,13 +154,30 @@ class Configuration implements ContainerInterface
      */
     protected function loadConfigurationFile(string $conf)
     {
-        $files = glob(sprintf('%s/%s.php', $this->getConfigurationsFolder(), $conf));
-        if ($files) {
-            $confFile = $files[0];
-            $this->configurations[$conf] = require $confFile;
+        if ($this->checkConfFileExists($conf)) {
+            $file = sprintf('%s/%s.php', $this->getConfigurationsFolder(), $conf);
+            $this->configurations[$conf] = require $file;
         }
     }
 
+    /**
+     * Update the data from a given configuration identifier if it exists.
+     *
+     * @param string $conf
+     * @param array $entries
+     * @return void
+     */
+    public function update(string $conf, array $entries)
+    {
+        if ($this->has($conf)) {
+            if (!$this->loaded($conf)) {
+                $this->loadConfigurationFile($conf);
+            }
+            $this->configurations[$conf] = array_merge(
+                $this->configurations[$conf], $entries
+            );
+        }
+    }
 
     /**
      * Get the configuration identifier prefix.

@@ -1,13 +1,17 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Framework\GraphQL;
 
 use GraphQL\GraphQL;
+use GraphQL\Error\Debug;
 use Framework\Core\Application;
 use GraphQL\Error\FormattedError;
 use Framework\GraphQL\Http\Server;
 use Framework\Core\ProviderInterface;
-use Psr\Container\ContainerInterface;
+use Framework\GraphQL\ErrorFormatter;
+use Framework\Container\ContainerInterface;
 use GraphQL\Type\Definition\Directive;
 use GraphQL\Validator\DocumentValidator;
 use Framework\GraphQL\Definition\Field\PadField;
@@ -15,7 +19,7 @@ use Framework\GraphQL\Http\GraphQLRequestHandler;
 use Framework\GraphQL\Definition\Enum\PadDirection;
 use GraphQL\Validator\Rules\AbstractValidationRule;
 use Framework\GraphQL\Resolution\DefaultFieldResolver;
-use GraphQL\Error\Debug;
+use Framework\Http\Handlers\ErrorHandler;
 
 class GraphQLProvider implements ProviderInterface
 {
@@ -42,6 +46,7 @@ class GraphQLProvider implements ProviderInterface
     {
         $defaultConfig = [
             'debug' => Debug::INCLUDE_DEBUG_MESSAGE | Debug::INCLUDE_TRACE,
+            'json_encoding_option' => JSON_PRETTY_PRINT,
             'internal_error_message' => 'Unexpected Error', 
             'allow_query_batching' => true,
             'query' => [],
@@ -52,6 +57,8 @@ class GraphQLProvider implements ProviderInterface
             'fields' => [
                 PadField::class
             ],
+            'error_formatter' => '\Framework\GraphQL\Util\BasicErrorHandler::formatError',
+            'errors_handler'   => '\Framework\GraphQL\Util\BasicErrorHandler::handleErrors',
             'security' => [
                 'max_complexity' => null,
                 'max_depth' => null,
@@ -192,12 +199,23 @@ class GraphQLProvider implements ProviderInterface
          */
         if (!$app->has('graphqlServer')) {
             $app->register('graphqlServer', function (ContainerInterface $c) use ($config) {
+                
+                $errorFormatter = is_subclass_of(ErrorFormatter::class) 
+                    ? $c->resolve($config['error_formatter'])
+                    : $config['error_formatter'];
+                
+                $errorsHandler = is_subclass_of(ErrorHandler::class) 
+                    ? $c->resolve($config['errors_handler'])
+                    : $config['errors_handler'];
+                
                 return new Server([
-                    'debug' => $config['debug'],
-                    'schema' => $c->get('graphqlSchema'),
+                    'debug'   => $config['debug'],
+                    'schema'  => $c->get('graphqlSchema'),
                     'context' => $c,
-                    'fieldResolver' => $c->get('graphqlDefaultFieldResolver'),
-                    'queryBatching' => $config['allow_query_batching']
+                    'fieldResolver'  => $c->get('graphqlDefaultFieldResolver'),
+                    'queryBatching'  => $config['allow_query_batching'],
+                    'errorsHandler'  => $errorsHandler,
+                    'errorFormatter' => $errorFormatter
                 ]);
             });
         }
@@ -209,17 +227,12 @@ class GraphQLProvider implements ProviderInterface
             $app->register('graphqlRequestHandler', function (ContainerInterface $c) use ($config) {
                 $handler = new GraphQLRequestHandler(
                     $c->get('graphqlServer'), 
-                    $config['debug']
+                    $config['debug'],
+                    $config['json_encoding_option']
                 );
                 $handler->middleware($config['http']['middleware']);
                 if (!empty($config['http']['headers'])) {
-                    $handler->add(function ($request, $handler) use ($config) {
-                        $response = $handler->handle($request);
-                        foreach ($config['http']['headers'] as $name => $value) {
-                            $response = $response->withAddedHeader($name, $value);
-                        }
-                        return $response;
-                    });
+                    $handler->add(new AppendHeadersMiddleware($config['http']['headers']));
                 }
                 return $handler;
             });

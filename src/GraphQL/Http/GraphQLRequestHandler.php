@@ -36,13 +36,24 @@ class GraphQLRequestHandler implements RequestHandlerInterface
     protected $debug;
 
     /**
+     * Json encoding option for response body
+     *
+     * @var int
+     */
+    protected $jsonEncodingOption;
+
+    /**
      * Create a new graphql server handler instance
      *
      * @param GraphQLServerInterface $graphqlServer
      * @param bool $debug
      */
-    public function __construct(GraphQLServerInterface $graphqlServer, bool $debug = false)
-    {
+    public function __construct(
+        GraphQLServerInterface $graphqlServer,
+        bool $debug = false,
+        int $jsonEncodingOption = JSON_PRETTY_PRINT
+    ) {
+        $this->jsonEncodingOption = $jsonEncodingOption;
         $this->graphqlServer = $graphqlServer;
         $this->debug = $debug;
     }
@@ -66,6 +77,6 @@ class GraphQLRequestHandler implements RequestHandlerInterface
             ];
             $responseStatusCode = ResponseStatusCode::INTERNAL_SERVER_ERROR;
         }
-        return response()->withJson($output, $responseStatusCode, JSON_PRETTY_PRINT);
+        return response()->withJson($output, $responseStatusCode, $this->jsonEncodingOption);
     }
 }

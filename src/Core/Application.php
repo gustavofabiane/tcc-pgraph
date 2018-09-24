@@ -39,6 +39,8 @@ class Application extends Container implements RequestHandlerInterface
         $this->config = $config ?: Configuration::create([
             'prefix' => 'config'
         ]);
+        $this->config->setApplication($this);
+        $this->register('config', $this->config);
         
         static::setInstance($this);
         

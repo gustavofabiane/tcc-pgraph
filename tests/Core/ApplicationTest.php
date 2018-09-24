@@ -7,6 +7,7 @@ use PHPUnit\Framework\TestCase;
 use Framework\Router\RouterInterface;
 use Framework\Http\Handlers\NotFoundHandler;
 use Framework\Http\Handlers\ErrorHandlerInterface;
+use Framework\Core\Configuration;
 
 class ApplicationTest extends TestCase
 {
@@ -28,5 +29,12 @@ class ApplicationTest extends TestCase
         $this->assertInstanceOf(RouterInterface::class, $this->application->router);
         $this->assertInstanceOf(NotFoundHandler::class, $this->application->notFoundHandler);
         $this->assertInstanceOf(ErrorHandlerInterface::class, $this->application->errorHandler);
+    }
+
+    public function testGetConfig()
+    {
+        $this->assertInstanceOf(Configuration::class, $this->application->config);
+        $this->assertInstanceOf(Configuration::class, $this->application->get('config'));
+        $this->assertSame($this->application->config, $this->application->get('config'));
     }
 }

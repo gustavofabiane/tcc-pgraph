@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace Framework\GraphQL;
 
+use GraphQL\Error\Error;
 use GraphQL\Type\Definition\Type;
 use Framework\GraphQL\TypeRegistry;
-use GraphQL\Type\Definition\ListOfType;
 use GraphQL\Type\Definition\NonNull;
+use GraphQL\Type\Definition\ListOfType;
+use GraphQL\Error\FormattedError;
 
 /**
  * Get type from the type registry.
