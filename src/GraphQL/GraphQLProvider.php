@@ -133,7 +133,7 @@ class GraphQLProvider implements ProviderInterface
                     $registry->addType($type, is_string($name) ? $name : '');
                 }
                 foreach ($config['fields'] as $defaultName => $field) {
-                    $registry->addType($type, is_string($name) ? $name : '');
+                    $registry->addType($type, is_string($defaultName) ? $defaultName : '');
                 }
             });
         }
@@ -184,7 +184,7 @@ class GraphQLProvider implements ProviderInterface
          */
         if (!$app->has('graphqlSchema')) {
             $app->singleton('graphqlSchema', function (ContainerInterface $c) use ($config) {
-                return $c->get('graphqlSchema')->create(
+                return $c->get('schemaFactory')->create(
                     $c->get('graphqlQuery'),
                     $c->get('graphqlMutation'),
                     $config['directives'],
@@ -200,11 +200,11 @@ class GraphQLProvider implements ProviderInterface
         if (!$app->has('graphqlServer')) {
             $app->register('graphqlServer', function (ContainerInterface $c) use ($config) {
                 
-                $errorFormatter = is_subclass_of(ErrorFormatter::class) 
+                $errorFormatter = !is_callable($config['error_formatter']) 
                     ? $c->resolve($config['error_formatter'])
                     : $config['error_formatter'];
                 
-                $errorsHandler = is_subclass_of(ErrorHandler::class) 
+                $errorsHandler = is_subclass_of($config['errors_handler']) 
                     ? $c->resolve($config['errors_handler'])
                     : $config['errors_handler'];
                 

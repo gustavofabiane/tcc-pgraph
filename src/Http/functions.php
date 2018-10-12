@@ -15,6 +15,22 @@ use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 
 /**
+ * Create a PSR-7 request implementation instance from server params.
+ *
+ * @return ServerRequestInterface
+ */
+function requestFromServerParams(): ServerRequestInterface
+{
+    return new Request(
+        $_SERVER['REQUEST_METHOD'], $_SERVER,
+        Uri::createFromServerParams($_SERVER),
+        [], [], 
+        new Body('php://input', 'r'), 
+        UploadedFile::filterNativeUploadedFiles($_FILES ?: [])
+    );
+}
+
+/**
  * Create a PSR-7 compliant HTTP Response instance.
  *
  * @param int $statusCode

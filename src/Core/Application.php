@@ -21,6 +21,13 @@ class Application extends Container implements RequestHandlerInterface
     public $config;
 
     /**
+     * If the application must define the request route before the middleware execution
+     *
+     * @var bool
+     */
+    public $defineRouteBeforeMiddleware = true;
+
+    /**
      * List of deffered service providers that were not loaded yet.
      *
      * @var array
@@ -55,12 +62,14 @@ class Application extends Container implements RequestHandlerInterface
      */
     public function provide($provider, array $services = null)
     {
-        if (!is_null($provide)) {
+        if (!is_null($services)) {
             $this->providers[] = compact('provider', 'services');
-        } elseif (! $provider instanceof ProviderInterface) {
-            $provider = $this->resolve($provider);
+        } else {
+            if (! $provider instanceof ProviderInterface) {
+                $provider = $this->resolve($provider);
+            }
+            $provider->provide($this);
         }
-        $provider->provide($this);
     }
 
     /**
@@ -145,7 +154,9 @@ class Application extends Container implements RequestHandlerInterface
      */
     protected function callRouteHandler(ServerRequestInterface $request): ?ResponseInterface
     {
+        /** @var \Framework\Router\RouteInterface $route */
         $route = $request->getAttribute('route');
+
         if ($route === null) {
             $request = $this->defineRequestRoute($request);
             $route = $request->getAttribute('route');

@@ -111,11 +111,10 @@ trait HasMiddlewareTrait
      */
     protected function filterMiddleware($middleware)
     {
-
         if (is_callable($middleware) || $middleware instanceof \Closure || 
            is_string($middleware) && (preg_match(ServiceResolverInterface::RESOLVABLE_PATTERN, $middleware, $matches))
         ) {
-            return new ResolvableMiddleware($middleware, $this->container);
+            return new ResolvableMiddleware($middleware, $this);
         }
 
         if (is_object($middleware) || is_string($middleware) && 

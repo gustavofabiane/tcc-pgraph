@@ -190,7 +190,7 @@ class Uri implements UriInterface
         $path = parse_url('http://default.com' . $serverParams['request_uri'], PHP_URL_PATH);
 
         // query string
-        $query = $serverParams('query_string') ?? '';
+        $query = $serverParams['query_string'] ?? '';
         if (!$query) {
             $query = parse_url('http://default.com' . $serverParams['request_uri'], PHP_URL_QUERY);
         }

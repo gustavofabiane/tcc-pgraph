@@ -58,14 +58,32 @@ class ErrorHandler implements ErrorHandlerInterface
 
     public function html(ServerRequestInterface $request, Throwable $error)
     {
+        $class = get_class($error);
+        $code = $error->getCode();
+        $file = $error->getFile();
+        $line = $error->getLine();
+        $message = $error->getMessage();
+        $previousMessage = $error->getPrevious()->getMessage();
+        $stackTrace = $error->getTraceAsString();
+
         return <<<END
 <!DOCTYPE html>
 <html>
     <head>
-        <title>Page Not Found</title>
+        <title>Error</title>
+        <style>* { font-family: Arial, sans-serif; }</style>
     </head>
     <body>
-        <h1>Page Not Found</h1>
+        <h1>Error</h1>
+        <table>
+            <tr><td>Error:</td><td>$class</td></tr>
+            <tr><td>Message:</td><td>$message</td></tr>
+            <tr><td>Previous:</td><td>$previousMessage</td></tr>
+            <tr><td>Code:</td><td>$code</td></tr>
+            <tr><td>File:</td><td>$file</td></tr>
+            <tr><td>Line:</td><td>$line</td></tr>
+        </table>
+        <pre style="font-family: monospace; font-size: 14px">$stackTrace</pre>
     </body>
 </html>
 END;
