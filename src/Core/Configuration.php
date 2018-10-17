@@ -79,12 +79,28 @@ class Configuration implements ContainerInterface
     }
 
     /**
+     * Set new configuration if none exists.
+     *
+     * @param string $conf
+     * @param mixed $value
+     * @return static
+     */
+    public function set(string $conf, $value): self
+    {
+        if (!$this->has($conf)) {
+            $this->configurations[$conf] = $value;
+        }
+
+        return $this;
+    }
+
+    /**
      * @inheritDoc
      *
      * @param string $conf
      * @return bool
      */
-    public function has($conf)
+    public function has($conf): bool
     {
         return isset($this->configurations[$conf]) || $this->checkConfFileExists($conf);
     }
