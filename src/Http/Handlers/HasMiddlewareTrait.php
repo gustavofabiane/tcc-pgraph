@@ -114,7 +114,7 @@ trait HasMiddlewareTrait
         if (is_callable($middleware) || $middleware instanceof \Closure || 
            is_string($middleware) && (preg_match(ServiceResolverInterface::RESOLVABLE_PATTERN, $middleware, $matches))
         ) {
-            return new ResolvableMiddleware($middleware, $this);
+            return new ResolvableMiddleware($middleware, $this->container);
         }
 
         if (is_object($middleware) || is_string($middleware) && 
