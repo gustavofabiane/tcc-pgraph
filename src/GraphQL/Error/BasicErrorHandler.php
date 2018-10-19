@@ -2,9 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Framework\GraphQL\Util;
+namespace Framework\GraphQL\Error;
 
 use GraphQL\Error\Error;
+use GraphQL\Error\FormattedError;
 
 /**
  * Undocumented class

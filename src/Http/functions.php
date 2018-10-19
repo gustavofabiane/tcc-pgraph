@@ -21,13 +21,17 @@ use Psr\Http\Server\RequestHandlerInterface;
  */
 function requestFromServerParams(): ServerRequestInterface
 {
-    return new Request(
+    $request = new Request(
         $_SERVER['REQUEST_METHOD'], $_SERVER,
         Uri::createFromServerParams($_SERVER),
         [], [], 
         new Body('php://input', 'r'), 
         UploadedFile::filterNativeUploadedFiles($_FILES ?: [])
     );
+    if (!empty($_POST)) {
+        $request = $request->withParsedBody($_POST);
+    }
+    return $request;
 }
 
 /**

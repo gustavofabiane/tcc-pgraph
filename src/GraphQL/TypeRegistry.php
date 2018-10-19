@@ -247,7 +247,7 @@ class TypeRegistry implements TypeRegistryInterface
     }
 
     /**
-     * Call for registry is callable to retrieve the given type.
+     * Call for registry as callable to retrieve the given type.
      *
      * @param string $type
      * @return Type

@@ -57,8 +57,8 @@ class GraphQLProvider implements ProviderInterface
             'fields' => [
                 PadField::class
             ],
-            'error_formatter' => '\Framework\GraphQL\Util\BasicErrorHandler::formatError',
-            'errors_handler'   => '\Framework\GraphQL\Util\BasicErrorHandler::handleErrors',
+            'error_formatter' => '\Framework\GraphQL\Error\BasicErrorHandler::formatError',
+            'errors_handler'   => '\Framework\GraphQL\Error\BasicErrorHandler::handleErrors',
             'security' => [
                 'max_complexity' => null,
                 'max_depth' => null,
@@ -72,7 +72,7 @@ class GraphQLProvider implements ProviderInterface
                 'middleware' => [],
             ]
         ];
-        $config = $this->mapConfiguration($defaultConfig, $app->get('config.graphql'));
+        $config = $this->mapConfiguration($defaultConfig, $app->config->get('graphql'));
 
         /**
          * Set default internal error message
@@ -128,12 +128,12 @@ class GraphQLProvider implements ProviderInterface
             $app->alias('typeRegistry', TypeRegistry::class);
             $app->implemented(TypeRegistryInterface::class, TypeRegistry::class);
 
-            $app->registerListener('typeRegistry', function (TypeRegistry $registry) use ($config) {
+            $app->registerListener(TypeRegistry::class, function (TypeRegistry $registry) use ($config) {
                 foreach ($config['types'] as $name => $type) {
                     $registry->addType($type, is_string($name) ? $name : '');
                 }
                 foreach ($config['fields'] as $defaultName => $field) {
-                    $registry->addType($type, is_string($defaultName) ? $defaultName : '');
+                    $registry->addField($field, is_string($defaultName) ? $defaultName : '');
                 }
             });
         }
@@ -164,7 +164,7 @@ class GraphQLProvider implements ProviderInterface
             $app->singleton('graphqlQuery', function (ContainerInterface $c) use ($config) {
                 return $config['query'] instanceof QueryType 
                     ? $config['query']
-                    : QueryType::createFromFields($config['query']);
+                    : QueryType::createFromFields($config['query'], $c->get('typeRegistry'));
             });
         }
 
@@ -175,7 +175,7 @@ class GraphQLProvider implements ProviderInterface
             $app->singleton('graphqlMutation', function (ContainerInterface $c) use ($config) {
                 return $config['mutation'] instanceof MutationType 
                     ? $config['mutation']
-                    : MutationType::createFromFields($config['mutation']);
+                    : MutationType::createFromFields($config['mutation'], $c->get('typeRegistry'));
             });
         }
 
@@ -204,15 +204,20 @@ class GraphQLProvider implements ProviderInterface
                     ? $c->resolve($config['error_formatter'])
                     : $config['error_formatter'];
                 
-                $errorsHandler = is_subclass_of($config['errors_handler']) 
+                $errorsHandler = !is_callable($config['errors_handler']) 
                     ? $c->resolve($config['errors_handler'])
                     : $config['errors_handler'];
+
+                $fieldResolder = $c->get('graphqlDefaultFieldResolver');
+                if (!is_callable($fieldResolder)) {
+                    $fieldResolder = [$fieldResolder, 'resolve'];
+                }
                 
                 return new Server([
                     'debug'   => $config['debug'],
                     'schema'  => $c->get('graphqlSchema'),
                     'context' => $c,
-                    'fieldResolver'  => $c->get('graphqlDefaultFieldResolver'),
+                    'fieldResolver'  => $fieldResolder,
                     'queryBatching'  => $config['allow_query_batching'],
                     'errorsHandler'  => $errorsHandler,
                     'errorFormatter' => $errorFormatter
@@ -241,6 +246,7 @@ class GraphQLProvider implements ProviderInterface
         if ($config['http']) {
             $app->router->collect(function($router) use ($config, $app) {
                 $router->addRoute(
+                    $config['http']['methods'],
                     $config['http']['endpoint'], 
                     $app->get('graphqlRequestHandler')
                 );

@@ -13,6 +13,7 @@ use Psr\Http\Server\RequestHandlerInterface;
 
 use function Framework\Http\response;
 use Framework\Http\Handlers\HasMiddlewareTrait;
+use GraphQL\Error\Debug;
 
 /**
  * Handle request for the GraphQL server.
@@ -46,11 +47,11 @@ class GraphQLRequestHandler implements RequestHandlerInterface
      * Create a new graphql server handler instance
      *
      * @param GraphQLServerInterface $graphqlServer
-     * @param bool $debug
+     * @param int $debug
      */
     public function __construct(
         GraphQLServerInterface $graphqlServer,
-        bool $debug = false,
+        int $debug = 0,
         int $jsonEncodingOption = JSON_PRETTY_PRINT
     ) {
         $this->jsonEncodingOption = $jsonEncodingOption;

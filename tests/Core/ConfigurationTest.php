@@ -87,4 +87,10 @@ class ConfigurationTest extends TestCase
         
         $this->assertEquals(['debug' => false, 'test' => true] + $fromFileConf, $this->config->get('from-file'));
     }
+
+    public function testSetConfiguration()
+    {
+        $this->config->set('set-test', $conf = ['confi' => 'guration']);
+        $this->assertEquals($conf, $this->config->get('set-test'));
+    }
 }

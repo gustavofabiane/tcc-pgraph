@@ -43,17 +43,21 @@ class ErrorHandler implements ErrorHandlerInterface
 
     public function plain(ServerRequestInterface $request, Throwable $error)
     {
-        return 'Resource not found';
+        $content = 'An error has ocurred' . PHP_EOL;
+        $content .= 'Message: ' . $error->getMessage() . PHP_EOL;
+        $content .= $error->getTraceAsString();
+
+        return $content;
     }
 
     public function json(ServerRequestInterface $request, Throwable $error)
     {
-        return '{"message":"Resource not found"}';
+        return '{"message":"An error has ocurred"}';
     }
     
     public function xml(ServerRequestInterface $request, Throwable $error)
     {
-        return '<root><message>Resource not found</message></root>';
+        return '<root><message>An error has ocurred</message></root>';
     }
 
     public function html(ServerRequestInterface $request, Throwable $error)

@@ -39,6 +39,10 @@ class QueryType extends ObjectType
             $name = $type->name;
         }
         $this->queries[$name] = $type;
+
+        if (!$this->registry->exists($type->name)) {
+            $this->registry->addType($type, $type->name);
+        }
         
         return $this;
     }
@@ -58,14 +62,30 @@ class QueryType extends ObjectType
         return $this->registry->type($typeName);
     }
 
+    public function resolve($src, $args, $context, $info)
+    {
+        return [
+            'sum' => 12345
+        ];
+    }
+
+    /**
+     * Create a query type from array of fields.
+     *
+     * @param array $fields
+     * @param TypeRegistryInterface $registry
+     * @return static
+     */
     public static function createFromFields(array $fields, TypeRegistryInterface $registry = null): self
     {
-        $type = new static($registry ?: TypeRegistry::getInstance());
+        $queryType = new static();
+        $queryType->setTypeRegistry($registry);
 
-        foreach ($fields as $name => $type) {
-            $type->addField($type, $name);
+        foreach ($fields as $name => $fieldType) {
+            $queryType->addField($fieldType, $name);
         }
 
-        return $type;
+        $queryType->make();
+        return $queryType;
     }
 }

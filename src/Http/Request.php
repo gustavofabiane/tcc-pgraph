@@ -477,7 +477,7 @@ class Request extends Message implements ServerRequestInterface
             }
         }
 
-        return $this->queryParams;
+        return $this->queryParams ?? [];
     }
 
     /**

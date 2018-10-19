@@ -38,7 +38,7 @@ class DefaultFieldResolver implements FieldResolverInterface
                 $property = [$type, $resolveMethod];
             }
         }
-
+var_dump($property);
         return $property instanceof \Closure || is_callable($property) 
             ? call_user_func($property, $source, $args, $context, $info) 
             : $property;

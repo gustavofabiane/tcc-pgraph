@@ -267,15 +267,15 @@ class Container implements
             return $this->get($resolvable);
         }
 
-        try {
-            return $this->resolver->resolve($resolvable, $parameters);
-        } catch (Exception $e) {
-            throw new ContainerException(
-                sprintf('Cannot resolve \'%s\'', ($resolvable instanceof Closure) ? 'closure' : $resolvable),
-                $e->getCode(),
-                $e
-            );
-        }
+        return $this->resolver->resolve($resolvable, $parameters);
+        // try {
+        // } catch (Exception $e) {
+        //     throw new ContainerException(
+        //         sprintf('Cannot resolve \'%s\'', ($resolvable instanceof Closure) ? 'closure' : $resolvable),
+        //         $e->getCode(),
+        //         $e
+        //     );
+        // }
     }
 
     /**
@@ -428,12 +428,14 @@ class Container implements
      */
     public function registerListener(string $id, callable $callback)
     {
-        if (in_array($callback, $this->listeners[$id])) {
-            throw new ContainerException(
-                'Duplicated service resolving listener'
-            );
+        if ($this->has($id)) {
+            if (in_array($callback, $this->listeners[$id])) {
+                throw new ContainerException(
+                    'Duplicated service resolving listener'
+                );
+            }
+            $this->listeners[$id][] = $callback;
         }
-        $this->listeners[$id][] = $callback;
     }
 
     /**
