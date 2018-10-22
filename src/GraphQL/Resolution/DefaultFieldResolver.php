@@ -31,14 +31,16 @@ class DefaultFieldResolver implements FieldResolverInterface
         } elseif (is_object($source)) {
             if (isset($source->{$fieldName})) {
                 $property = $source->{$fieldName};
-            }
-
+            } 
+        }
+        
+        if (!$property) {
             $type = $info->parentType;
             if ($resolveMethod = $this->getFieldResolver($type, $fieldName)) {
                 $property = [$type, $resolveMethod];
             }
         }
-var_dump($property);
+        
         return $property instanceof \Closure || is_callable($property) 
             ? call_user_func($property, $source, $args, $context, $info) 
             : $property;
@@ -73,5 +75,16 @@ var_dump($property);
         }
 
         return null;
+    }
+
+    /**
+     * Check whether the return type has an accessible default resolver method.
+     *
+     * @param ObjectType $type
+     * @return string|null
+     */
+    protected function hasTypeResolver(ObjectType $type): ?string
+    {
+        return method_exists($type, 'resolve');
     }
 }

@@ -6,6 +6,7 @@ namespace Framework\Http;
 
 use Framework\Http\Stream;
 use Framework\Http\Response;
+use Framework\Core\Application;
 use Psr\Http\Message\StreamInterface;
 use Framework\Http\ResponseStatusCode;
 use Psr\Http\Message\ResponseInterface;
@@ -52,7 +53,18 @@ function response(
         $body = new Stream();
         $body->write($content);
     }
-    return new Response($statusCode, $headers, $body);
+    
+    /** @var \Psr\Http\Message\ResponseInterface $response */
+    $response = Application::getInstance()
+        ->get('response')
+        ->withStatus($statusCode)
+        ->withBody($body);
+    
+    foreach ($headers as $name => $value) {
+        $response = $response->withHeader($name, $value);
+    }
+
+    return $response;
 }
 
 /**
@@ -64,7 +76,7 @@ function response(
  */
 function jsonResponse($data, int $statusCode = ResponseStatusCode::OK): ResponseInterface
 {
-    return (new Response())->withJson($data, $statusCode);
+    return Application::getInstance()->get('response')->withJson($data, $statusCode);
 }
 
 /**

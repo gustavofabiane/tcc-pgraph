@@ -7,11 +7,28 @@ use Framework\Router\RouteCollector;
 use Framework\Container\ContainerInterface;
 use FastRoute\RouteParser\Std as RouteParser;
 use FastRoute\DataGenerator\GroupCountBased as RouteDataGenerator;
+use Framework\Http\Request;
+use Framework\Http\Response;
+use Framework\Http\ResponseStatusCode;
 
 class DefaultProvider implements ProviderInterface
 {
     public function provide(Application $app)
     {
+        if (!$app->has('request')) {
+            $app->register('request', function () {
+                return Request::createFromServerParams(
+                    $_SERVER, $_POST, $_COOKIE, $_FILES
+                );
+            });
+        }
+
+        if (!$app->has('response')) {
+            $app->register('response', function () {
+                return new Response(ResponseStatusCode::OK);
+            });
+        }
+
         if (!$app->has('routeCollector')) {
             $app->register('routeCollector', function (ContainerInterface $c) {
                 return new RouteCollector(

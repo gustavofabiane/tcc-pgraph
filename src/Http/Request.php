@@ -790,4 +790,30 @@ class Request extends Message implements ServerRequestInterface
 
         return $clone;
     }
+
+    /**
+     * Create a server request instance from server params
+     *
+     * @param array $serverParams
+     * @param array $postData
+     * @param array $uploadedFiles
+     * @return ServerRequestInterface
+     */
+    public static function createFromServerParams(
+        array $serverParams = [], 
+        array $postData = [], 
+        array $cookies = [],
+        array $uploadedFiles = []
+    ): ServerRequestInterface {
+        $request = new Request(
+            $serverParams['REQUEST_METHOD'], $serverParams,
+            Uri::createFromServerParams($serverParams), [], $cookies, 
+            new Body('php://input', 'r'), 
+            UploadedFile::filterNativeUploadedFiles($uploadedFiles)
+        );
+        if (!empty($postData)) {
+            $request = $request->withParsedBody($postData);
+        }
+        return $request;
+    }
 }

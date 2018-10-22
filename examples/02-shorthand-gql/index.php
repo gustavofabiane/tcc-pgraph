@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Framework\Core\Application;
 use Framework\Router\RouteCollector;
 use Psr\Http\Message\ResponseInterface as Response;
@@ -21,27 +23,27 @@ include '../../vendor/autoload.php';
  */
 $app = new Application();
 
-$sumType = new ObjectType([
-    'name' => 'Sum',
+$mathType = new ObjectType([
+    'name' => 'Math',
     'fields' => function () use ($app) {
-        
         $resolve = function ($src, $args, $context) {
-            return 5 + $args['y'];
+            return $args['x'] + $args['y'];
         };
         return [
-            field($app->typeRegistry->int(), 'x', [argument('y', $app->typeRegistry->int(), 10)], $resolve)
+            field(
+                $app->typeRegistry->int(), 'sum', 
+                [argument('x', $app->typeRegistry->int()), 
+                 argument('y', $app->typeRegistry->int(), 10)], 
+                $resolve
+            )
         ];
-    },
-    'resolveField' => function () {
-        return 321;
-    }
+    }, 
 ]);
 
 $app->config->set('graphql', [
     'query' => [
-        'sum' => $sumType
-    ],
-    // 'unreachable_types' => [$sumType]
+        'math' => $mathType
+    ]
 ]);
 
 (new GraphQLProvider)->provide($app);
@@ -49,4 +51,4 @@ $app->config->set('graphql', [
 /**
  * Run app with a server request implementation
  */
-$app->run(requestFromServerParams());
+$app->run();

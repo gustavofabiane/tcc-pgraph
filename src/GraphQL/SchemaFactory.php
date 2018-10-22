@@ -7,6 +7,7 @@ namespace Framework\GraphQL;
 use GraphQL\Type\Schema;
 use GraphQL\Type\SchemaConfig;
 use GraphQL\Type\Definition\Type;
+use GraphQL\Type\Definition\ObjectType;
 
 class SchemaFactory
 {
@@ -47,13 +48,13 @@ class SchemaFactory
         $schemaConfig = SchemaConfig::create();
         
         if ($query) {
-            if (! $query instanceof QueryType) {
+            if (! $query instanceof QueryType && ! $query instanceof ObjectType) {
                 $query = QueryType::createFromFields($query, $this->registry); 
             }
             $schemaConfig->setQuery($query);
         }
         if ($mutation) {
-            if (! $mutation instanceof MutationType) {
+            if (! $mutation instanceof MutationType && ! $query instanceof ObjectType) {
                 $mutation = MutationType::createFromFields($mutation, $this->registry); 
             }
             $schemaConfig->setMutation($mutation);

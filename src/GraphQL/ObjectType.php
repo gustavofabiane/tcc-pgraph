@@ -57,8 +57,8 @@ abstract class ObjectType extends BaseObjectType implements
      */
     public final function getTypeResolver(): ?callable
     {
-        if (method_exists($this, 'resolve')) {
-            return [$this, 'resolve'];
+        if (method_exists($this, 'resolveField')) {
+            return [$this, 'resolveField'];
         }
         return null;
     }

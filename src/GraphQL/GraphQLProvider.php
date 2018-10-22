@@ -49,6 +49,7 @@ class GraphQLProvider implements ProviderInterface
             'json_encoding_option' => JSON_PRETTY_PRINT,
             'internal_error_message' => 'Unexpected Error', 
             'allow_query_batching' => true,
+            'root_value' => null,
             'query' => [],
             'mutation' => [], 
             'directives' => GraphQL::getStandardDirectives(),
@@ -212,11 +213,17 @@ class GraphQLProvider implements ProviderInterface
                 if (!is_callable($fieldResolder)) {
                     $fieldResolder = [$fieldResolder, 'resolve'];
                 }
+
+                $rootValue = $config['root_value'];
+                if (is_callable($rootValue)) {
+                    $rootValue = $c->resolve($rootValue);
+                }
                 
                 return new Server([
-                    'debug'   => $config['debug'],
-                    'schema'  => $c->get('graphqlSchema'),
-                    'context' => $c,
+                    'debug'          => $config['debug'],
+                    'schema'         => $c->get('graphqlSchema'),
+                    'context'        => $c,
+                    'rootValue'      => $rootValue,
                     'fieldResolver'  => $fieldResolder,
                     'queryBatching'  => $config['allow_query_batching'],
                     'errorsHandler'  => $errorsHandler,
