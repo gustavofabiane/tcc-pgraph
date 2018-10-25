@@ -54,6 +54,5 @@ class ConsoleTest extends TestCase
         $tester->execute(['name' => 'testing', 'times' => 2]);
 
         $this->assertContains('testingtesting', $tester->getDisplay(true));
-
     }
 }
