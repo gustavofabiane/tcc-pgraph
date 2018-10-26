@@ -346,11 +346,12 @@ class Container implements
      *
      * @param string $id
      * @param mixed $assembler
+     * @param array $defaults
      * @return void
      */
-    public function singleton(string $id, $assembler = null)
+    public function singleton(string $id, $assembler = null, array $defaults = [])
     {
-        $this->register($id, $assembler, true);
+        $this->register($id, $assembler, true, $defaults);
     }
 
     /**
