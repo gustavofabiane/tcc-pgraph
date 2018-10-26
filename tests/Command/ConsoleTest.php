@@ -9,6 +9,8 @@ use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Tester\CommandTester;
 use Symfony\Component\Console\Application as SymfonyApplication;
+use Framework\Tests\Stubs\Command\StubSimpleCommand;
+use Symfony\Component\Console\CommandLoader\ContainerCommandLoader;
 
 class ConsoleTest extends TestCase
 {
@@ -54,5 +56,44 @@ class ConsoleTest extends TestCase
         $tester->execute(['name' => 'testing', 'times' => 2]);
 
         $this->assertContains('testingtesting', $tester->getDisplay(true));
+    }
+
+    /**
+     * @depends testCreateInstance
+     *
+     * @param Console $console
+     * @return void
+     */
+    public function textExecuteStubSimpleCommand(Console $console)
+    {
+        $stubCommand = new StubSimpleCommand('stub');
+        $console->add($stubCommand);
+
+        $tester = new CommandTester($console->find('stub'));
+        $tester->execute(['arg' => 'testing']);
+
+        $this->assertContains(
+            'This is a simple command...: testing', 
+            $tester->getDisplay(true)
+        );
+    }
+
+    /**
+     * @depends testCreateInstance
+     *
+     * @param Console $console
+     * @return void
+     */
+    public function testLazyLoadCommands(Console $console)
+    {
+        $container = $console->getContainer();
+        $container->singleton(StubSimpleCommand::class, null, ['name' => 'stub']);
+
+        $loader = new ContainerCommandLoader($console->getContainer(), [
+            'stub' => StubSimpleCommand::class
+        ]);
+        $console->setCommandLoader($loader);
+
+        $this->assertInstanceOf(StubSimpleCommand::class, $console->find('stub'));
     }
 }
