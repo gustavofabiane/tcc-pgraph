@@ -30,7 +30,7 @@ class Message implements MessageInterface
      *
      * @var array
      */
-    protected $headers;
+    protected $headers = [];
 
     /**
      * The original headers key value.
@@ -39,7 +39,7 @@ class Message implements MessageInterface
      * 
      * @var array
      */
-    protected $originalHeadersNames;
+    protected $originalHeadersNames = [];
 
     /**
      * The HTTP message body
