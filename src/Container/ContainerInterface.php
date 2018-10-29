@@ -2,7 +2,6 @@
 
 namespace Framework\Container;
 
-use Framework\Container\ServiceResolverInterface;
 use Psr\Container\ContainerInterface as PsrContainerInterface;
 
 /**
@@ -18,11 +17,4 @@ interface ContainerInterface extends PsrContainerInterface
      * @return mixed
      */
     public function resolve($resolvable, array $parameters = []);
-
-    /**
-     * Get the container service resolver
-     *
-     * @return ServiceResolverInterface
-     */
-    public function getResolver(): ServiceResolverInterface;
 }
