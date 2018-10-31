@@ -38,6 +38,13 @@ class RouterTest extends TestCase
         );
     }
 
+    public function testCollectClosureBoundToCollector()
+    {
+        $this->router->collect(function () {
+            TestCase::assertInstanceOf(RouteCollector::class, $this);
+        });
+    }
+
     public function testCallCollectorMethods()
     {
         $handler = function ($id) {

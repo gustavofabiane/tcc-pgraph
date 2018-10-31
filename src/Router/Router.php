@@ -2,6 +2,7 @@
 
 namespace Framework\Router;
 
+use Closure;
 use RuntimeException;
 use FastRoute\RouteCollector;
 use FastRoute\Dispatcher\GroupCountBased;
@@ -78,6 +79,11 @@ class Router implements RouterInterface
      */
     public function collect(callable $routeDefinitionCallback)
     {
+        if ($routeDefinitionCallback instanceof Closure) {
+            $routeDefinitionCallback = $routeDefinitionCallback->bindTo(
+                $this->routeCollector
+            );
+        }
         $routeDefinitionCallback($this->routeCollector);
     }
 
@@ -111,9 +117,7 @@ class Router implements RouterInterface
      */
     public function match(ServerRequestInterface $request): RouteInterface
     {
-        $this->makeDispatcher();
-
-        $routeData = $this->dispatcher->dispatch(
+        $routeData = $this->dispatcher()->dispatch(
             $request->getMethod(),
             $request->getUri()->getPath()
         );
@@ -133,7 +137,7 @@ class Router implements RouterInterface
      *
      * @return void
      */
-    protected function makeDispatcher()
+    protected function dispatcher()
     {
         if (!$this->dispatcher) {
             $files = $this->routesFiles;
@@ -163,7 +167,7 @@ class Router implements RouterInterface
 
                 /** @var RouteCollector $routeCollector */
                 $dispatchData = $this->routeCollector->getData();
-                if (!$cacheDisabled) {
+                if (!$cacheDisabled && $this->routeCollector->isCachable()) {
                     file_put_contents(
                         $this->routesCacheFile,
                         '<?php return ' . var_export($dispatchData, true) . ';'
@@ -173,5 +177,6 @@ class Router implements RouterInterface
     
             $this->dispatcher = new GroupCountBased($dispatchData);
         }
+        return $this->dispatcher;
     }
 }
