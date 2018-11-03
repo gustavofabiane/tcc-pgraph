@@ -14,14 +14,14 @@ use Psr\Http\Server\RequestHandlerInterface;
  *
  * Based on nikic/fast-route.
  *
- * @method \Framework\Router\RouteCollector get(string $pattern, $handler)
- * @method \Framework\Router\RouteCollector post(string $pattern, $handler)
- * @method \Framework\Router\RouteCollector put(string $pattern, $handler)
- * @method \Framework\Router\RouteCollector patch(string $pattern, $handler)
- * @method \Framework\Router\RouteCollector head(string $pattern, $handler)
- * @method \Framework\Router\RouteCollector delete(string $pattern, $handler)
- * @method \Framework\Router\RouteCollector all(string $pattern, $handler)
- * @method \Framework\Router\RouteCollector prefix($routePrefix, callable $callback, array $middleware = [])
+ * @method \Framework\Router\RouteInterface get(string $pattern, $handler)
+ * @method \Framework\Router\RouteInterface post(string $pattern, $handler)
+ * @method \Framework\Router\RouteInterface put(string $pattern, $handler)
+ * @method \Framework\Router\RouteInterface patch(string $pattern, $handler)
+ * @method \Framework\Router\RouteInterface head(string $pattern, $handler)
+ * @method \Framework\Router\RouteInterface delete(string $pattern, $handler)
+ * @method \Framework\Router\RouteInterface all(string $pattern, $handler)
+ * @method \Framework\Router\RouteInterface group($routePrefix, callable $callback, array $middleware = [])
  *
  */
 class Router implements RouterInterface
