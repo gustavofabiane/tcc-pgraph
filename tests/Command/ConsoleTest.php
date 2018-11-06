@@ -87,13 +87,13 @@ class ConsoleTest extends TestCase
     public function testLazyLoadCommands(Console $console)
     {
         $container = $console->getContainer();
-        $container->singleton(StubSimpleCommand::class, null, ['name' => 'stub']);
+        $container->singleton(StubSimpleCommand::class);
 
         $loader = new ContainerCommandLoader($console->getContainer(), [
-            'stub' => StubSimpleCommand::class
+            'stub-simple' => StubSimpleCommand::class
         ]);
         $console->setCommandLoader($loader);
 
-        $this->assertInstanceOf(StubSimpleCommand::class, $console->find('stub'));
+        $this->assertInstanceOf(StubSimpleCommand::class, $console->find('stub-simple'));
     }
 }

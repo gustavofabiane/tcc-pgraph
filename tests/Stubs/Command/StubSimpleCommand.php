@@ -7,6 +7,8 @@ use Symfony\Component\Console\Input\InputArgument;
 
 class StubSimpleCommand extends Command
 {
+    private $name = 'stub-simple';
+
     protected function configure()
     {
         $this->addArgument('arg', InputArgument::OPTIONAL, '', 'default');
