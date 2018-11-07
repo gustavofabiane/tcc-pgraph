@@ -2,9 +2,9 @@
 
 namespace Framework\Tests\Command;
 
-use Framework\Command\Console;
+use Framework\Command\Application;
 use PHPUnit\Framework\TestCase;
-use Framework\Core\Application;
+use Framework\Core\Application as Container;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Tester\CommandTester;
@@ -12,20 +12,20 @@ use Symfony\Component\Console\Application as SymfonyApplication;
 use Framework\Tests\Stubs\Command\StubSimpleCommand;
 use Symfony\Component\Console\CommandLoader\ContainerCommandLoader;
 
-class ConsoleTest extends TestCase
+class ApplicationTest extends TestCase
 {
     /**
      * Test create a terminal instance.
      *
-     * @return Console
+     * @return Application
      */
     public function testCreateInstance()
     {
-        $console = new Console();
-        $this->assertInstanceOf(Console::class, $console);
+        $console = new Application();
+        $this->assertInstanceOf(Application::class, $console);
         $this->assertInstanceOf(SymfonyApplication::class, $console);
 
-        $console->setContainer($app = new Application());
+        $console->setContainer($app = new Container());
         $this->assertSame($app, $console->getContainer());
 
         return $console;
@@ -34,10 +34,10 @@ class ConsoleTest extends TestCase
     /**
      * @depends testCreateInstance
      *
-     * @param Console $console
+     * @param Application $console
      * @return void
      */
-    public function testExecuteSimpleCommand(Console $console)
+    public function testExecuteSimpleCommand(Application $console)
     {
         $command = new Command('simple');
         $command->addArgument('name', InputArgument::REQUIRED)
@@ -61,10 +61,10 @@ class ConsoleTest extends TestCase
     /**
      * @depends testCreateInstance
      *
-     * @param Console $console
+     * @param Application $console
      * @return void
      */
-    public function textExecuteStubSimpleCommand(Console $console)
+    public function textExecuteStubSimpleCommand(Application $console)
     {
         $stubCommand = new StubSimpleCommand('stub');
         $console->add($stubCommand);
@@ -81,10 +81,10 @@ class ConsoleTest extends TestCase
     /**
      * @depends testCreateInstance
      *
-     * @param Console $console
+     * @param Application $console
      * @return void
      */
-    public function testLazyLoadCommands(Console $console)
+    public function testLazyLoadCommands(Application $console)
     {
         $container = $console->getContainer();
         $container->singleton(StubSimpleCommand::class);

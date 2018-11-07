@@ -2,11 +2,11 @@
 
 namespace Framework\Command;
 
-use Symfony\Component\Console\Application;
+use Symfony\Component\Console\Application as Symfony;
 use Framework\Container\ContainerInterface;
 use Symfony\Component\Console\Command\Command as SymfonyCommand;
 
-class Console extends Application
+class Application extends Symfony
 {
     /**
      * Container implementation instance.

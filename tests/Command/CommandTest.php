@@ -3,7 +3,7 @@
 namespace Framework\Tests\Command;
 
 use Framework\Command\Command;
-use Framework\Command\Console;
+use Framework\Command\Application;
 use PHPUnit\Framework\TestCase;
 use Framework\Container\Container;
 use Symfony\Component\Console\Input\InputOption;
@@ -22,14 +22,14 @@ class CommandTest extends TestCase
     /**
      * 
      *
-     * @var Console
+     * @var Application
      */
     protected $console;
 
     public function setup()
     {
         $this->container = new Container();
-        $this->console = new Console();
+        $this->console = new Application();
         $this->console->setContainer($this->container);
     }
 
