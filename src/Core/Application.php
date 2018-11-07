@@ -60,13 +60,13 @@ class Application extends Container implements RequestHandlerInterface
      * @param string|ProviderInterface $provider
      * @return void
      */
-    public function provide($provider, array $services = null)
+    public function addProvider($provider, array $services = null): void
     {
-        if (!is_null($services)) {
+        if ($services) {
             $this->providers[] = compact('provider', 'services');
         } else {
-            if (! $provider instanceof ProviderInterface) {
-                $provider = $this->resolve($provider);
+            if (is_string($provider)) {
+                $provider = new $provider();
             }
             $provider->provide($this);
         }
@@ -78,13 +78,13 @@ class Application extends Container implements RequestHandlerInterface
      * @param string $id
      * @return void
      */
-    public function findInDefferedProviders(string $id)
+    public function findInDefferedProviders(string $id): void
     {
         foreach ($this->providers as $key => &$provider) {
             if (in_array($id, $provider['services'])) {
                 $provider = $provider['provider'] instanceof ProviderInterface 
                     ? $provider['provider'] 
-                    : $this->resolve($provider['provider']);
+                    : new $provider['provider']();
                 $provider->provide($this);
                 unset($this->providers[$key]);
                 break;
@@ -111,7 +111,7 @@ class Application extends Container implements RequestHandlerInterface
      *
      * @return void
      */
-    public function run(?ServerRequestInterface $request = null)
+    public function run(?ServerRequestInterface $request = null): void
     {
         $this->emitResponse(
             $this->handle($request ?: $this->get('request'))
@@ -133,8 +133,8 @@ class Application extends Container implements RequestHandlerInterface
             }
             if ($this->hasMiddleware()) {
                 $response = $this->processMiddleware($request);
-            } elseif (($response = $this->callRouteHandler($request)) === null) {
-                $response = $this->notFoundHandler->handle($request);
+            } else {
+                $response = $this->callRouteHandler($request);
             }
         } catch (Throwable $error) {
             if (!$this->has('errorHandler')) {
@@ -150,9 +150,9 @@ class Application extends Container implements RequestHandlerInterface
      * Call the request route handler.
      *
      * @param ServerRequestInterface $request
-     * @return ResponseInterface|null
+     * @return ResponseInterface
      */
-    protected function callRouteHandler(ServerRequestInterface $request): ?ResponseInterface
+    protected function callRouteHandler(ServerRequestInterface $request): ResponseInterface
     {
         /** @var \Framework\Router\RouteInterface $route */
         $route = $request->getAttribute('route');
@@ -194,7 +194,7 @@ class Application extends Container implements RequestHandlerInterface
      * @param ResponseInterface $response
      * @return void
      */
-    public function emitResponse(ResponseInterface $response)
+    public function emitResponse(ResponseInterface $response): void
     {
         $reasonPhrase = $response->getReasonPhrase();
         $statusCode   = $response->getStatusCode();
