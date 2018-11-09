@@ -248,6 +248,7 @@ class GraphQLProvider implements ProviderInterface
                 }
                 return $handler;
             });
+            $app->alias(GraphQLRequestHandler::class, 'graphqlRequestHandler');
         }
 
         if ($config['http']) {
@@ -255,7 +256,7 @@ class GraphQLProvider implements ProviderInterface
                 $router->addRoute(
                     $config['http']['methods'],
                     $config['http']['endpoint'], 
-                    $app->get('graphqlRequestHandler')
+                    GraphQLRequestHandler::class
                 );
             });
         }

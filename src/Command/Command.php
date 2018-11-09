@@ -9,6 +9,7 @@ use Symfony\Component\Console\Question\Question;
 use Symfony\Component\Console\Helper\ProgressBar;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Helper\QuestionHelper;
+use Symfony\Component\Console\Input\InputDefinition;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Console\Question\ChoiceQuestion;
 use Symfony\Component\Console\Question\ConfirmationQuestion;
@@ -74,6 +75,20 @@ abstract class Command extends SymfonyCommand
         }
 
         return $defaultName;
+    }
+
+    /**
+     * Create a new command instance with the given name if provided.
+     *
+     * @param string|null $name
+     */
+    public function __construct(?string $name = null)
+    {
+        if (null !== $name || null !== $name = static::getDefaultName()) {
+            $this->setName($name);
+        }
+
+        parent::__construct($this->getName());
     }
 
     /**

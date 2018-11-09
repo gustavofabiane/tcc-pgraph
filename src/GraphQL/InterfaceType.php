@@ -8,11 +8,14 @@ use Framework\GraphQL\Fields;
 use Framework\GraphQL\Util\TypeTrait;
 use Framework\GraphQL\Util\TypeWithFields;
 use GraphQL\Type\Definition\InterfaceType as BaseInterfaceType;
+use Framework\GraphQL\Util\MakeableType;
 
 /**
  * Abstract implementation of an interface type definitions.
  */
-abstract class InterfaceType extends BaseInterfaceType implements TypeWithFields
+abstract class InterfaceType extends BaseInterfaceType implements 
+    TypeWithFields,
+    MakeableType
 {
     use TypeTrait;
 
@@ -21,7 +24,7 @@ abstract class InterfaceType extends BaseInterfaceType implements TypeWithFields
      *
      * @return void
      */
-    public final function make()
+    public final function make(): void
     {
         if (!$this->config) {
             parent::__construct([

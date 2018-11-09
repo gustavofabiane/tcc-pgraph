@@ -32,8 +32,10 @@ $mathType = new ObjectType([
         return [
             field(
                 $app->typeRegistry->int(), 'sum', 
-                [argument('x', $app->typeRegistry->int()), 
-                 argument('y', $app->typeRegistry->int(), 10)], 
+                [
+                    argument('x', $app->typeRegistry->nonNull('int')), 
+                    argument('y', $app->typeRegistry->int(), 10)
+                ], 
                 $resolve
             )
         ];
@@ -41,12 +43,13 @@ $mathType = new ObjectType([
 ]);
 
 $app->config->set('graphql', [
+    // 'debug' => 0,
     'query' => [
         'math' => $mathType
     ]
 ]);
 
-(new GraphQLProvider)->provide($app);
+$app->addProvider(new GraphQLProvider());
 
 /**
  * Run app with a server request implementation
