@@ -5,15 +5,17 @@ declare(strict_types=1);
 namespace Framework\GraphQL\Http;
 
 use Exception;
+use RuntimeException;
+use Framework\Http\Body;
+use GraphQL\Error\Debug;
 use GraphQL\Error\FormattedError;
+use function Framework\Http\response;
+
 use Framework\Http\ResponseStatusCode;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
-
-use function Framework\Http\response;
 use Framework\Http\Handlers\HasMiddlewareTrait;
-use GraphQL\Error\Debug;
 
 /**
  * Handle request for the GraphQL server.
@@ -78,6 +80,30 @@ class GraphQLRequestHandler implements RequestHandlerInterface
             ];
             $responseStatusCode = ResponseStatusCode::INTERNAL_SERVER_ERROR;
         }
-        return response()->withJson($output, $responseStatusCode, $this->jsonEncodingOption);
+
+        return $this->buildResponse($responseStatusCode, $output);
+
+        // return response(
+        //     $responseStatusCode, 
+        //     json_encode($output, $this->jsonEncodingOption), 
+        //     ['Content-Type' => 'Content-Type: application/json; charset=UTF-8']
+        // );
+    }
+
+    protected function buildResponse(int $status, $data = []): ResponseInterface
+    {
+        $json = json_encode($data, $this->jsonEncodingOption);
+        if ($json === false) {
+            throw new RuntimeException(json_last_error_msg(), json_last_error());
+        }
+
+        $body = new Body('php://temp', 'r+');
+        $body->rewind();
+        $body->truncate(0);
+        $body->write($json);
+        
+        return response()->withBody($body)
+            ->withHeader('Content-Type', 'application/json;charset=utf-8')
+            ->withStatus($status);
     }
 }

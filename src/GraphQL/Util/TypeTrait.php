@@ -72,9 +72,11 @@ trait TypeTrait
      */
     public final function getFieldResolver(string $fieldName): ?callable
     {
+        $fieldName = ucfirst($fieldName);
         $formats = ['get%sField', 'get%s', 'resolve%sField'];
+        
         foreach ($formats as $format) {
-            $fieldResolverName = sprintf($format, ucfirst($fieldName));
+            $fieldResolverName = sprintf($format, $fieldName);
             if (method_exists($this, $fieldResolverName)) {
                 return [$this, $fieldResolverName];
             }
