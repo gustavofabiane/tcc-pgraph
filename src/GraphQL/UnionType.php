@@ -6,11 +6,12 @@ namespace Framework\GraphQL;
 
 use Framework\GraphQL\Util\TypeTrait;
 use GraphQL\Type\Definition\UnionType as BaseUnionType;
+use Framework\GraphQL\Util\MakeableType;
 
 /**
  * Abstract implementation of an union type definitions.
  */
-abstract class UnionType extends BaseUnionType
+abstract class UnionType extends BaseUnionType implements MakeableType
 {
     use TypeTrait;
 
@@ -19,7 +20,7 @@ abstract class UnionType extends BaseUnionType
      *
      * @return void
      */
-    public final function make()
+    public final function make(): void
     {
         if (!$this->config) {
             parent::__construct([

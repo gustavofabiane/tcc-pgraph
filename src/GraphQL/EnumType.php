@@ -6,11 +6,12 @@ namespace Framework\GraphQL;
 
 use Framework\GraphQL\Util\TypeTrait;
 use GraphQL\Type\Definition\EnumType as BaseEnumType;
+use Framework\GraphQL\Util\MakeableType;
 
 /**
  * Abstract implementation of custom enum type definitions
  */
-abstract class EnumType extends BaseEnumType
+abstract class EnumType extends BaseEnumType implements MakeableType
 {
     use TypeTrait;
 
@@ -27,7 +28,7 @@ abstract class EnumType extends BaseEnumType
      * @param string $name
      * @return void
      */
-    public final function make()
+    public final function make(): void
     {
         if (!$this->config) {
             parent::__construct([

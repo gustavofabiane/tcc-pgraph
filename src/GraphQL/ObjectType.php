@@ -9,13 +9,15 @@ use Framework\GraphQL\Util\TypeTrait;
 use Framework\GraphQL\Util\TypeWithFields;
 use Framework\GraphQL\Util\ImplementsInterface;
 use GraphQL\Type\Definition\ObjectType as BaseObjectType;
+use Framework\GraphQL\Util\MakeableType;
 
 /**
  * Abstract implementation of an object type definitions.
  */
 abstract class ObjectType extends BaseObjectType implements 
     TypeWithFields, 
-    ImplementsInterface
+    ImplementsInterface, 
+    MakeableType
 {
     use TypeTrait;
 
@@ -24,7 +26,7 @@ abstract class ObjectType extends BaseObjectType implements
      *
      * @return void
      */
-    public final function make()
+    public final function make(): void
     {
         if (!$this->config) {
             parent::__construct([

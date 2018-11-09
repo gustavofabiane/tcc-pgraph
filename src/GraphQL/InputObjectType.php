@@ -9,11 +9,14 @@ use Framework\GraphQL\Util\TypeTrait;
 use Framework\GraphQL\Util\TypeWithFields;
 use Framework\GraphQL\Util\ImplementsInterface;
 use GraphQL\Type\Definition\InputObjectType as BaseInputObjectType;
+use Framework\GraphQL\Util\MakeableType;
 
 /**
  * Abstract implementation of an object type definitions.
  */
-abstract class InputObjectType extends BaseInputObjectType implements TypeWithFields
+abstract class InputObjectType extends BaseInputObjectType implements 
+    TypeWithFields, 
+    MakeableType
 {
     use TypeTrait;
 
