@@ -4,15 +4,17 @@ namespace Framework\Core;
 
 use Throwable;
 use Framework\Container\Container;
+use Framework\Router\RouteInterface;
 use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
-use Framework\Http\Handlers\HasMiddlewareTrait;
+use Symfony\Component\Console\Exception\LogicException;
+
+use function Framework\isImplementerOf;
 
 class Application extends Container implements RequestHandlerInterface
 {
-    use HasMiddlewareTrait;
-
     /**
      * App configuration container.
      *
@@ -21,18 +23,19 @@ class Application extends Container implements RequestHandlerInterface
     public $config;
 
     /**
-     * If the application must define the request route before the middleware execution
-     *
-     * @var bool
-     */
-    public $defineRouteBeforeMiddleware = true;
-
-    /**
      * List of deffered service providers that were not loaded yet.
      *
      * @var array
      */
     protected $providers = [];
+
+    /**
+     * An array of MiddlewareInterface to be
+     * proccessed by the handler.
+     *
+     * @var array
+     */
+    protected $middleware = [];
 
     /**
      * Creates a new application instance.
@@ -128,13 +131,27 @@ class Application extends Container implements RequestHandlerInterface
     public function handle(ServerRequestInterface $request): ResponseInterface
     {
         try {
-            if ($this->defineRouteBeforeMiddleware && !$request->getAttribute('route')) {
+            // Check if the route must be defined before application middleware be executed
+            if ($this->config->get('app', 'define_route_before_middleware') && !$request->getAttribute('route')) {
                 $request = $this->defineRequestRoute($request);
+
+                /** @var \Framework\Router\RouteInterface $route */
+                $route = $request->getAttribute('route');
+
+                // We are going to ignore middleware if the route does not exists
+                if ($route->isNotAllowed()) {
+                    return $this->notAllowedHandler->handle($request);
+                } elseif (!$route->isFound()) {
+                    return $this->notFoundHandler->handle($request);
+                }
             }
+
             if ($this->hasMiddleware()) {
+                // Call the middleware stack
                 $response = $this->processMiddleware($request);
             } else {
-                $response = $this->callRouteHandler($request);
+                // Execute the route middleware stack and its handler
+                $response = $this->callRoute($request);
             }
         } catch (Throwable $error) {
             if (!$this->has('errorHandler')) {
@@ -152,7 +169,7 @@ class Application extends Container implements RequestHandlerInterface
      * @param ServerRequestInterface $request
      * @return ResponseInterface
      */
-    protected function callRouteHandler(ServerRequestInterface $request): ResponseInterface
+    protected function callRoute(ServerRequestInterface $request): ResponseInterface
     {
         /** @var \Framework\Router\RouteInterface $route */
         $route = $request->getAttribute('route');
@@ -162,10 +179,10 @@ class Application extends Container implements RequestHandlerInterface
             $route = $request->getAttribute('route');
         }
 
-        if ($route->found()) {
-            $response = $route->getHandler()->handle($request);
-        } elseif ($route->notAllowed()) {
-            $response = $this->notAllowedHandler->handle($request);
+        if ($route->isFound()) {
+            $response = $this->routeHandler->route($route)->handle($request);
+        } elseif ($route->isNotAllowed()) {
+            $response = $this->notAllowedHandler->handle($request, $route->getMethods());
         } else {
             $response = $this->notFoundHandler->handle($request);
         }
@@ -174,7 +191,7 @@ class Application extends Container implements RequestHandlerInterface
     }
 
     /**
-     * Define the request route
+     * Define the request application route.
      *
      * @param ServerRequestInterface $request
      * @return ServerRequestInterface
@@ -188,6 +205,78 @@ class Application extends Container implements RequestHandlerInterface
         return $request->withAttribute('route', $route);
     }
 
+    /**
+     * Get the middleware stack.
+     *
+     * @return array
+     */
+    public function getMiddleware(): array
+    {
+        return $this->middleware;
+    }
+
+    /**
+     * Checks if the handler has middleware in its stack.
+     *
+     * @return bool
+     */
+    public function hasMiddleware(): bool
+    {
+        return !empty($this->middleware);
+    }
+
+    /**
+     * Process the application middleware stack.
+     *
+     * @param ServerRequestInterface $request
+     * @return ResponseInterface
+     */
+    protected function processMiddleware(ServerRequestInterface $request): ResponseInterface
+    {
+        $middleware = array_shift($this->middleware);
+
+        if ($middleware instanceof \Closure) {
+            $middleware = $middleware->bindTo($this);
+        } elseif (isImplementerOf(MiddlewareInterface::class, $middleware)) {
+            if (!is_object($middleware)) {
+                $middleware = $this->resolve($middleware);
+            }
+            $middleware = [$middleware, 'process'];
+        }
+
+        return call_user_func(
+            $middleware, $request, $this
+        );
+    }
+
+    /**
+     * Add a middleware definition to the route instance.
+     *
+     * @param callacle|\Psr\Http\Server\MiddlewareInterface $middleware
+     * @return static
+     */
+    public function add($middleware): self
+    {
+        array_unshift($this->middleware, $middleware);
+        return $this;
+    }
+
+    /**
+     * Add a list of middleware.
+     *
+     * @see add()
+     *
+     * @param array $middlewareGroup
+     * @return static
+     */
+    public function middleware(array $middlewareGroup): self
+    {
+        foreach ($middlewareGroup as $middleware) {
+            $this->add($middleware);
+        }
+        return $this;
+    }
+    
     /**
      * Emit an HTTP response.
      *

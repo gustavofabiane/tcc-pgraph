@@ -16,7 +16,29 @@ include '../../vendor/autoload.php';
  * Initializes application
  */
 $app = new Application();
+$app->config->set('app', ['routes_cache_file' => __DIR__ . '/routes.php']);
 $app->addProvider(new RouterProvider());
+
+
+function simpleCall(Request $request): Response {
+    if ($request->getAttribute('shorthand')) {
+        return response(
+            200, 'OK - Middleware worked!', 
+            ['Content-Type' => 'text/plain']
+        );
+    }
+    return response(
+        500, 'Oops! App middleware was not executed.', 
+        ['Content-Type' => 'text/plain']
+    );
+}
+
+function callWithName(string $name): Response {
+    return response(
+        200, sprintf('Hi, %s', $name), 
+        ['Content-Type' => 'text/plain']
+    );
+}
 
 /**
  * Simple application middleware example
@@ -33,28 +55,12 @@ $app->router->collect(function (RouteCollector $router): void {
     /**
      * Check if middleware changed the request by adding 
      */
-    $router->get('/simple', function (Request $request): Response {
-        if ($request->getAttribute('shorthand')) {
-            return response(
-                200, 'OK - Middleware worked!', 
-                ['Content-Type' => 'text/plain']
-            );
-        }
-        return response(
-            500, 'Oops! App middleware was not executed.', 
-            ['Content-Type' => 'text/plain']
-        );
-    });
+    $router->get('/simple', 'simpleCall');
 
     /**
      * Return a response with {name} in its body
      */
-    $router->get('/{name}', function (string $name): Response {
-        return response(
-            200, sprintf('Hi, %s', $name), 
-            ['Content-Type' => 'text/plain']
-        );
-    });
+    $router->get('/{name}', 'callWithName');
 });
 
 /**

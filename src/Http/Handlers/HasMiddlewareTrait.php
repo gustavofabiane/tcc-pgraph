@@ -79,7 +79,6 @@ trait HasMiddlewareTrait
             );
         }
         array_unshift($this->middleware, $middleware);
-
         return $this;
     }
 

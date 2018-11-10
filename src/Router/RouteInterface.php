@@ -85,6 +85,21 @@ interface RouteInterface
     public function getArguments(): array;
 
     /**
+     * Define route as named with the given route name.
+     *
+     * @param string $routeName
+     * @return RouteInterface
+     */
+    public function setName(string $routeName): RouteInterface;
+
+    /**
+     * Get the route name.
+     *
+     * @return string
+     */
+    public function getName(): string;
+
+    /**
      * Set the route status.
      *
      * @param integer $status
@@ -112,14 +127,6 @@ interface RouteInterface
      * @return bool
      */
     public function isNotAllowed(): bool;
-
-    /**
-     * Define route as named with the given route name.
-     *
-     * @param string $routeName
-     * @return RouteInterface
-     */
-    public function named(string $routeName): RouteInterface;
 
     /**
      * Add a middleware definition to the route instance.

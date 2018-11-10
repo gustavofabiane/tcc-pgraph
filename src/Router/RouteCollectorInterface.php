@@ -114,6 +114,16 @@ interface RouteCollectorInterface
     public function getData(): array;
 
     /**
+     * Find a given route by its name in the collection.
+     *
+     * @param string $routeId
+     * @return RouteInterface
+     * 
+     * @throws \LogicException if the given route name cannot be found.
+     */
+    public function getRoute(string $routeName): RouteInterface;
+
+    /**
      * Check whether the route data defined in collector can be cached.
      *
      * @return bool

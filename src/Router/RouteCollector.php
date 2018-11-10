@@ -35,6 +35,13 @@ class RouteCollector implements RouteCollectorInterface
     protected $currentMiddlewareStack = [];
 
     /**
+     * Count the number of collected routes.
+     *
+     * @var int
+     */ 
+    protected $routeCounter = 0;
+
+    /**
      * Adds a route to the collection.
      *
      * The syntax used in the $route string depends on the used route parser.
@@ -44,18 +51,45 @@ class RouteCollector implements RouteCollectorInterface
      * @param mixed  $handler
      * @return RouteInterface
      */
-    public function route($method, string $route, $handler): RouteInterface
+    public function route($methods, string $route, $handler): RouteInterface
     {
+        $this->handlerIsCacheable($handler);
+
         $route = new Route(
             array_map('strtoupper', (array) $methods), 
             $this->currentRoutePrefix . $route, 
             $handler
         );
         $route->middleware($this->currentMiddlewareStack);
+        $route->setName(sprintf('r-%s', ++$this->routeCounter));
 
         $this->data[] = $route;
 
         return $route;
+    }
+
+    /**
+     * Check whether the given route handler is cacheable.
+     * 
+     * If the handler is not cacheable the entire 
+     * route data is declared as not cacheable.
+     *
+     * @param mixed $handler
+     * @return bool
+     */
+    private function handlerIsCacheable($handler): bool
+    {
+        if (!$this->cacheable) {
+            return false;
+        }
+
+        if (
+            $handler instanceof Closure ||
+            (is_object($handler) && !method_exists($handler, '__set_state'))
+        ) {
+            $this->cacheable = false;
+        }
+        return $this->cacheable;
     }
 
     /**
@@ -192,6 +226,24 @@ class RouteCollector implements RouteCollectorInterface
     public function getData(): array
     {
         return $this->data;
+    }
+
+    /**
+     * Find a route by its name in the collection.
+     *
+     * @param string $routeId
+     * @return RouteInterface
+     */
+    public function getRoute(string $routeName): RouteInterface
+    {
+        foreach ($this->data as $route) {
+            if ($routeName == $route->getName()) {
+                return $route;
+            }
+        }
+        throw new \LogicException(sprintf(
+            'Cannot find route named [%s].', $routeName)
+        );
     }
 
     /**

@@ -26,9 +26,6 @@ class ApplicationTest extends TestCase
     public function testCreateApplicationInstance()
     {
         $this->assertInstanceOf(Application::class, $this->application);
-        $this->assertInstanceOf(RouterInterface::class, $this->application->router);
-        $this->assertInstanceOf(NotFoundHandler::class, $this->application->notFoundHandler);
-        $this->assertInstanceOf(ErrorHandlerInterface::class, $this->application->errorHandler);
     }
 
     public function testGetConfig()

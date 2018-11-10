@@ -2,14 +2,10 @@
 
 namespace Framework\Core;
 
-use Framework\Router\Router;
-use Framework\Router\RouteCollector;
-use Framework\Container\ContainerInterface;
-use FastRoute\RouteParser\Std as RouteParser;
-use FastRoute\DataGenerator\GroupCountBased as RouteDataGenerator;
 use Framework\Http\Request;
 use Framework\Http\Response;
 use Framework\Http\ResponseStatusCode;
+use Framework\Container\ContainerInterface;
 
 class DefaultProvider implements ProviderInterface
 {
@@ -29,28 +25,6 @@ class DefaultProvider implements ProviderInterface
             });
         }
 
-        if (!$app->has('routeCollector')) {
-            $app->register('routeCollector', function (ContainerInterface $c) {
-                return new RouteCollector(
-                    $c, new RouteParser(), new RouteDataGenerator()
-                );
-            }, true);
-        }
-
-        /**
-         * Register router
-         */
-        if (!$app->has('router')) {
-            $app->register('router', function (ContainerInterface $c) {
-                return new Router(
-                    $c->get('routeCollector'), 
-                    $c->config->get('router', 'routesFile') ?? [],
-                    $c->config->get('router', 'routesCacheFile') ?? null
-                );
-            }, true);
-            $app->alias('Framework\Router\Router', 'router');
-            $app->implemented('Framework\Router\RouterInterface', 'Framework\Router\Router', true);
-        }
 
         /**
          * Register the not found request handler

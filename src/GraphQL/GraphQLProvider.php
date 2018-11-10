@@ -68,6 +68,7 @@ class GraphQLProvider implements ProviderInterface
             ],
             'http' => [
                 'endpoint' => '/graphql',
+                'route_name' => 'graphql',
                 'methods'  => ['GET', 'POST'],
                 'headers'  => [],
                 'middleware' => [],
@@ -253,10 +254,11 @@ class GraphQLProvider implements ProviderInterface
 
         if ($config['http']) {
             $app->router->collect(function($router) use ($config, $app) {
-                $router->addRoute(
+                $router->route(
                     $config['http']['methods'],
                     $config['http']['endpoint'], 
-                    GraphQLRequestHandler::class
+                    GraphQLRequestHandler::class,
+                    $config['http']['route_name']
                 );
             });
         }

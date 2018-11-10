@@ -82,8 +82,8 @@ class Route implements RouteInterface
      * @param array|null $arguments
      */
     public function __construct(
-        array $methods,
-        string $pattern, 
+        array $methods = [],
+        string $pattern = null, 
         $handler = null, 
         string $name = null
     ) {
@@ -220,7 +220,7 @@ class Route implements RouteInterface
      */
     public function getArguments(): array
     {
-        return $this->arguments;
+        return $this->arguments ?: [];
     }
 
     /**
@@ -236,11 +236,21 @@ class Route implements RouteInterface
     }
 
     /**
+     * Get the route defined status.
+     *
+     * @return integer
+     */
+    public function getStatus(): int
+    {
+        return $this->status ?: Dispatcher::NOT_FOUND;
+    }
+
+    /**
      * Checks whether the route is found.
      *
      * @return bool
      */
-    public function found(): bool
+    public function isFound(): bool
     {
         return $this->status === Dispatcher::FOUND;
     }
@@ -250,7 +260,7 @@ class Route implements RouteInterface
      *
      * @return bool
      */
-    public function notAllowed(): bool
+    public function isNotAllowed(): bool
     {
         return $this->status === Dispatcher::METHOD_NOT_ALLOWED;
     }
@@ -261,10 +271,20 @@ class Route implements RouteInterface
      * @param string $routeName
      * @return RouteInterface
      */
-    public function named(string $routeName): RouteInterface
+    public function setName(string $routeName): RouteInterface
     {
         $this->name = $routeName;
         return $this;
+    }
+
+    /**
+     * Get the route name.
+     *
+     * @return string
+     */
+    public function getName(): string
+    {
+        return $this->name ?: '';
     }
 
     /**
@@ -275,7 +295,7 @@ class Route implements RouteInterface
      */
     public function add($middleware): RouteInterface
     {
-        $this->middleware[] = $middleware;
+        array_unshift($this->middleware, $middleware);
         return $this;
     }
 

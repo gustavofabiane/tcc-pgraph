@@ -4,17 +4,18 @@ declare(strict_types=1);
 
 use Framework\Core\Application;
 use Framework\Router\RouteCollector;
-use Psr\Http\Message\ResponseInterface as Response;
-use Psr\Http\Server\RequestHandlerInterface as Handler;
-use Psr\Http\Message\ServerRequestInterface as Request;
+use Framework\Router\RouterProvider;
+use function Framework\GraphQL\field;
+use function Framework\Http\response;
 
 use Framework\GraphQL\GraphQLProvider;
 use GraphQL\Type\Definition\ObjectType;
 
-use function Framework\Http\response;
-use function Framework\Http\requestFromServerParams;
 use function Framework\GraphQL\argument;
-use function Framework\GraphQL\field;
+use Psr\Http\Message\ResponseInterface as Response;
+use function Framework\Http\requestFromServerParams;
+use Psr\Http\Message\ServerRequestInterface as Request;
+use Psr\Http\Server\RequestHandlerInterface as Handler;
 
 include '../../vendor/autoload.php';
 
@@ -49,6 +50,7 @@ $app->config->set('graphql', [
     ]
 ]);
 
+$app->addProvider(new RouterProvider());
 $app->addProvider(new GraphQLProvider());
 
 /**
