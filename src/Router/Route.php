@@ -231,6 +231,12 @@ class Route implements RouteInterface
      */
     public function setStatus(int $status): RouteInterface
     {
+        if (!in_array($status, static::ROUTE_STATUS)) {
+            throw new \InvalidArgumentException(
+                sprintf('Route status %d is not valid', $status)
+            );
+        }
+        
         $this->status = $status;
         return $this;
     }
