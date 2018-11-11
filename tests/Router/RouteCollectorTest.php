@@ -7,11 +7,13 @@ use FastRoute\RouteParser\Std;
 use PHPUnit\Framework\TestCase;
 use Framework\Container\Container;
 use Framework\Router\RouteCollector;
+use Framework\Router\RouteInterface;
 use Framework\Router\RouteRequestHandler;
 use FastRoute\DataGenerator\GroupCountBased;
-use Framework\Http\Middleware\ResolvableMiddleware;
 use Framework\Tests\Stubs\Middleware\XmlBody;
+use Framework\Http\Middleware\ResolvableMiddleware;
 use Framework\Tests\Stubs\Middleware\ResponseWithErrorStatus;
+use Framework\Router\Route;
 
 class RouteCollectorTest extends TestCase
 {
@@ -43,14 +45,14 @@ class RouteCollectorTest extends TestCase
         $middleware = function ($request, $handler) {
             return $handler->handle($request);
         };
-        $handler = $this->collector->addRoute('GET', '/closure/{id:[0-9]+}', function ($id) {
+        $route = $this->collector->route('GET', '/closure/{id:[0-9]+}', function ($id) {
             return (new Response())->withStatus((int) $id);
         })->add($middleware);
 
-        $this->assertInstanceOf(RouteRequestHandler::class, $handler);
+        $this->assertInstanceOf(RouteInterface::class, $route);
         $this->assertEquals(
-            [new ResolvableMiddleware($middleware, $this->container)], 
-            $handler->getMiddleware()
+            [$middleware], 
+            $route->getMiddleware()
         );
     }
 
@@ -59,23 +61,18 @@ class RouteCollectorTest extends TestCase
         $groupedRouteHandler = function ($id) {
             return (new Response())->withStatus((int) $id);
         };
-        $this->collector->prefix('/prefix', function () use ($groupedRouteHandler) {
+        $this->collector->group('/prefix', function () use ($groupedRouteHandler) {
             $this->get('/ok', $groupedRouteHandler);
             $this->post('/ok-post', $groupedRouteHandler)->add(XmlBody::class);
         }, [XmlBody::class, ResponseWithErrorStatus::class]);
 
         $this->assertSame(false, empty($this->collector->getData())); 
         $this->assertEquals(
-            [[
-                'GET' => [
-                    '/prefix/ok' => (new RouteRequestHandler($groupedRouteHandler, $this->container))
-                                    ->middleware([XmlBody::class, ResponseWithErrorStatus::class])
-                ],
-                'POST' => [
-                    '/prefix/ok-post' => (new RouteRequestHandler($groupedRouteHandler, $this->container))
-                                        ->middleware([XmlBody::class, ResponseWithErrorStatus::class, XmlBody::class])
-                ]
-            ], []], 
-            $this->collector->getData());
+            [
+                (new Route(['GET'], '/prefix/ok', $groupedRouteHandler, 'r-1'))->middleware([XmlBody::class, ResponseWithErrorStatus::class]),
+                (new Route(['POST'], '/prefix/ok-post', $groupedRouteHandler, 'r-2'))->middleware([XmlBody::class, ResponseWithErrorStatus::class, XmlBody::class]),
+            ], 
+            $this->collector->getData()
+        );
     }
 }

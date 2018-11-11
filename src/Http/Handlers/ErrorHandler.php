@@ -67,7 +67,7 @@ class ErrorHandler implements ErrorHandlerInterface
         $file = $error->getFile();
         $line = $error->getLine();
         $message = $error->getMessage();
-        $previousMessage = $error->getPrevious()->getMessage();
+        $previousMessage = $error->getPrevious() ? $error->getPrevious()->getMessage() : '';
         $stackTrace = $error->getTraceAsString();
 
         return <<<END

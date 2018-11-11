@@ -22,47 +22,65 @@ class RouteTest extends TestCase
 
     public function setup()
     {
-        $this->handler = new RouteRequestHandler(function (ServerRequestInterface $request) {
+        $this->handler = function (ServerRequestInterface $request) {
             return (new Response())->withStatus(203);
-        }, (new Container()));
+        };
     }
 
     public function testInitializeRoute()
     {
-        $route = new Route('/test', Dispatcher::FOUND, $this->handler, ['id' => 123]);
+        $route = new Route(['GET'], '/test', $this->handler, 'test-route');
         
+        $this->assertFalse($route->isFound());
         $this->assertInstanceOf(RouteInterface::class, $route);
-        $this->assertSame(true, $route->found());
-        $this->assertSame(false, $route->notAllowed());
-        $this->assertEquals(['id' => 123], $route->getArguments());
-        $this->assertInstanceOf(RouteRequestHandler::class, $route->getHandler());
+        $this->assertInstanceOf(\Closure::class, $route->getHandler());
+
+        return $route;
     }
     
-    public function testInvalidRouteStatus()
+    /**
+     * @depends testInitializeRoute
+     *
+     * @return void
+     */
+    public function testInvalidRouteStatus(RouteInterface $route)
     {
         $this->expectException(\InvalidArgumentException::class);
         $this->expectExceptionMessage('Route status 999 is not valid');
 
-        $route = new Route('/test', 999);
+        $route->setStatus(999);
     }
 
-    public function testGetHandlerWithRoute()
+    /**
+     * @depends testInitializeRoute
+     *
+     * @return void
+     */
+    public function testGetHandlerWithRoute(RouteInterface $route)
     {
-        $route = new Route('/test', Dispatcher::FOUND, clone $this->handler);
-        $this->assertNotEquals($this->handler, $route->getHandler());
+        $this->assertEquals($this->handler, $route->getHandler());
     }
 
-    public function testGetArguments()
+    /**
+     * @depends testInitializeRoute
+     *
+     * @return void
+     */
+    public function testGetArguments(RouteInterface $route)
     {
-        $route = new Route('/test', Dispatcher::FOUND, $this->handler, ['id' => 123, 'name' => 'John']);
+        $route->setArguments(['id' => 123, 'name' => 'John']);
         $this->assertEquals(['id' => 123, 'name' => 'John'], $route->getArguments());
     }
 
-    public function testFound()
+    /**
+     * @depends testInitializeRoute
+     *
+     * @return void
+     */
+    public function testFound(RouteInterface $route)
     {
-        $route = new Route('/test', Dispatcher::FOUND);
-
-        $this->assertSame(false, $route->notAllowed());
-        $this->assertSame(true, $route->found());
+        $route->setStatus(Dispatcher::FOUND);
+        $this->assertSame(false, $route->isNotAllowed());
+        $this->assertSame(true, $route->isFound());
     }
 }

@@ -4,7 +4,7 @@ namespace Framework\Router;
 
 use Closure;
 use RuntimeException;
-use FastRoute\RouteCollector;
+use FastRoute\Dispatcher;
 use FastRoute\Dispatcher\GroupCountBased;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
@@ -14,14 +14,14 @@ use Psr\Http\Server\RequestHandlerInterface;
  *
  * Based on nikic/fast-route.
  *
- * @method \Framework\Router\RouteCollector get(string $pattern, $handler)
- * @method \Framework\Router\RouteCollector post(string $pattern, $handler)
- * @method \Framework\Router\RouteCollector put(string $pattern, $handler)
- * @method \Framework\Router\RouteCollector patch(string $pattern, $handler)
- * @method \Framework\Router\RouteCollector head(string $pattern, $handler)
- * @method \Framework\Router\RouteCollector delete(string $pattern, $handler)
- * @method \Framework\Router\RouteCollector all(string $pattern, $handler)
- * @method \Framework\Router\RouteCollector prefix($routePrefix, callable $callback, array $middleware = [])
+ * @method \Framework\Router\RouteInterface get(string $pattern, $handler)
+ * @method \Framework\Router\RouteInterface post(string $pattern, $handler)
+ * @method \Framework\Router\RouteInterface put(string $pattern, $handler)
+ * @method \Framework\Router\RouteInterface patch(string $pattern, $handler)
+ * @method \Framework\Router\RouteInterface head(string $pattern, $handler)
+ * @method \Framework\Router\RouteInterface delete(string $pattern, $handler)
+ * @method \Framework\Router\RouteInterface all(string $pattern, $handler)
+ * @method \Framework\Router\RouteInterface group($routePrefix, callable $callback, array $middleware = [])
  *
  */
 class Router implements RouterInterface
@@ -29,16 +29,16 @@ class Router implements RouterInterface
     /**
      * Route dispatcher.
      *
-     * @var \FastRoute\Dispatcher
+     * @var Dispatcher
      */
     protected $dispatcher;
 
     /**
      * Route collector implementation
      *
-     * @var RouteCollector
+     * @var RouteCollectorInterface
      */
-    protected $routeCollector;
+    protected $collector;
 
     /**
      * An array with all routes files registered.
@@ -59,16 +59,11 @@ class Router implements RouterInterface
      *
      * @param RouteCollector $routeCollector
      * @param array $routesFiles
-     * @param string|null $routesCacheFile
      */
-    public function __construct(
-        RouteCollector $routeCollector,
-        array $routesFiles = null,
-        ?string $routesCacheFile = null
-    ) {
-        $this->routeCollector = $routeCollector;
-        $this->routesFiles = $routesFiles;
-        $this->routesCacheFile = $routesCacheFile;
+    public function __construct(RouteCollectorInterface $collector, Dispatcher $dispatcher) 
+    {
+        $this->collector = $collector;
+        $this->dispatcher = $dispatcher;
     }
 
     /**
@@ -81,10 +76,10 @@ class Router implements RouterInterface
     {
         if ($routeDefinitionCallback instanceof Closure) {
             $routeDefinitionCallback = $routeDefinitionCallback->bindTo(
-                $this->routeCollector
+                $this->collector
             );
         }
-        $routeDefinitionCallback($this->routeCollector);
+        $routeDefinitionCallback($this->collector);
     }
 
     /**
@@ -97,9 +92,9 @@ class Router implements RouterInterface
      */
     public function __call($name, $arguments)
     {
-        if (method_exists($this->routeCollector, $name)) {
+        if (method_exists($this->collector, $name)) {
             return call_user_func_array(
-                [$this->routeCollector, $name],
+                [$this->collector, $name],
                 $arguments
             );
         }
@@ -117,66 +112,26 @@ class Router implements RouterInterface
      */
     public function match(ServerRequestInterface $request): RouteInterface
     {
-        $routeData = $this->dispatcher()->dispatch(
+        $routeData = $this->dispatcher->dispatch(
             $request->getMethod(),
-            $request->getUri()->getPath()
+            $uri = $request->getUri()->getPath()
         );
-        
-        return new Route(
-            $request->getUri()->getPath(),
-            $routeData[0],
-            isset($routeData[1]) && $routeData[1] instanceof RequestHandlerInterface
-                ? $routeData[1]
-                : null,
-            $routeData[2] ?? null
-        );
-    }
 
-    /**
-     * Creates the route dispatcher instance.
-     *
-     * @return void
-     */
-    protected function dispatcher()
-    {
-        if (!$this->dispatcher) {
-            $files = $this->routesFiles;
-            if (!empty($files)) {
-                $routeDefinitionCallback = function (RouteCollector $router) use ($files) {
-                    foreach ($files as $file) {
-                        require $file;
-                    }
-                };
-            }
-
-            $cacheDisabled = is_null($this->routesCacheFile);
-    
-            if (!$cacheDisabled && file_exists($this->routesCacheFile)) {
-                $dispatchData = require $this->routesCacheFile;
-                if (!is_array($dispatchData)) {
-                    throw new RuntimeException(
-                        sprintf('Invalid cache file \'%s\'', $this->routesCacheFile)
-                    );
-                }
-            }
+        switch ($routeData[0]) {
+            case Dispatcher::FOUND:
+                return $this->collector->getRoute($routeData[1])
+                    ->setArguments($routeData[2])
+                    ->setStatus(Dispatcher::FOUND)
+                    ->setPath($uri);
             
-            if (!isset($dispatchData)) {
-                if (isset($routeDefinitionCallback)) {
-                    $routeDefinitionCallback($this->routeCollector);
-                }
-
-                /** @var RouteCollector $routeCollector */
-                $dispatchData = $this->routeCollector->getData();
-                if (!$cacheDisabled && $this->routeCollector->isCachable()) {
-                    file_put_contents(
-                        $this->routesCacheFile,
-                        '<?php return ' . var_export($dispatchData, true) . ';'
-                    );
-                }
-            }
-    
-            $this->dispatcher = new GroupCountBased($dispatchData);
+            case Dispatcher::METHOD_NOT_ALLOWED:
+                return (new Route())
+                    ->setStatus(Dispatcher::METHOD_NOT_ALLOWED)
+                    ->setMethods($routeData[1]);
+            
+            default:
+                return (new Route())
+                    ->setStatus(Dispatcher::NOT_FOUND);
         }
-        return $this->dispatcher;
     }
 }

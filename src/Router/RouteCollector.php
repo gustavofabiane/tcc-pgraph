@@ -3,48 +3,43 @@
 namespace Framework\Router;
 
 use Closure;
-use FastRoute\RouteParser;
-use FastRoute\DataGenerator;
-use Framework\Router\RouteRequestHandler;
-use Framework\Container\ContainerInterface;
-use Psr\Http\Message\ServerRequestInterface;
-use Psr\Http\Server\RequestHandlerInterface;
-use FastRoute\RouteCollector as FastRouteCollector;
 
-/**
- * Adapter for FastRoute's RouteCollector to work with Request Handlers.
- */
-class RouteCollector extends FastRouteCollector
+class RouteCollector implements RouteCollectorInterface
 {
     /**
-     * The app container instance.
-     *
-     * @var ContainerInterface
-     */
-    protected $container;
-
-    /**
-     * Route group middleware
+     * The collector route data.
      *
      * @var array
      */
-    protected $currentGroupMiddleware = [];
+    protected $data = [];
 
     /**
-     * Creates a new RouteCollector instance.
+     * Define whether the route collection is cacheable.
      *
-     * @param ServiceResolverInterface $resolver
-     * @param RouteParser $routeParser
-     * @param DataGenerator $dataGenerator
+     * @var bool
      */
-    public function __construct(
-        ContainerInterface $container,
-        RouteParser $routeParser,
-        DataGenerator $dataGenerator
-    ) {
-        parent::__construct($routeParser, $dataGenerator);
-        $this->container = $container;
-    }
+    protected $cacheable = true;
+
+    /**
+     * Current collector route prefix.
+     *
+     * @var string
+     */
+    protected $currentRoutePrefix = '';
+
+    /**
+     * Current routes middleware stack.
+     *
+     * @var array
+     */
+    protected $currentMiddlewareStack = [];
+
+    /**
+     * Count the number of collected routes.
+     *
+     * @var int
+     */ 
+    protected $routeCounter = 0;
 
     /**
      * Adds a route to the collection.
@@ -54,154 +49,210 @@ class RouteCollector extends FastRouteCollector
      * @param string|string[] $httpMethod
      * @param string $route
      * @param mixed  $handler
+     * @return RouteInterface
      */
-    public function addRoute($httpMethod, $route, $handler)
+    public function route($methods, string $route, $handler): RouteInterface
     {
-        $handler = new RouteRequestHandler($handler, $this->container);
-        $handler->middleware($this->currentGroupMiddleware);
+        $this->handlerIsCacheable($handler);
 
-        $route = $this->currentGroupPrefix . $route;
-        $routeDatas = $this->routeParser->parse($route);
-        foreach ((array) $httpMethod as $method) {
-            foreach ($routeDatas as $routeData) {
-                $this->dataGenerator->addRoute($method, $routeData, $handler);
-            }
+        $route = new Route(
+            array_map('strtoupper', (array) $methods), 
+            $this->currentRoutePrefix . $route, 
+            $handler
+        );
+        $route->middleware($this->currentMiddlewareStack);
+        $route->setName(sprintf('r-%s', ++$this->routeCounter));
+
+        $this->data[] = $route;
+
+        return $route;
+    }
+
+    /**
+     * Check whether the given route handler is cacheable.
+     * 
+     * If the handler is not cacheable the entire 
+     * route data is declared as not cacheable.
+     *
+     * @param mixed $handler
+     * @return bool
+     */
+    private function handlerIsCacheable($handler): bool
+    {
+        if (!$this->cacheable) {
+            return false;
         }
 
-        return $handler;
+        if (
+            $handler instanceof Closure ||
+            (is_object($handler) && !method_exists($handler, '__set_state'))
+        ) {
+            $this->cacheable = false;
+        }
+        return $this->cacheable;
     }
 
     /**
      * Create a route group with a common prefix.
      *
-     * All routes created in the passed callback will have the given group prefix prepended.
+     * All routes created in the passed callback will have 
+     * the given group prefix prepended.
      *
-     * @param string $prefix
+     * @param string $routePrefix
      * @param callable $callback
-     * @param array $groupMiddleware
+     * @return void
      */
-    public function addGroup($prefix, callable $callback, array $groupMiddleware = [])
+    public function group(string $routePrefix, callable $callback, array $middleware = [])
     {
-        $previousGroupMiddleware = $this->currentGroupMiddleware;
-        $this->currentGroupMiddleware = array_merge($previousGroupMiddleware, $groupMiddleware);
+        $prefixBackup = $this->currentRoutePrefix;
+        $this->currentRoutePrefix .= $routePrefix;
+        
+        $middlewareStackBackup = $this->currentMiddlewareStack;
+        $this->currentMiddlewareStack += $middleware;
         
         if ($callback instanceof Closure) {
             $callback = $callback->bindTo($this);
         }
+        $callback($this);
 
-        parent::addGroup($prefix, $callback);
-        
-        $this->currentGroupMiddleware = $previousGroupMiddleware;
+        $this->currentRoutePrefix = $prefixBackup;
+        $this->currentMiddlewareStack = $middlewareStackBackup;
     }
 
     /**
-     * Create a route group with a common prefix.
+     * Adds a GET route to the collection.
      *
-     * All routes created in the passed callback will have the given group prefix prepended.
-     * 
-     * Alias for RouteCollector::addGroup
-     *
-     * @param string $routePrefix
-     * @param callable $callback
-     */
-    public function prefix($routePrefix, callable $callback, array $middleware = [])
-    {
-        $this->addGroup($routePrefix, $callback, $middleware);
-    }
-
-    /**
-     * Adds a GET route to the collection
-     *
-     * This is simply an alias of $this->addRoute('GET', $route, $handler)
+     * This is simply an alias of $this->route('GET', $route, $handler).
      *
      * @param string $route
      * @param mixed  $handler
-     * @return RequestHandlerInterface
+     * @return RouteInterface
      */
-    public function get($route, $handler)
+    public function get(string $route, $handler): RouteInterface
     {
-        return $this->addRoute('GET', $route, $handler);
+        return $this->route('GET', $route, $handler);
     }
 
     /**
-     * Adds a POST route to the collection
+     * Adds a POST route to the collection.
      *
-     * This is simply an alias of $this->addRoute('POST', $route, $handler)
+     * This is simply an alias of $this->route('POST', $route, $handler).
      *
      * @param string $route
      * @param mixed  $handler
-     * @return RequestHandlerInterface
+     * @return RouteInterface
      */
-    public function post($route, $handler)
+    public function post(string $route, $handler): RouteInterface
     {
-        return $this->addRoute('POST', $route, $handler);
+        return $this->route('POST', $route, $handler);
     }
 
     /**
-     * Adds a PUT route to the collection
+     * Adds a PUT route to the collection.
      *
-     * This is simply an alias of $this->addRoute('PUT', $route, $handler)
+     * This is simply an alias of $this->route('PUT', $route, $handler).
      *
      * @param string $route
      * @param mixed  $handler
-     * @return RequestHandlerInterface
+     * @return RouteInterface
      */
-    public function put($route, $handler)
+    public function put(string $route, $handler): RouteInterface
     {
-        return $this->addRoute('PUT', $route, $handler);
+        return $this->route('PUT', $route, $handler);
     }
 
     /**
-     * Adds a DELETE route to the collection
+     * Adds a DELETE route to the collection.
      *
-     * This is simply an alias of $this->addRoute('DELETE', $route, $handler)
+     * This is simply an alias of $this->route('DELETE', $route, $handler).
      *
      * @param string $route
      * @param mixed  $handler
-     * @return RequestHandlerInterface
+     * @return RouteInterface
      */
-    public function delete($route, $handler)
+    public function delete(string $route, $handler): RouteInterface
     {
-        return $this->addRoute('DELETE', $route, $handler);
+        return $this->route('DELETE', $route, $handler);
     }
 
     /**
-     * Adds a PATCH route to the collection
+     * Adds a PATCH route to the collection.
      *
-     * This is simply an alias of $this->addRoute('PATCH', $route, $handler)
+     * This is simply an alias of $this->route('PATCH', $route, $handler).
      *
      * @param string $route
      * @param mixed  $handler
-     * @return RequestHandlerInterface
+     * @return RouteInterface
      */
-    public function patch($route, $handler)
+    public function patch(string $route, $handler): RouteInterface
     {
-        return $this->addRoute('PATCH', $route, $handler);
+        return $this->route('PATCH', $route, $handler);
     }
 
     /**
-     * Adds a HEAD route to the collection
+     * Adds a HEAD route to the collection.
      *
-     * This is simply an alias of $this->addRoute('HEAD', $route, $handler)
+     * This is simply an alias of $this->route('HEAD', $route, $handler).
      *
      * @param string $route
      * @param mixed  $handler
+     * @return RouteInterface
      */
-    public function head($route, $handler)
+    public function head(string $route, $handler): RouteInterface
     {
-        return $this->addRoute('HEAD', $route, $handler);
+        return $this->route('HEAD', $route, $handler);
     }
 
     /**
-     * Adds a route to all HTTP methods to the collection
+     * Adds a route to all allowed HTTP methods to the collection.
      *
      * @param string $route
      * @param mixed $handler
-     * @return RequestHandlerInterface
+     * @return RouteInterface
      */
-    public function all($route, $handler)
+    public function all(string $route, $handler): RouteInterface
     {
-        $methods = ['GET', 'POST', 'PUT', 'PATCH', 'HEAD', 'DELETE'];
-        return $this->addRoute($methods, $route, $handler);
+        return $this->route([
+            'GET', 'POST', 'PUT', 
+            'DELETE', 'PATCH', 'HEAD'
+        ], $route, $handler);
+    }
+
+    /**
+     * Get the route collection data stored.
+     *
+     * @return array
+     */
+    public function getData(): array
+    {
+        return $this->data;
+    }
+
+    /**
+     * Find a route by its name in the collection.
+     *
+     * @param string $routeId
+     * @return RouteInterface
+     */
+    public function getRoute(string $routeName): RouteInterface
+    {
+        foreach ($this->data as $route) {
+            if ($routeName == $route->getName()) {
+                return $route;
+            }
+        }
+        throw new \LogicException(sprintf(
+            'Cannot find route named [%s].', $routeName)
+        );
+    }
+
+    /**
+     * Check whether the route data defined in collector can be cached.
+     *
+     * @return bool
+     */
+    public function isCacheable(): bool
+    {
+        return $this->cacheable;
     }
 }
