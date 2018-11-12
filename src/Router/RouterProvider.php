@@ -53,7 +53,7 @@ class RouterProvider implements ProviderInterface
          */
         if (!$app->has('router')) {
             $app->register('router', function (Application $c) {
-                $router = new Router(
+                return new Router(
                     $c->get('routeCollector'), 
                     $c->get('routeDispatcher')
                 );

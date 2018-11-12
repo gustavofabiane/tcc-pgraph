@@ -167,13 +167,13 @@ class Container implements
             if ($instance === null && $this->resolver) {
                 $instance = $this->buildAsResolvable($service);
             }
-            
             if (!$instance) {
                 throw new ContainerException(sprintf('Cannot resolve service \'%s\'', $service['id']));
             }
         } else {
             $instance = call_user_func($service['assembler'], $this);
         }
+
         if ($service['singleton']) {
             $this->instances[$service['id']] = $instance;
         }
