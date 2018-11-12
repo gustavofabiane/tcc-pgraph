@@ -69,7 +69,7 @@ class RouteRequestHandler implements RouteRequestHandlerInterface
         }
 
         $urlDecoder = function (&$param) {
-            return rawurldecode($param);
+            $param = urldecode($param);
         };
 
         $queryParams = $request->getQueryParams() ?: [];
