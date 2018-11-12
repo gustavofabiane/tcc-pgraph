@@ -53,8 +53,6 @@ class RouteCollector implements RouteCollectorInterface
      */
     public function route($methods, string $route, $handler): RouteInterface
     {
-        $this->handlerIsCacheable($handler);
-
         $route = new Route(
             array_map('strtoupper', (array) $methods), 
             $this->currentRoutePrefix . $route, 
@@ -66,30 +64,6 @@ class RouteCollector implements RouteCollectorInterface
         $this->data[] = $route;
 
         return $route;
-    }
-
-    /**
-     * Check whether the given route handler is cacheable.
-     * 
-     * If the handler is not cacheable the entire 
-     * route data is declared as not cacheable.
-     *
-     * @param mixed $handler
-     * @return bool
-     */
-    private function handlerIsCacheable($handler): bool
-    {
-        if (!$this->cacheable) {
-            return false;
-        }
-
-        if (
-            $handler instanceof Closure ||
-            (is_object($handler) && !method_exists($handler, '__set_state'))
-        ) {
-            $this->cacheable = false;
-        }
-        return $this->cacheable;
     }
 
     /**
