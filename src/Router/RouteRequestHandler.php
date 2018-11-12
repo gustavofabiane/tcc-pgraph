@@ -5,11 +5,13 @@ namespace Framework\Router;
 use Closure;
 use LogicException;
 use RuntimeException;
-use function Framework\isImplementerOf;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Framework\Container\ContainerInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Server\RequestHandlerInterface;
+
+use function Framework\isImplementerOf;
 
 /**
  * Handler for route callback execution
