@@ -124,7 +124,7 @@ class Router implements RouterInterface
                     $arg = urldecode($arg);
                 });
                 return $this->collector->getRoute($routeData[1])
-                    ->setArguments($routeData[2])
+                    ->setArguments($arguments)
                     ->setStatus(Dispatcher::FOUND)
                     ->setPath($uri);
             
