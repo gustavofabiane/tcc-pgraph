@@ -119,6 +119,10 @@ class Router implements RouterInterface
 
         switch ($routeData[0]) {
             case Dispatcher::FOUND:
+                $arguments = $routeData[2];
+                array_walk($arguments, function (&$arg) {
+                    $arg = urldecode($arg);
+                });
                 return $this->collector->getRoute($routeData[1])
                     ->setArguments($routeData[2])
                     ->setStatus(Dispatcher::FOUND)

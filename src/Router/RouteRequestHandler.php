@@ -70,15 +70,13 @@ class RouteRequestHandler implements RouteRequestHandlerInterface
             $handler = $handler->bindTo($this->container);
         }
 
+        $arguments = $this->route->getArguments();
+        $queryParams = $request->getQueryParams() ?: [];
+        
         $urlDecoder = function (&$param) {
             $param = urldecode($param);
         };
-
-        $queryParams = $request->getQueryParams() ?: [];
         array_walk($queryParams, $urlDecoder);
-
-        $arguments = $this->route->getArguments();
-        array_walk($arguments, $urlDecoder);
         
         $parameters = [
             'request' => $request,
