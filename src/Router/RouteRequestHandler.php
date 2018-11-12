@@ -94,7 +94,7 @@ class RouteRequestHandler implements RouteRequestHandlerInterface
      * @param RouteInterface $route
      * @return static
      */
-    public function route(RouteInterface $route)
+    public function route(RouteInterface $route): RouteRequestHandlerInterface
     {
         if (!$route->getHandler()) {
             throw new LogicException(sprintf(
