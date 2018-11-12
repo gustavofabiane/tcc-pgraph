@@ -15,22 +15,24 @@ class RouterProvider implements ProviderInterface
             $app->register('routeHandler', function(Application $app) {
                 return new RouteRequestHandler($app);
             });
+            $app->alias(RouteRequestHandler::class, 'routeHandler');
+            $app->implemented(RouteRequestHandlerInterface::class, RouteRequestHandler::class);
         }
 
         if (!$app->has('routeCollector')) {
-            $app->register('routeCollector', function (Application $c) {
+            $app->register('routeCollector', function () {
                 return new RouteCollector();
             }, true);
         }
 
         if (!$app->has('routeParser')) {
-            $app->register('routeParser', function (Application $c) {
+            $app->register('routeParser', function () {
                 return new RouteParser();
             });
         }
         
         if (!$app->has('routeDataGenerator')) {
-            $app->register('routeDataGenerator', function (Application $c) {
+            $app->register('routeDataGenerator', function () {
                 return new RouteDataGenerator();
             });
         }
@@ -51,13 +53,53 @@ class RouterProvider implements ProviderInterface
          */
         if (!$app->has('router')) {
             $app->register('router', function (Application $c) {
-                return new Router(
+                $router = new Router(
                     $c->get('routeCollector'), 
                     $c->get('routeDispatcher')
                 );
             }, true);
-            $app->alias('Framework\Router\Router', 'router');
-            $app->implemented('Framework\Router\RouterInterface', 'Framework\Router\Router', true);
+            $app->alias(Router::class, 'router');
+            $app->implemented(RouterInterface::class, Router::class, true);
         }
+
+        /**
+         * Listen to route resolving event.
+         */
+        $app->registerListener('router', function (RouterInterface $router, Application $app) {
+            
+            /**
+             * Application routes directory.
+             */
+            $routesDir = $app['config']->get('app', 'routes_dir');
+            if (!$routesDir) {
+                return;
+            }
+
+            /**
+             * Collect application routes.
+             */
+            $router->collect(function () use ($routesDir) {
+                
+                /**
+                 * Collect direct routes.
+                 */
+                require $routesDir . '/routes.php';
+
+                /**
+                 * Collect group file routes.
+                 */
+                $groups = glob($routesDir . '/*.php'); 
+                foreach ($groups as $group) {
+                    $groupPrefix = str_replace(
+                        '.php', '', pathinfo($group, PATHINFO_FILENAME)
+                    );
+                    if ($groupPrefix != 'routes') {
+                        $this->group('/' . $groupPrefix, function () use ($group) {
+                            require $group;
+                        });
+                    }
+                }
+            });
+        });
     }
 }

@@ -7,7 +7,7 @@ namespace Framework\GraphQL\Error;
 use GraphQL\Error\Error;
 use GraphQL\Error\FormattedError;
 
-abstract class ErrorFormatter
+abstract class ErrorHandler
 {
     /**
      * Perform the default error handling.

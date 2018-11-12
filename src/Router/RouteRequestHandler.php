@@ -4,17 +4,17 @@ namespace Framework\Router;
 
 use Closure;
 use LogicException;
+use RuntimeException;
 use function Framework\isImplementerOf;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Framework\Container\ContainerInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use Psr\Http\Server\RequestHandlerInterface;
 
 /**
  * Handler for route callback execution
  */
-class RouteRequestHandler implements RequestHandlerInterface
+class RouteRequestHandler implements RouteRequestHandlerInterface
 {
     /**
      * The route handled.
@@ -64,15 +64,26 @@ class RouteRequestHandler implements RequestHandlerInterface
 
         if (isImplementerOf($handler, RequestHandlerInterface::class)) {
             $handler = [$handler, 'handle'];
+        } elseif($handler instanceof Closure) {
+            $handler = $handler->bindTo($this->container);
         }
 
+        $urlDecoder = function (&$param) {
+            return urldecode($param);
+        };
+
         $queryParams = $request->getQueryParams() ?: [];
+        array_walk($queryParams, $urlDecoder);
+
+        $arguments = $this->route->getArguments();
+        array_walk($arguments, $urlDecoder);
+        
         $parameters = [
             'request' => $request,
             'params'  => $queryParams,
-            'args'    => $this->route->getArguments()
+            'args'    => $arguments
         ];
-        $parameters += $this->route->getArguments() + $queryParams;
+        $parameters += $arguments + $queryParams;
 
         return $this->container->resolve($handler, $parameters);
     }
@@ -113,7 +124,7 @@ class RouteRequestHandler implements RequestHandlerInterface
      * @param RequestInterface $request
      * @return ResponseInterface|null
      */
-    protected function processMiddleware(ServerRequestInterface $request): ?ResponseInterface
+    protected function processMiddleware(ServerRequestInterface $request): ResponseInterface
     {
         if ($this->hasMiddleware()) {
             $middleware = array_shift($this->middleware);
@@ -129,5 +140,10 @@ class RouteRequestHandler implements RequestHandlerInterface
                 'handler' => $handler
             ]);
         }
+
+        throw new RuntimeException(sprintf(
+            'Error in route middleware stack execution [%s]', 
+            $this->route->getName()
+        ));
     }
 }

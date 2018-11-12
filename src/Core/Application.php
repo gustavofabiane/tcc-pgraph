@@ -132,7 +132,9 @@ class Application extends Container implements RequestHandlerInterface
     {
         try {
             // Check if the route must be defined before application middleware be executed
-            if ($this->config->get('app', 'define_route_before_middleware') && !$request->getAttribute('route')) {
+            if ($this->config->get('app', 'define_route_before_middleware') && 
+                !$request->getAttribute('route')
+            ) {
                 $request = $this->defineRequestRoute($request);
 
                 /** @var \Framework\Router\RouteInterface $route */
