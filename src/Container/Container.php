@@ -163,14 +163,17 @@ class Container implements
             $instance = $service['assembler'];
         }
         
-        if ($instance === null && $this->resolver) {
-            $instance = $this->buildAsResolvable($service);
-        }
+        if (!$service['assembler'] instanceof \Closure) {
+            if ($instance === null && $this->resolver) {
+                $instance = $this->buildAsResolvable($service);
+            }
             
-        if (!$instance) {
-            throw new ContainerException(sprintf('Cannot resolve service \'%s\'', $service['id']));
+            if (!$instance) {
+                throw new ContainerException(sprintf('Cannot resolve service \'%s\'', $service['id']));
+            }
+        } else {
+            $instance = call_user_func($service['assembler'], $this);
         }
-
         if ($service['singleton']) {
             $this->instances[$service['id']] = $instance;
         }

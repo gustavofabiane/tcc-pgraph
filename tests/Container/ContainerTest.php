@@ -82,6 +82,8 @@ class ContainerTest extends TestCase
      */
     public function testAddTypes()
     {
+        $this->markTestSkipped('Skipped for architectural review');
+
         $array = ['a', 1, 'b' => 'c'];
         $integer = 123;
         $float = 1.23;
