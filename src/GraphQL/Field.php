@@ -9,6 +9,7 @@ use ArrayIterator;
 use IteratorAggregate;
 use GraphQL\Type\Definition\Type;
 use Framework\GraphQL\Util\ArrayAccessTrait;
+use GraphQL\Type\Definition\FieldDefinition;
 
 /**
  * Abstract implementation of custom field definitions.
@@ -209,11 +210,11 @@ abstract class Field implements ArrayAccess, IteratorAggregate
     /**
      * Handle the field resolution
      *
-     * @param object|array $obj
+     * @param object|array $root
      * @param array $args
      * @return mixed
      */
-    abstract public function resolve($obj, array $args = []);
+    abstract public function resolve($root, array $args = []);
 
     /**
      * Implements IteratorAggregate interface
@@ -222,13 +223,18 @@ abstract class Field implements ArrayAccess, IteratorAggregate
      */
     public function getIterator()
     {
-        return new ArrayIterator([
+        return new ArrayIterator($this->extract());
+    }
+
+    public function toFieldDefnition(): FieldDefinition
+    {
+        return FieldDefinition::create([
             'name' => $this->name,
             'type' => $this->type,
             'args' => $this->args,
             'description' => $this->description,
             'deprecationReason' => $this->deprecationReason,
             'complexity' => $this->complexity
-        ]);
+        ], $this->type()->name);
     }
 }

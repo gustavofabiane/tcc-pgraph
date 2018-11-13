@@ -23,11 +23,11 @@ class Application extends Container implements RequestHandlerInterface
     public $config;
 
     /**
-     * List of deffered service providers that were not loaded yet.
+     * List of deffered services from providers that were not loaded yet.
      *
      * @var array
      */
-    protected $providers = [];
+    protected $deferredServices = [];
 
     /**
      * An array of MiddlewareInterface to be
@@ -40,9 +40,10 @@ class Application extends Container implements RequestHandlerInterface
     /**
      * Creates a new application instance.
      *
+     * @param Configuration $configuration
      * @param array $services
      */
-    public function __construct(array $services = [], Configuration $config = null)
+    public function __construct(Configuration $config = null, array $services = [])
     {
         parent::__construct($services);
 
@@ -51,22 +52,39 @@ class Application extends Container implements RequestHandlerInterface
         ]);
         $this->config->setApplication($this);
         $this->register('config', $this->config);
-        
-        static::setInstance($this);
-        
+    }
+
+    /**
+     * Register application default provider.
+     *
+     * @return void
+     */
+    public function registerDefaultProvider(): void
+    {
         (new DefaultProvider())->provide($this);
     }
 
     /**
      * Provide dependencies for application.
      *
-     * @param string|ProviderInterface $provider
+     * @param string $provider
+     * @param array $services
      * @return void
      */
-    public function addProvider($provider, array $services = null): void
+    public function addProvider(string $provider, array $services = null): void
     {
-        if ($services) {
-            $this->providers[] = compact('provider', 'services');
+        if (!isImplementerOf($provider, ProviderInterface::class)) {
+            throw new \InvalidArgumentException(sprintf(
+                'Parameter $provider must be a classname that ' . 
+                'implements ProviderInterface, %s given',
+                $provider
+            ));
+        }
+
+        if (is_array($services)) {
+            foreach($services as $service) {
+                $this->deferredServices[$service] = $provider;
+            }
         } else {
             if (is_string($provider)) {
                 $provider = new $provider();
@@ -83,15 +101,11 @@ class Application extends Container implements RequestHandlerInterface
      */
     public function findInDefferedProviders(string $id): void
     {
-        foreach ($this->providers as $key => &$provider) {
-            if (in_array($id, $provider['services'])) {
-                $provider = $provider['provider'] instanceof ProviderInterface 
-                    ? $provider['provider'] 
-                    : new $provider['provider']();
-                $provider->provide($this);
-                unset($this->providers[$key]);
-                break;
-            }
+        if (array_key_exists($id, $this->deferredServices)) {
+            $provider = $this->deferredServices[$id];
+            (new $provider())->provide($this);
+
+            unset($this->deferredServices[$id]);
         }
     }
 

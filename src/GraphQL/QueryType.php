@@ -6,6 +6,7 @@ namespace Framework\GraphQL;
 
 use GraphQL\Type\Definition\Type;
 use GraphQL\Type\Definition\ResolveInfo;
+use GraphQL\Type\Definition\FieldDefinition;
 
 /**
  * Abstract implementation of an object type definitions.
@@ -20,85 +21,79 @@ class QueryType extends ObjectType
     protected $queries = [];
 
     /**
+     * Exception message format for invalid query field argument.
+     *
+     * @var string
+     */
+    protected $invalidFieldFormat = '%s is not a valid query type field.';
+
+    /**
+     * Query fields implementation class.
+     *
+     * @var string
+     */
+    protected $fieldType = Query::class;
+
+    /**
      * Get the query type defined fields.
      *
      * @return array
      */
     public function fields(): array
     {
-        return $this->queries;
+        $queries = [];
+        foreach ($this->queries as $name => $query) {
+            if (is_string($query) && is_subclass_of($query, $this->fieldType)) {
+                $query = (new $query($this->registry))->make($name)->toFieldDefnition();
+                $queries[$name] = $query;
+            } else {
+                $query = FieldDefinition::create($query + compact('name'));
+                $queries[$name] = $query;
+            }
+
+            $this->queries[$name] = $query;
+        }
+        return $queries;
     }
 
     /**
-     * Resolve a root type field either if no field resolver is defined.
+     * Resolve query fields using its resolvers.
      *
-     * Note: If the field is not resolvable the root value or the context will be returned.
-     *
-     * @param mixed $source
+     * @param mixed $src
      * @param array $args
-     * @param \Framework\Core\Application $context
+     * @param mixed $context
      * @param ResolveInfo $info
      * @return mixed
      */
-    public function resolveField($source, array $args = [], $context = null, ResolveInfo $info)
-    {
-        $fieldName = $info->fieldName;
-
-        $field = $this->getField($fieldName);
-        $fieldType = $field->getType();
-
-        $resolver = null;
-
-        if ($field->resolveFn) {
-            $resolver = $field->resolveFn;
-        } elseif (method_exists($fieldType, 'resolve')) {
-            $resolver = [$fieldType, 'resolve'];
-        }
-        
-        if ($resolver) {
-            return call_user_func($resolver, $source, $args, $context, $info);
-        }
-        
-        return $source ?: $context;
+    public function resolveField(
+        $src, 
+        array $args = [], 
+        $context = null, 
+        ResolveInfo $info = null
+    ) {
+        return call_user_func(
+            $this->queries[$info->fieldName]->resolveFn,
+            $src, $args, $context, $info
+        );
     }
 
     /**
-     * Add a new field to query type.
+     * Set the query/mutation type fields.
      *
-     * @param Type|string $type
-     * @param string $name
+     * @param array $queries
      * @return static
      */
-    public function addField($type, string $name): self
+    public function setQueries(array $queries): self
     {
-        if (! $type instanceof Type) {
-            $type = $this->checkTypeInRegistry($type);
+        foreach($queries as $name => $query) {
+            if (is_string($query) && !is_subclass_of($query, $this->fieldType)) {
+                throw new \InvalidArgumentException(sprintf(
+                    $this->invalidFieldFormat, $query
+                ));
+            }
+            $this->queries[$name] = $query;
         }
-        if (!$name) {
-            $name = $type->name;
-        }
-        $this->queries[$name] = $type;
-
-        if (!$this->registry->exists($type->name)) {
-            $this->registry->addType($type);
-        }
-        
         return $this;
-    }
-
-    /**
-     * Check if the type exists in registry.
-     *
-     * @param string $type
-     * @return Type
-     */
-    protected function checkTypeInRegistry(string $type): Type
-    {
-        $typeName = $this->registry->keyForType($type);
-        if (!$this->registry->exists($typeName)) {
-            $typeName = $this->registry->addType($type, $typeName);
-        }
-        return $this->registry->type($typeName);
     }
 
     /**
@@ -111,13 +106,10 @@ class QueryType extends ObjectType
     public static function createFromFields(array $fields, TypeRegistryInterface $registry = null): self
     {
         $queryType = new static();
-        $queryType->setTypeRegistry($registry);
-
-        foreach ($fields as $name => $fieldType) {
-            $queryType->addField($fieldType, $name);
-        }
-        $queryType->make();
-
+        $queryType->setTypeRegistry($registry)
+                  ->setQueries($fields)
+                  ->make();
+        
         return $queryType;
     }
 }

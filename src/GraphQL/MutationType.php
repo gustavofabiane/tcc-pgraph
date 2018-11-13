@@ -9,5 +9,17 @@ namespace Framework\GraphQL;
  */
 class MutationType extends QueryType
 {
-    ///
+    /**
+     * Exception message format for invalid query field argument.
+     *
+     * @var string
+     */
+    protected $invalidFieldFormat = '%s is not a valid mutation type field.';
+
+    /**
+     * Mutation fields implementation class.
+     *
+     * @var string
+     */
+    protected $fieldType = Mutation::class;
 }

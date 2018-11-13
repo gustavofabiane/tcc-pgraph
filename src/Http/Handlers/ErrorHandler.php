@@ -45,6 +45,7 @@ class ErrorHandler implements ErrorHandlerInterface
     {
         $content = 'An error has ocurred' . PHP_EOL;
         $content .= 'Message: ' . $error->getMessage() . PHP_EOL;
+        $content .= 'Previous: ' . ($error->getPrevious() ? $error->getPrevious()->getMessage() . ', ' . $error->getPrevious()->getFile() . ' - ' . $error->getPrevious()->getLine() : '') . PHP_EOL;
         $content .= $error->getTraceAsString();
 
         return $content;

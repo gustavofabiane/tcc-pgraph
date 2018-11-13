@@ -3,17 +3,26 @@
 namespace Framework\Tests\Http;
 
 use Framework\Http;
+use Framework\Core\Application;
 use PHPUnit\Framework\TestCase;
+use function Framework\Tests\request;
 use Framework\Http\ResponseStatusCode;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Framework\Tests\Stubs\Middleware\XmlBody;
 use Framework\Tests\Stubs\StubRequestHandler;
 use Framework\Tests\Stubs\Middleware\ResponseWithErrorStatus;
-use function Framework\Tests\request;
 
 class HttpFunctionsTest extends TestCase
 {
+    public static function setUpBeforeClass()
+    {
+        $app = new Application();
+        $app->registerDefaultProvider();
+        
+        Application::setInstance($app);
+    }
+
     public function testResponseHelper()
     {
         $response = Http\response(ResponseStatusCode::INTERNAL_SERVER_ERROR, 'body-content-test');
