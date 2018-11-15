@@ -29,7 +29,7 @@ interface RouteCollectorInterface
      * @param callable $callback
      * @return void
      */
-    public function group(string $routePrefix, callable $callback, array $middleware = []);
+    public function group(string $routePrefix, callable $callback, array $middleware = []): void;
 
     /**
      * Adds a GET route to the collection.

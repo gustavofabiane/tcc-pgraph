@@ -76,7 +76,7 @@ class RouteCollector implements RouteCollectorInterface
      * @param callable $callback
      * @return void
      */
-    public function group(string $routePrefix, callable $callback, array $middleware = [])
+    public function group(string $routePrefix, callable $callback, array $middleware = []): void
     {
         $prefixBackup = $this->currentRoutePrefix;
         $this->currentRoutePrefix .= $routePrefix;
