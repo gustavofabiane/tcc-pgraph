@@ -10,14 +10,14 @@ interface RouteCollectorInterface
     /**
      * Adds a route to the collection.
      *
-     * The syntax used in the $route string depends on the used route parser.
+     * The syntax used in the $pattern string depends on the used route parser.
      *
      * @param string|string[] $httpMethod
-     * @param string $route
+     * @param string $pattern
      * @param mixed  $handler
      * @return RouteInterface
      */
-    public function route($method, string $route, $handler): RouteInterface;
+    public function route($method, string $pattern, $handler): RouteInterface;
 
     /**
      * Create a route group with a common prefix.
@@ -34,77 +34,88 @@ interface RouteCollectorInterface
     /**
      * Adds a GET route to the collection.
      *
-     * This is simply an alias of $this->route('GET', $route, $handler).
+     * This is simply an alias of $this->route('GET', $pattern, $handler).
      *
-     * @param string $route
+     * @param string $pattern
      * @param mixed  $handler
      * @return RouteInterface
      */
-    public function get(string $route, $handler): RouteInterface;
+    public function get(string $pattern, $handler): RouteInterface;
 
     /**
      * Adds a POST route to the collection.
      *
-     * This is simply an alias of $this->route('POST', $route, $handler).
+     * This is simply an alias of $this->route('POST', $pattern, $handler).
      *
-     * @param string $route
+     * @param string $pattern
      * @param mixed  $handler
      * @return RouteInterface
      */
-    public function post(string $route, $handler): RouteInterface;
+    public function post(string $pattern, $handler): RouteInterface;
 
     /**
      * Adds a PUT route to the collection.
      *
-     * This is simply an alias of $this->route('PUT', $route, $handler).
+     * This is simply an alias of $this->route('PUT', $pattern, $handler).
      *
-     * @param string $route
+     * @param string $pattern
      * @param mixed  $handler
      * @return RouteInterface
      */
-    public function put(string $route, $handler): RouteInterface;
+    public function put(string $pattern, $handler): RouteInterface;
 
     /**
      * Adds a DELETE route to the collection.
      *
-     * This is simply an alias of $this->route('DELETE', $route, $handler).
+     * This is simply an alias of $this->route('DELETE', $pattern, $handler).
      *
-     * @param string $route
+     * @param string $pattern
      * @param mixed  $handler
      * @return RouteInterface
      */
-    public function delete(string $route, $handler): RouteInterface;
+    public function delete(string $pattern, $handler): RouteInterface;
 
     /**
      * Adds a PATCH route to the collection.
      *
-     * This is simply an alias of $this->route('PATCH', $route, $handler).
+     * This is simply an alias of $this->route('PATCH', $pattern, $handler).
      *
-     * @param string $route
+     * @param string $pattern
      * @param mixed  $handler
      * @return RouteInterface
      */
-    public function patch(string $route, $handler): RouteInterface;
+    public function patch(string $pattern, $handler): RouteInterface;
 
     /**
      * Adds a HEAD route to the collection.
      *
-     * This is simply an alias of $this->route('HEAD', $route, $handler).
+     * This is simply an alias of $this->route('HEAD', $pattern, $handler).
      *
-     * @param string $route
+     * @param string $pattern
      * @param mixed  $handler
      * @return RouteInterface
      */
-    public function head(string $route, $handler): RouteInterface;
+    public function head(string $pattern, $handler): RouteInterface;
+
+    /**
+     * Adds an OPTIONS route to the collection.
+     *
+     * This is simply an alias of $this->route('OPTIONS', $pattern, $handler).
+     *
+     * @param string $pattern
+     * @param mixed  $handler
+     * @return RouteInterface
+     */
+    public function options(string $pattern, $handler): RouteInterface;
 
     /**
      * Adds a route to all allowed HTTP methods to the collection.
      *
-     * @param string $route
+     * @param string $pattern
      * @param mixed $handler
      * @return RouteInterface
      */
-    public function all(string $route, $handler): RouteInterface;
+    public function all(string $pattern, $handler): RouteInterface;
 
     /**
      * Get the route collection data stored.

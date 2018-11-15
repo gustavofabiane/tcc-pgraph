@@ -178,6 +178,20 @@ class RouteCollector implements RouteCollectorInterface
     }
 
     /**
+     * Adds an OPTIONS route to the collection.
+     *
+     * This is simply an alias of $this->route('OPTIONS', $pattern, $handler).
+     *
+     * @param string $pattern
+     * @param mixed  $handler
+     * @return RouteInterface
+     */
+    public function options(string $pattern, $handler): RouteInterface
+    {
+        return $this->route('OPTIONS', $pattern, $handler);
+    }
+
+    /**
      * Adds a route to all allowed HTTP methods to the collection.
      *
      * @param string $route
@@ -187,8 +201,8 @@ class RouteCollector implements RouteCollectorInterface
     public function all(string $route, $handler): RouteInterface
     {
         return $this->route([
-            'GET', 'POST', 'PUT', 
-            'DELETE', 'PATCH', 'HEAD'
+            'GET', 'POST', 'PUT', 'DELETE', 
+            'PATCH', 'HEAD', 'OPTIONS'
         ], $route, $handler);
     }
 
