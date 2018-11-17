@@ -3,6 +3,7 @@
 namespace Pgraph\Core\Command;
 
 use Pgraph\Command\Command as PgraphCommand;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\InputArgument;
 
 abstract class AbstractCreateCommand extends PgraphCommand
@@ -16,14 +17,12 @@ abstract class AbstractCreateCommand extends PgraphCommand
     {
         $this->addArgument('name', InputArgument::REQUIRED, 'The name of the created component.');
         $this->addOption(
-            'force', 'f', InputArgument::OPTIONAL, 
-            'If the component already exists its forced to the overrided.', 
-            false
+            'force', 'f', InputOption::VALUE_NONE, 
+            'If the component already exists its forced to the overrided.'
         );
         $this->addOption(
-            'constructor', 'c', InputArgument::OPTIONAL,
-            'Creates the new class with its constructor already defined.', 
-            false
+            'constructor', 'c', InputOption::VALUE_NONE,
+            'Creates the new class with its constructor already defined.'
         );
 
         foreach ($this->options() as $opt) {
