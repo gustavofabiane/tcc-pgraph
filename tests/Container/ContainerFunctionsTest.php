@@ -1,13 +1,13 @@
 <?php
 
-namespace Framework\Tests\Container;
+namespace Pgraph\Tests\Container;
 
-use Framework\Container;
+use Pgraph\Container;
 use PHPUnit\Framework\TestCase;
-use Framework\Tests\Stubs\StubClass;
-use Framework\Tests\Stubs\Stub2Class;
-use Framework\Tests\Stubs\StubInterface;
-use Framework\Container\Container as Impl;
+use Pgraph\Tests\Stubs\StubClass;
+use Pgraph\Tests\Stubs\Stub2Class;
+use Pgraph\Tests\Stubs\StubInterface;
+use Pgraph\Container\Container as Impl;
 
 class ContainerFunctionsTest extends TestCase
 {
@@ -23,7 +23,7 @@ class ContainerFunctionsTest extends TestCase
 
     public function testRegister()
     {
-        Container\register('stub', 'Framework\Tests\Stubs\StubClass');
+        Container\register('stub', 'Pgraph\Tests\Stubs\StubClass');
         $this->assertTrue(Impl::getInstance()->has('stub'));
     }
 
@@ -31,7 +31,7 @@ class ContainerFunctionsTest extends TestCase
     {
         $this->assertFalse(Container\has('some-entry'));
 
-        Container\register('stub', 'Framework\Tests\Stubs\Stub2Class');
+        Container\register('stub', 'Pgraph\Tests\Stubs\Stub2Class');
         $this->assertTrue(Container\has('stub'));
     }
 

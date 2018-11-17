@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Framework\Tests\GraphQL;
+namespace Pgraph\Tests\GraphQL;
 
-use Framework\GraphQL\Fields;
+use Pgraph\GraphQL\Fields;
 use PHPUnit\Framework\TestCase;
-use Framework\GraphQL\TypeRegistry;
-use Framework\Tests\GraphQL\Stubs\StubObjectType;
-use Framework\Tests\GraphQL\Stubs\StubInterfaceType;
+use Pgraph\GraphQL\TypeRegistry;
+use Pgraph\Tests\GraphQL\Stubs\StubObjectType;
+use Pgraph\Tests\GraphQL\Stubs\StubInterfaceType;
 use GraphQL\Type\Definition\FieldDefinition;
 
 class ObjectTypeTest extends TestCase
@@ -18,7 +18,7 @@ class ObjectTypeTest extends TestCase
     /**
      * Tested type
      *
-     * @var \Framework\GraphQL\ObjectType
+     * @var \Pgraph\GraphQL\ObjectType
      */
     protected $objType;
 

@@ -1,6 +1,6 @@
 <?php
 
-namespace Framework\Container;
+namespace Pgraph\Container;
 
 use Psr\Container\ContainerInterface;
 

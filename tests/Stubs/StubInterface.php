@@ -1,6 +1,6 @@
 <?php
 
-namespace Framework\Tests\Stubs;
+namespace Pgraph\Tests\Stubs;
 
 interface StubInterface
 {

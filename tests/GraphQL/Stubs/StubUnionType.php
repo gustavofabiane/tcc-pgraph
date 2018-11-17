@@ -1,8 +1,8 @@
 <?php
 
-namespace Framework\Tests\GraphQL\Stubs;
+namespace Pgraph\Tests\GraphQL\Stubs;
 
-use Framework\GraphQL\UnionType;
+use Pgraph\GraphQL\UnionType;
 use GraphQL\Type\Definition\ResolveInfo;
 
 class StubUnionType extends UnionType

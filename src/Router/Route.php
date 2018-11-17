@@ -1,10 +1,10 @@
 <?php
 
-namespace Framework\Router;
+namespace Pgraph\Router;
 
 use FastRoute\Dispatcher;
 use Psr\Http\Server\RequestHandlerInterface;
-use Framework\Http\Handlers\HasMiddlewareTrait;
+use Pgraph\Http\Handlers\HasMiddlewareTrait;
 
 class Route implements RouteInterface
 {

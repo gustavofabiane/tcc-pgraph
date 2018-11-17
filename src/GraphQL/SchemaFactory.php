@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Framework\GraphQL;
+namespace Pgraph\GraphQL;
 
 use GraphQL\Type\Schema;
 use GraphQL\Type\SchemaConfig;

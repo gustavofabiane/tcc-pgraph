@@ -1,6 +1,6 @@
 <?php
 
-namespace Framework\Container;
+namespace Pgraph\Container;
 
 use Error;
 use Closure;
@@ -10,7 +10,7 @@ use RuntimeException;
 use ReflectionFunction;
 use ReflectionParameter;
 use Psr\Container\ContainerInterface;
-use Framework\Container\Exception\ContainerException;
+use Pgraph\Container\Exception\ContainerException;
 
 class ServiceResolver implements ServiceResolverInterface
 {

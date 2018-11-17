@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Framework\Tests\GraphQL;
+namespace Pgraph\Tests\GraphQL;
 
-use Framework\GraphQL\TypeRegistry;
-use Framework\Container\Container;
+use Pgraph\GraphQL\TypeRegistry;
+use Pgraph\Container\Container;
 
 
 /**

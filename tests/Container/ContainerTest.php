@@ -1,15 +1,15 @@
 <?php
 
-namespace Framework\Tests\Container;
+namespace Pgraph\Tests\Container;
 
 use ReflectionClass;
 use PHPUnit\Framework\TestCase;
-use Framework\Container\Container;
-use Framework\Tests\Stubs\StubClass;
-use Framework\Tests\Stubs\Stub2Class;
+use Pgraph\Container\Container;
+use Pgraph\Tests\Stubs\StubClass;
+use Pgraph\Tests\Stubs\Stub2Class;
 use Psr\Container\ContainerInterface;
-use Framework\Tests\Stubs\StubInterface;
-use Framework\Container\Exception\AliasTargetNotFoundException;
+use Pgraph\Tests\Stubs\StubInterface;
+use Pgraph\Container\Exception\AliasTargetNotFoundException;
 
 class ContainerTest extends TestCase
 {

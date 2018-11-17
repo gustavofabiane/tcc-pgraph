@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Framework\GraphQL\Util;
+namespace Pgraph\GraphQL\Util;
 
-use Framework\GraphQL\TypeRegistryInterface;
+use Pgraph\GraphQL\TypeRegistryInterface;
 use GraphQL\Type\Definition\FieldDefinition;
 
 

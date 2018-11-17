@@ -1,9 +1,9 @@
 <?php
 
-namespace Framework\Tests\Http;
+namespace Pgraph\Tests\Http;
 
-use Framework\Http\Body;
-use Framework\Http\Message;
+use Pgraph\Http\Body;
+use Pgraph\Http\Message;
 use PHPUnit\Framework\TestCase;
 
 

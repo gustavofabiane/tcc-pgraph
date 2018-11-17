@@ -1,9 +1,9 @@
 <?php
 
-namespace Framework\Router;
+namespace Pgraph\Router;
 
-use Framework\Core\Application;
-use Framework\Core\ProviderInterface;
+use Pgraph\Core\Application;
+use Pgraph\Core\ProviderInterface;
 use FastRoute\RouteParser\Std as RouteParser;
 use FastRoute\DataGenerator\GroupCountBased as RouteDataGenerator;
 

@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Framework\GraphQL;
+namespace Pgraph\GraphQL;
 
-use Framework\GraphQL\Util\TypeWithFields;
+use Pgraph\GraphQL\Util\TypeWithFields;
 use GraphQL\Type\Definition\FieldDefinition;
-use Framework\GraphQL\Util\ImplementsInterface;
+use Pgraph\GraphQL\Util\ImplementsInterface;
 
 class Fields
 {

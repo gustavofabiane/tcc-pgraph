@@ -1,8 +1,8 @@
 <?php
 
-namespace Framework\Command;
+namespace Pgraph\Command;
 
-use Framework\Container\ContainerInterface;
+use Pgraph\Container\ContainerInterface;
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\NullOutput;
 use Symfony\Component\Console\Question\Question;

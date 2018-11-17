@@ -2,14 +2,14 @@
 
 declare(strict_types=1);
 
-namespace Framework\GraphQL;
+namespace Pgraph\GraphQL;
 
-use Framework\GraphQL\Fields;
-use Framework\GraphQL\Util\TypeTrait;
-use Framework\GraphQL\Util\TypeWithFields;
-use Framework\GraphQL\Util\ImplementsInterface;
+use Pgraph\GraphQL\Fields;
+use Pgraph\GraphQL\Util\TypeTrait;
+use Pgraph\GraphQL\Util\TypeWithFields;
+use Pgraph\GraphQL\Util\ImplementsInterface;
 use GraphQL\Type\Definition\InputObjectType as BaseInputObjectType;
-use Framework\GraphQL\Util\MakeableType;
+use Pgraph\GraphQL\Util\MakeableType;
 
 /**
  * Abstract implementation of an object type definitions.

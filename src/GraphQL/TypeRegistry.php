@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Framework\GraphQL;
+namespace Pgraph\GraphQL;
 
 use GraphQL\Type\Definition\Type;
 use GraphQL\Type\Definition\IDType;
@@ -12,7 +12,7 @@ use GraphQL\Type\Definition\FloatType;
 use GraphQL\Type\Definition\ListOfType;
 use GraphQL\Type\Definition\StringType;
 use GraphQL\Type\Definition\BooleanType;
-use Framework\Container\ContainerInterface;
+use Pgraph\Container\ContainerInterface;
 
 class TypeRegistry implements TypeRegistryInterface
 {

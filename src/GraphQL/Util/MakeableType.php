@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Framework\GraphQL\Util;
+namespace Pgraph\GraphQL\Util;
 
 interface MakeableType
 {

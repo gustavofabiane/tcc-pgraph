@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Framework\GraphQL;
+namespace Pgraph\GraphQL;
 
 use ArrayAccess;
 use ArrayIterator;
 use IteratorAggregate;
 use GraphQL\Type\Definition\Type;
-use Framework\GraphQL\Util\ArrayAccessTrait;
+use Pgraph\GraphQL\Util\ArrayAccessTrait;
 use GraphQL\Type\Definition\FieldDefinition;
 
 /**

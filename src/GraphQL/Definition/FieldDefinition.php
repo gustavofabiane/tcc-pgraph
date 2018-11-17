@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Framework\GraphQL\Definition;
+namespace Pgraph\GraphQL\Definition;
 
 use GraphQL\Type\Definition\FieldDefinition as Definition;
 use GraphQL\Type\Definition\FieldArgument;

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Framework\Container;
+namespace Pgraph\Container;
 
 /**
  * Get an entry from the container.

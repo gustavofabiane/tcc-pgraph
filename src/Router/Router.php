@@ -1,6 +1,6 @@
 <?php
 
-namespace Framework\Router;
+namespace Pgraph\Router;
 
 use Closure;
 use RuntimeException;
@@ -14,14 +14,14 @@ use Psr\Http\Server\RequestHandlerInterface;
  *
  * Based on nikic/fast-route.
  *
- * @method \Framework\Router\RouteInterface get(string $pattern, $handler)
- * @method \Framework\Router\RouteInterface post(string $pattern, $handler)
- * @method \Framework\Router\RouteInterface put(string $pattern, $handler)
- * @method \Framework\Router\RouteInterface patch(string $pattern, $handler)
- * @method \Framework\Router\RouteInterface head(string $pattern, $handler)
- * @method \Framework\Router\RouteInterface delete(string $pattern, $handler)
- * @method \Framework\Router\RouteInterface all(string $pattern, $handler)
- * @method \Framework\Router\RouteInterface group($routePrefix, callable $callback, array $middleware = [])
+ * @method \Pgraph\Router\RouteInterface get(string $pattern, $handler)
+ * @method \Pgraph\Router\RouteInterface post(string $pattern, $handler)
+ * @method \Pgraph\Router\RouteInterface put(string $pattern, $handler)
+ * @method \Pgraph\Router\RouteInterface patch(string $pattern, $handler)
+ * @method \Pgraph\Router\RouteInterface head(string $pattern, $handler)
+ * @method \Pgraph\Router\RouteInterface delete(string $pattern, $handler)
+ * @method \Pgraph\Router\RouteInterface all(string $pattern, $handler)
+ * @method \Pgraph\Router\RouteInterface group($routePrefix, callable $callback, array $middleware = [])
  *
  */
 class Router implements RouterInterface

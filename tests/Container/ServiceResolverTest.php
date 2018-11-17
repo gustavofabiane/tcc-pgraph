@@ -1,12 +1,12 @@
 <?php
 
-namespace Framework\Tests\Container;
+namespace Pgraph\Tests\Container;
 
 use PHPUnit\Framework\TestCase;
-use Framework\Container\Container;
-use Framework\Tests\Stubs\StubClass;
-use Framework\Container\ServiceResolver;
-use Framework\Container\Exception\ContainerException;
+use Pgraph\Container\Container;
+use Pgraph\Tests\Stubs\StubClass;
+use Pgraph\Container\ServiceResolver;
+use Pgraph\Container\Exception\ContainerException;
 
 class ServiceResolverTest extends TestCase
 {
@@ -61,7 +61,7 @@ class ServiceResolverTest extends TestCase
         $this->container->register('int', 1);
 
         $result = $this->resolver->resolve(
-            'Framework\Tests\Stubs\StubClass:toResolve', 
+            'Pgraph\Tests\Stubs\StubClass:toResolve', 
             ['userDefinedParam' => 5]
         );
 
@@ -73,7 +73,7 @@ class ServiceResolverTest extends TestCase
         $this->container->register('int', 2);
 
         $result = $this->resolver->resolve(
-            ['Framework\Tests\Stubs\StubClass', 'toResolve'], 
+            ['Pgraph\Tests\Stubs\StubClass', 'toResolve'], 
             ['userDefinedParam' => 5]
         );
 
@@ -92,13 +92,13 @@ class ServiceResolverTest extends TestCase
 
     public function testResolveWithMethodDefaultParameters()
     {
-        $result = $this->resolver->resolve('Framework\Tests\Stubs\StubClass:toResolveDefault');
+        $result = $this->resolver->resolve('Pgraph\Tests\Stubs\StubClass:toResolveDefault');
         $this->assertEquals(800, $result);
     }
 
     public function testNoDefaultValueAvailableForResolver()
     {
         $this->expectException(ContainerException::class);
-        $result = $this->resolver->resolve('Framework\Tests\Stubs\StubClass:toResolve');
+        $result = $this->resolver->resolve('Pgraph\Tests\Stubs\StubClass:toResolve');
     }
 }

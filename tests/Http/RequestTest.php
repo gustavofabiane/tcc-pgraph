@@ -1,12 +1,12 @@
 <?php
 
-namespace Framework\Tests\Http;
+namespace Pgraph\Tests\Http;
 
-use Framework\Http\Uri;
-use Framework\Http\Body;
-use Framework\Http\Request;
+use Pgraph\Http\Uri;
+use Pgraph\Http\Body;
+use Pgraph\Http\Request;
 use PHPUnit\Framework\TestCase;
-use Framework\Tests\Stubs\StubClass;
+use Pgraph\Tests\Stubs\StubClass;
 use Psr\Http\Message\RequestInterface;
 
 class RequestTest extends TestCase

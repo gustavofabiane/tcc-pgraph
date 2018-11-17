@@ -1,10 +1,10 @@
 <?php
 
-use Framework\Http\Uri;
-use Framework\Http\Body;
-use Framework\Http\Request;
+use Pgraph\Http\Uri;
+use Pgraph\Http\Body;
+use Pgraph\Http\Request;
 use PHPUnit\Framework\TestCase;
-use Framework\Http\Handlers\NotFoundHandler;
+use Pgraph\Http\Handlers\NotFoundHandler;
 
 class NotFoundHandlerTest extends TestCase
 {

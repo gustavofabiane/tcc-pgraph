@@ -3,19 +3,19 @@
 declare(strict_types=1);
 
 use GraphQL\Error\Debug;
-use Framework\Core\Application;
-use Framework\Core\DefaultProvider;
-use Framework\Router\RouteCollector;
-use Framework\Router\RouterProvider;
+use Pgraph\Core\Application;
+use Pgraph\Core\DefaultProvider;
+use Pgraph\Router\RouteCollector;
+use Pgraph\Router\RouterProvider;
 
-use function Framework\GraphQL\field;
-use function Framework\Http\response;
+use function Pgraph\GraphQL\field;
+use function Pgraph\Http\response;
 
-use Framework\GraphQL\GraphQLProvider;
+use Pgraph\GraphQL\GraphQLProvider;
 use GraphQL\Type\Definition\ObjectType;
-use function Framework\GraphQL\argument;
+use function Pgraph\GraphQL\argument;
 use Psr\Http\Message\ResponseInterface as Response;
-use function Framework\Http\requestFromServerParams;
+use function Pgraph\Http\requestFromServerParams;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Server\RequestHandlerInterface as Handler;
 

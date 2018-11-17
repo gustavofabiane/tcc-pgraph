@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Framework\GraphQL\Definition\Field;
+namespace Pgraph\GraphQL\Definition\Field;
 
 use ArrayAccess;
-use Framework\GraphQL\Field;
+use Pgraph\GraphQL\Field;
 use GraphQL\Type\Definition\Type;
-use Framework\GraphQL\Definition\Enum\PadDirection;
+use Pgraph\GraphQL\Definition\Enum\PadDirection;
 
 /**
  * Abstract implementation of custom field definitions

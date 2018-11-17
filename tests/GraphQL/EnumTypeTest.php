@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Framework\Tests\GraphQL;
+namespace Pgraph\Tests\GraphQL;
 
 use PHPUnit\Framework\TestCase;
-use Framework\Tests\GraphQL\Stubs\StubEnumType;
+use Pgraph\Tests\GraphQL\Stubs\StubEnumType;
 
 class EnumTypeTest extends TestCase
 {
@@ -76,7 +76,7 @@ class EnumTypeTest extends TestCase
      */
     public function testEnumValueHelper($parameters, $expected)
     {
-        $value = call_user_func_array('Framework\GraphQL\enumValue', $parameters);
+        $value = call_user_func_array('Pgraph\GraphQL\enumValue', $parameters);
         $this->assertEquals($expected, $value);
     }
 }

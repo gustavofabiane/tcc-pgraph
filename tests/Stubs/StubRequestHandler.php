@@ -1,11 +1,11 @@
 <?php
 
-namespace Framework\Tests\Stubs;
+namespace Pgraph\Tests\Stubs;
 
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
-use function Framework\Http\response;
+use function Pgraph\Http\response;
 
 class StubRequestHandler implements RequestHandlerInterface
 {

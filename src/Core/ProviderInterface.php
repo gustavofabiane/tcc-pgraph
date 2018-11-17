@@ -1,6 +1,6 @@
 <?php
 
-namespace Framework\Core;
+namespace Pgraph\Core;
 
 interface ProviderInterface
 {

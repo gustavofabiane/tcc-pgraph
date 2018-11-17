@@ -1,6 +1,6 @@
 <?php
 
-namespace Framework\GraphQL\Resolution;
+namespace Pgraph\GraphQL\Resolution;
 
 use GraphQL\Type\Definition\ObjectType;
 use GraphQL\Type\Definition\ResolveInfo;

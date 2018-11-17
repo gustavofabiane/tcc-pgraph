@@ -1,9 +1,9 @@
 <?php
 
-namespace Framework\Tests\Stubs;
+namespace Pgraph\Tests\Stubs;
 
-use Framework\Http\Body;
-use Framework\Http\Response;
+use Pgraph\Http\Body;
+use Pgraph\Http\Response;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;

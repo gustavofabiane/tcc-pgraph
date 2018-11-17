@@ -1,8 +1,8 @@
 <?php
 
-namespace Framework\Tests\GraphQL\Stubs;
+namespace Pgraph\Tests\GraphQL\Stubs;
 
-use Framework\GraphQL\InterfaceType;
+use Pgraph\GraphQL\InterfaceType;
 
 class StubInterfaceType extends InterfaceType
 {

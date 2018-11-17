@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Framework\Tests\GraphQL;
+namespace Pgraph\Tests\GraphQL;
 
-use Framework\GraphQL\Field;
+use Pgraph\GraphQL\Field;
 use PHPUnit\Framework\TestCase;
 use GraphQL\Type\Definition\Type;
-use Framework\GraphQL\Definition\Field\PadField;
-use Framework\GraphQL\Definition\Enum\PadDirection;
+use Pgraph\GraphQL\Definition\Field\PadField;
+use Pgraph\GraphQL\Definition\Enum\PadDirection;
 
 class FieldTest extends TestCase
 {

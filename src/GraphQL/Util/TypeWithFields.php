@@ -1,6 +1,6 @@
 <?php
 
-namespace Framework\GraphQL\Util;
+namespace Pgraph\GraphQL\Util;
 
 interface TypeWithFields
 {

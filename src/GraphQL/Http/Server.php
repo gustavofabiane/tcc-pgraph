@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Framework\GraphQL\Http;
+namespace Pgraph\GraphQL\Http;
 
 use GraphQL\Server\StandardServer;
 use GraphQL\Executor\ExecutionResult;

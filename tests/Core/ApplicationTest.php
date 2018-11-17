@@ -1,13 +1,13 @@
 <?php
 
-namespace Framework\Tests\Core;
+namespace Pgraph\Tests\Core;
 
-use Framework\Core\Application;
+use Pgraph\Core\Application;
 use PHPUnit\Framework\TestCase;
-use Framework\Router\RouterInterface;
-use Framework\Http\Handlers\NotFoundHandler;
-use Framework\Http\Handlers\ErrorHandlerInterface;
-use Framework\Core\Configuration;
+use Pgraph\Router\RouterInterface;
+use Pgraph\Http\Handlers\NotFoundHandler;
+use Pgraph\Http\Handlers\ErrorHandlerInterface;
+use Pgraph\Core\Configuration;
 
 class ApplicationTest extends TestCase
 {

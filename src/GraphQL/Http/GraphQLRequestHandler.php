@@ -2,20 +2,20 @@
 
 declare(strict_types=1);
 
-namespace Framework\GraphQL\Http;
+namespace Pgraph\GraphQL\Http;
 
 use Exception;
 use RuntimeException;
-use Framework\Http\Body;
+use Pgraph\Http\Body;
 use GraphQL\Error\Debug;
 use GraphQL\Error\FormattedError;
-use function Framework\Http\response;
+use function Pgraph\Http\response;
 
-use Framework\Http\ResponseStatusCode;
+use Pgraph\Http\ResponseStatusCode;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
-use Framework\Http\Handlers\HasMiddlewareTrait;
+use Pgraph\Http\Handlers\HasMiddlewareTrait;
 
 /**
  * Handle request for the GraphQL server.

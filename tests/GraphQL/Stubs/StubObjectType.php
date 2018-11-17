@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Framework\Tests\GraphQL\Stubs;
+namespace Pgraph\Tests\GraphQL\Stubs;
 
-use Framework\GraphQL\ObjectType;
+use Pgraph\GraphQL\ObjectType;
 
 class StubObjectType extends ObjectType
 {

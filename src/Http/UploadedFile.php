@@ -1,6 +1,6 @@
 <?php
 
-namespace Framework\Http;
+namespace Pgraph\Http;
 
 use Psr\Http\Message\UploadedFileInterface;
 

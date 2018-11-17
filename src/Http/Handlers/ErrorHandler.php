@@ -1,10 +1,10 @@
 <?php
 
-namespace Framework\Http\Handlers;
+namespace Pgraph\Http\Handlers;
 
 use Throwable;
-use Framework\Http\Body;
-use Framework\Http\Response;
+use Pgraph\Http\Body;
+use Pgraph\Http\Response;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 

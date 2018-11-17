@@ -1,9 +1,9 @@
 <?php
 
-namespace Framework\Tests\Stubs\Middleware;
+namespace Pgraph\Tests\Stubs\Middleware;
 
-use Framework\Http\Body;
-use Framework\Http\ResponseStatusCode;
+use Pgraph\Http\Body;
+use Pgraph\Http\ResponseStatusCode;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Message\ServerRequestInterface;

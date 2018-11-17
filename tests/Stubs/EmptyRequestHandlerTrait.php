@@ -1,11 +1,11 @@
 <?php
 
-namespace Framework\Tests\Stubs;
+namespace Pgraph\Tests\Stubs;
 
-use Framework\Http\Response;
+use Pgraph\Http\Response;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use Framework\Http\Handlers\HasMiddlewareTrait;
+use Pgraph\Http\Handlers\HasMiddlewareTrait;
 
 /**
  * Empty handle method

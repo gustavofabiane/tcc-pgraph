@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Framework\GraphQL;
+namespace Pgraph\GraphQL;
 
-use Framework\GraphQL\Util\TypeTrait;
+use Pgraph\GraphQL\Util\TypeTrait;
 use GraphQL\Type\Definition\EnumType as BaseEnumType;
-use Framework\GraphQL\Util\MakeableType;
+use Pgraph\GraphQL\Util\MakeableType;
 
 /**
  * Abstract implementation of custom enum type definitions

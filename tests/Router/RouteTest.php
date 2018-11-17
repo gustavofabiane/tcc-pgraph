@@ -1,14 +1,14 @@
 <?php
 
-namespace Framework\Tests\Router;
+namespace Pgraph\Tests\Router;
 
 use FastRoute\Dispatcher;
-use Framework\Router\Route;
-use Framework\Http\Response;
+use Pgraph\Router\Route;
+use Pgraph\Http\Response;
 use PHPUnit\Framework\TestCase;
-use Framework\Container\Container;
-use Framework\Router\RouteInterface;
-use Framework\Router\RouteRequestHandler;
+use Pgraph\Container\Container;
+use Pgraph\Router\RouteInterface;
+use Pgraph\Router\RouteRequestHandler;
 use Psr\Http\Message\ServerRequestInterface;
 
 class RouteTest extends TestCase

@@ -1,17 +1,17 @@
 <?php
 
-namespace Framework\Router;
+namespace Pgraph\Router;
 
 use Closure;
 use LogicException;
 use RuntimeException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Server\MiddlewareInterface;
-use Framework\Container\ContainerInterface;
+use Pgraph\Container\ContainerInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 
-use function Framework\isImplementerOf;
+use function Pgraph\isImplementerOf;
 
 /**
  * Handler for route callback execution

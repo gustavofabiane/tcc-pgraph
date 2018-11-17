@@ -1,9 +1,9 @@
 <?php
 
-namespace Framework\Http\Handlers;
+namespace Pgraph\Http\Handlers;
 
 use Psr\Http\Message\ResponseInterface;
-use Framework\Container\ContainerInterface;
+use Pgraph\Container\ContainerInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 

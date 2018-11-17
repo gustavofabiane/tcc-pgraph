@@ -1,17 +1,17 @@
 <?php
 
-namespace Framework\Core;
+namespace Pgraph\Core;
 
 use Throwable;
-use Framework\Container\Container;
-use Framework\Router\RouteInterface;
+use Pgraph\Container\Container;
+use Pgraph\Router\RouteInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 use Symfony\Component\Console\Exception\LogicException;
 
-use function Framework\isImplementerOf;
+use function Pgraph\isImplementerOf;
 
 class Application extends Container implements RequestHandlerInterface
 {
@@ -156,7 +156,7 @@ class Application extends Container implements RequestHandlerInterface
             ) {
                 $request = $this->defineRequestRoute($request);
 
-                /** @var \Framework\Router\RouteInterface $route */
+                /** @var \Pgraph\Router\RouteInterface $route */
                 $route = $request->getAttribute('route');
 
                 // We are going to ignore middleware if the route does not exists
@@ -192,7 +192,7 @@ class Application extends Container implements RequestHandlerInterface
      */
     protected function callRoute(ServerRequestInterface $request): ResponseInterface
     {
-        /** @var \Framework\Router\RouteInterface $route */
+        /** @var \Pgraph\Router\RouteInterface $route */
         $route = $request->getAttribute('route');
 
         if ($route === null) {

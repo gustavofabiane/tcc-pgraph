@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Framework\GraphQL;
+namespace Pgraph\GraphQL;
 
 use GraphQL\Error\Error;
 use GraphQL\Type\Definition\Type;
-use Framework\GraphQL\TypeRegistry;
+use Pgraph\GraphQL\TypeRegistry;
 use GraphQL\Type\Definition\NonNull;
 use GraphQL\Type\Definition\ListOfType;
 use GraphQL\Error\FormattedError;
@@ -57,7 +57,7 @@ function nonNull($type): NonNull
  * @param string $description
  * @param string $deprecationReason
  * @param callable $complexity
- * @return iterable|\Framework\GraphQL\Field
+ * @return iterable|\Pgraph\GraphQL\Field
  */
 function field(
     $type,

@@ -1,11 +1,11 @@
 <?php
 
-namespace Framework\Tests;
+namespace Pgraph\Tests;
 
-use Framework\Http\Uri;
-use Framework\Http\Body;
-use Framework\Http\Request;
-use Framework\Http\Response;
+use Pgraph\Http\Uri;
+use Pgraph\Http\Body;
+use Pgraph\Http\Request;
+use Pgraph\Http\Response;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;

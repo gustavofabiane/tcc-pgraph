@@ -1,6 +1,6 @@
 <?php
 
-namespace Framework\Http\Handlers;
+namespace Pgraph\Http\Handlers;
 
 use Throwable;
 use Psr\Http\Message\ResponseInterface;

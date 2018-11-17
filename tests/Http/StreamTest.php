@@ -1,8 +1,8 @@
 <?php
 
-namespace Framework\Tests\Http;
+namespace Pgraph\Tests\Http;
 
-use Framework\Http\Stream;
+use Pgraph\Http\Stream;
 use PHPUnit\Framework\TestCase;
 
 class StreamTest extends TestCase

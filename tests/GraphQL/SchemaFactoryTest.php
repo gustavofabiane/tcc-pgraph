@@ -1,11 +1,11 @@
 <?php
 
-namespace Framework\Tests\GraphQL;
+namespace Pgraph\Tests\GraphQL;
 
 use GraphQL\Type\Schema;
 use GraphQL\Type\SchemaConfig;
 use PHPUnit\Framework\TestCase;
-use Framework\GraphQL\SchemaFactory;
+use Pgraph\GraphQL\SchemaFactory;
 use GraphQL\Type\Definition\ObjectType;
 
 

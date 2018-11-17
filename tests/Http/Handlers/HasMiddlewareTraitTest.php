@@ -1,15 +1,15 @@
 <?php
 
-namespace Framework\Tests\Http\Handlers;
+namespace Pgraph\Tests\Http\Handlers;
 
-use Framework\Http\Response;
+use Pgraph\Http\Response;
 use PHPUnit\Framework\TestCase;
-use Framework\Container\Container;
+use Pgraph\Container\Container;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
-use Framework\Http\Handlers\HasMiddlewareTrait;
-use Framework\Http\Middleware\ResolvableMiddleware;
+use Pgraph\Http\Handlers\HasMiddlewareTrait;
+use Pgraph\Http\Middleware\ResolvableMiddleware;
 
 class HasMiddlewareTraitTest extends TestCase implements RequestHandlerInterface
 {
@@ -29,19 +29,19 @@ class HasMiddlewareTraitTest extends TestCase implements RequestHandlerInterface
     public function testInvalidMiddleware()
     {
         $this->expectException(\InvalidArgumentException::class);
-        $this->add('\Framework\Tests\Stubs\StubClass');
+        $this->add('\Pgraph\Tests\Stubs\StubClass');
     }
 
     public function assertMiddlewareDataProvider()
     {
         return [
             [
-                ['\Framework\Tests\Stubs\StubClass:middleware'],
-                [new ResolvableMiddleware('\Framework\Tests\Stubs\StubClass:middleware', $this->mockContainer())]
+                ['\Pgraph\Tests\Stubs\StubClass:middleware'],
+                [new ResolvableMiddleware('\Pgraph\Tests\Stubs\StubClass:middleware', $this->mockContainer())]
             ],
             [
                 [
-                    '\Framework\Tests\testMiddlewareFunction',
+                    '\Pgraph\Tests\testMiddlewareFunction',
                     function ($request, $handler) {
                         return $handler->handle($request);
                     }
@@ -53,7 +53,7 @@ class HasMiddlewareTraitTest extends TestCase implements RequestHandlerInterface
                         },
                         $this->mockContainer()
                     ),
-                    new ResolvableMiddleware('\Framework\Tests\testMiddlewareFunction', $this->mockContainer()),
+                    new ResolvableMiddleware('\Pgraph\Tests\testMiddlewareFunction', $this->mockContainer()),
                 ]
             ],
         ];
@@ -76,12 +76,12 @@ class HasMiddlewareTraitTest extends TestCase implements RequestHandlerInterface
     {
         return [
             [
-                ['\Framework\Tests\Stubs\StubClass:middleware'],
+                ['\Pgraph\Tests\Stubs\StubClass:middleware'],
                 404, 'passed-middleware-stubclass'
             ],
             [
                 [
-                    '\Framework\Tests\testMiddlewareFunction',
+                    '\Pgraph\Tests\testMiddlewareFunction',
                     function ($request, $handler) {
                         return $handler->handle($request->withAttribute('closure-middleware', 123456789));
                     }
@@ -101,7 +101,7 @@ class HasMiddlewareTraitTest extends TestCase implements RequestHandlerInterface
     public function testProcessMiddleware($middleware, $statusCodeExpected, $bodyExpected)
     {
         $this->middleware($middleware);
-        $response = $this->handle(\Framework\Tests\request('POST'));
+        $response = $this->handle(\Pgraph\Tests\request('POST'));
 
         $this->assertSame($statusCodeExpected, $response->getStatusCode());
         $this->assertEquals($bodyExpected, (string) $response->getBody());

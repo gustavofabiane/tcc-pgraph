@@ -1,11 +1,11 @@
 <?php
 
-namespace Framework\Tests\Http;
+namespace Pgraph\Tests\Http;
 
-use Framework\Http\Response;
+use Pgraph\Http\Response;
 use PHPUnit\Framework\TestCase;
-use Framework\Tests\Stubs\StubClass;
-use Framework\Http\ResponseStatusCode;
+use Pgraph\Tests\Stubs\StubClass;
+use Pgraph\Http\ResponseStatusCode;
 
 class ResponseTest extends TestCase
 {

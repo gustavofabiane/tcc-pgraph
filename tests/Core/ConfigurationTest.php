@@ -1,9 +1,9 @@
 <?php
 
-namespace Framework\Tests\Core;
+namespace Pgraph\Tests\Core;
 
 use PHPUnit\Framework\TestCase;
-use Framework\Core\Configuration;
+use Pgraph\Core\Configuration;
 
 class ConfigurationTest extends TestCase
 {

@@ -2,20 +2,20 @@
 
 declare(strict_types=1);
 
-namespace Framework\Tests\GraphQL;
+namespace Pgraph\Tests\GraphQL;
 
-use Framework\GraphQL\Field;
+use Pgraph\GraphQL\Field;
 use PHPUnit\Framework\TestCase;
 use GraphQL\Type\Definition\Type;
-use Framework\Container\Container;
-use Framework\GraphQL\TypeRegistry;
+use Pgraph\Container\Container;
+use Pgraph\GraphQL\TypeRegistry;
 use GraphQL\Type\Definition\IDType;
 use GraphQL\Type\Definition\IntType;
 use GraphQL\Type\Definition\FloatType;
 use GraphQL\Type\Definition\ObjectType;
 use GraphQL\Type\Definition\StringType;
 use GraphQL\Type\Definition\BooleanType;
-use Framework\GraphQL\TypeRegistryInterface;
+use Pgraph\GraphQL\TypeRegistryInterface;
 
 class TypeRegistryTest extends TestCase
 {
@@ -35,7 +35,7 @@ class TypeRegistryTest extends TestCase
     {
         $this->types = new TypeRegistry(
             new Container(),
-            'Framework\Tests\GraphQL\Type'
+            'Pgraph\Tests\GraphQL\Type'
         );
         $this->types->addType($this->stubType('StubForTest'));
         $this->types->addField($this->stubField('stubFieldForTest'));

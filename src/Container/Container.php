@@ -1,6 +1,6 @@
 <?php
 
-namespace Framework\Container;
+namespace Pgraph\Container;
 
 use Closure;
 use Countable;
@@ -8,9 +8,9 @@ use Exception;
 use ArrayAccess;
 use ArrayIterator;
 use IteratorAggregate;
-use Framework\Container\Exception\ContainerException;
-use Framework\Container\Exception\EntryNotFoundException;
-use Framework\Container\Exception\AliasTargetNotFoundException;
+use Pgraph\Container\Exception\ContainerException;
+use Pgraph\Container\Exception\EntryNotFoundException;
+use Pgraph\Container\Exception\AliasTargetNotFoundException;
 
 /**
  * Implementation of PSR's ContainerInterface for dependency injection

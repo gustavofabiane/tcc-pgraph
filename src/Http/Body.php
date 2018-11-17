@@ -1,6 +1,6 @@
 <?php
 
-namespace Framework\Http;
+namespace Pgraph\Http;
 
 class Body extends Stream
 {

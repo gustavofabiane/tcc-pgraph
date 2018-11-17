@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Framework\GraphQL\Definition\Enum;
+namespace Pgraph\GraphQL\Definition\Enum;
 
-use Framework\GraphQL\EnumType;
+use Pgraph\GraphQL\EnumType;
 
 /**
  * Determines the direction of a PAD string field

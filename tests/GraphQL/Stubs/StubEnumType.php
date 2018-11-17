@@ -1,8 +1,8 @@
 <?php
 
-namespace Framework\Tests\GraphQL\Stubs;
+namespace Pgraph\Tests\GraphQL\Stubs;
 
-use Framework\GraphQL\EnumType;
+use Pgraph\GraphQL\EnumType;
 
 class StubEnumType extends EnumType
 {

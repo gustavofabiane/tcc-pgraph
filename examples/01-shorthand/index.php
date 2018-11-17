@@ -1,12 +1,12 @@
 <?php
 
-use Framework\Core\Application;
-use Framework\Router\RouteCollector;
-use Framework\Router\RouterProvider;
-use function Framework\Http\response;
+use Pgraph\Core\Application;
+use Pgraph\Router\RouteCollector;
+use Pgraph\Router\RouterProvider;
+use function Pgraph\Http\response;
 use Psr\Http\Message\ResponseInterface as Response;
 
-use function Framework\Http\requestFromServerParams;
+use function Pgraph\Http\requestFromServerParams;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Psr\Http\Server\RequestHandlerInterface as Handler;
 

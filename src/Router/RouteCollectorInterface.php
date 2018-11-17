@@ -1,6 +1,6 @@
 <?php
 
-namespace Framework\Router;
+namespace Pgraph\Router;
 
 /**
  * Adapter for FastRoute's RouteCollector to work with Request Handlers.

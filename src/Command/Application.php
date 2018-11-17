@@ -1,9 +1,9 @@
 <?php
 
-namespace Framework\Command;
+namespace Pgraph\Command;
 
 use Symfony\Component\Console\Application as Symfony;
-use Framework\Container\ContainerInterface;
+use Pgraph\Container\ContainerInterface;
 use Symfony\Component\Console\Command\Command as SymfonyCommand;
 
 class Application extends Symfony

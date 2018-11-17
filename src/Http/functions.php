@@ -2,16 +2,16 @@
 
 declare(strict_types=1);
 
-namespace Framework\Http;
+namespace Pgraph\Http;
 
-use Framework\Http\Stream;
-use Framework\Http\Response;
-use Framework\Core\Application;
+use Pgraph\Http\Stream;
+use Pgraph\Http\Response;
+use Pgraph\Core\Application;
 use Psr\Http\Message\StreamInterface;
-use Framework\Http\ResponseStatusCode;
+use Pgraph\Http\ResponseStatusCode;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Server\MiddlewareInterface;
-use Framework\Http\Handlers\HandlerWrapper;
+use Pgraph\Http\Handlers\HandlerWrapper;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
 

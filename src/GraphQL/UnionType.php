@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Framework\GraphQL;
+namespace Pgraph\GraphQL;
 
-use Framework\GraphQL\Util\TypeTrait;
+use Pgraph\GraphQL\Util\TypeTrait;
 use GraphQL\Type\Definition\UnionType as BaseUnionType;
-use Framework\GraphQL\Util\MakeableType;
+use Pgraph\GraphQL\Util\MakeableType;
 
 /**
  * Abstract implementation of an union type definitions.

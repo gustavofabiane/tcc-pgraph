@@ -1,8 +1,8 @@
 <?php
 
-namespace Framework\Tests\Stubs\Command;
+namespace Pgraph\Tests\Stubs\Command;
 
-use Framework\Command\Command;
+use Pgraph\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 
 class StubSimpleCommand extends Command

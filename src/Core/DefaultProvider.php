@@ -1,11 +1,11 @@
 <?php
 
-namespace Framework\Core;
+namespace Pgraph\Core;
 
-use Framework\Http\Request;
-use Framework\Http\Response;
-use Framework\Http\ResponseStatusCode;
-use Framework\Container\ContainerInterface;
+use Pgraph\Http\Request;
+use Pgraph\Http\Response;
+use Pgraph\Http\ResponseStatusCode;
+use Pgraph\Container\ContainerInterface;
 
 class DefaultProvider implements ProviderInterface
 {
@@ -31,9 +31,9 @@ class DefaultProvider implements ProviderInterface
          */
         if (!$app->has('notFoundHandler')) {
             $app->register('notFoundHandler', function () {
-                return new \Framework\Http\Handlers\NotFoundHandler();
+                return new \Pgraph\Http\Handlers\NotFoundHandler();
             });
-            $app->alias('Framework\Http\Handlers\NotFoundHandler', 'notFoundHandler');
+            $app->alias('Pgraph\Http\Handlers\NotFoundHandler', 'notFoundHandler');
         }
         
         /**
@@ -41,12 +41,12 @@ class DefaultProvider implements ProviderInterface
          */
         if (!$app->has('errorHandler')) {
             $app->register('errorHandler', function () {
-                return new \Framework\Http\Handlers\ErrorHandler();
+                return new \Pgraph\Http\Handlers\ErrorHandler();
             });
-            $app->alias('Framework\Http\Handlers\ErrorHandler', 'errorHandler');
+            $app->alias('Pgraph\Http\Handlers\ErrorHandler', 'errorHandler');
             $app->implemented(
-                'Framework\Http\Handlers\ErrorHandlerInterface',
-                'Framework\Http\Handlers\ErrorHandler'
+                'Pgraph\Http\Handlers\ErrorHandlerInterface',
+                'Pgraph\Http\Handlers\ErrorHandler'
             );
         }
     }

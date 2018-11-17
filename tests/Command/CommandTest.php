@@ -1,14 +1,14 @@
 <?php
 
-namespace Framework\Tests\Command;
+namespace Pgraph\Tests\Command;
 
-use Framework\Command\Command;
-use Framework\Command\Application;
+use Pgraph\Command\Command;
+use Pgraph\Command\Application;
 use PHPUnit\Framework\TestCase;
-use Framework\Container\Container;
+use Pgraph\Container\Container;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Tester\CommandTester;
-use Framework\Tests\Stubs\Command\StubSimpleCommand;
+use Pgraph\Tests\Stubs\Command\StubSimpleCommand;
 
 class CommandTest extends TestCase
 {

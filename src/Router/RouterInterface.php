@@ -1,6 +1,6 @@
 <?php
 
-namespace Framework\Router;
+namespace Pgraph\Router;
 
 use Psr\Http\Message\ServerRequestInterface;
 

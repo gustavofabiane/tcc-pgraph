@@ -2,24 +2,24 @@
 
 declare(strict_types=1);
 
-namespace Framework\GraphQL;
+namespace Pgraph\GraphQL;
 
 use GraphQL\GraphQL;
 use GraphQL\Error\Debug;
-use Framework\Core\Application;
+use Pgraph\Core\Application;
 use GraphQL\Error\FormattedError;
-use Framework\GraphQL\Http\Server;
-use Framework\Core\ProviderInterface;
-use Framework\GraphQL\ErrorFormatter;
-use Framework\Container\ContainerInterface;
+use Pgraph\GraphQL\Http\Server;
+use Pgraph\Core\ProviderInterface;
+use Pgraph\GraphQL\ErrorFormatter;
+use Pgraph\Container\ContainerInterface;
 use GraphQL\Type\Definition\Directive;
 use GraphQL\Validator\DocumentValidator;
-use Framework\GraphQL\Definition\Field\PadField;
-use Framework\GraphQL\Http\GraphQLRequestHandler;
-use Framework\GraphQL\Definition\Enum\PadDirection;
+use Pgraph\GraphQL\Definition\Field\PadField;
+use Pgraph\GraphQL\Http\GraphQLRequestHandler;
+use Pgraph\GraphQL\Definition\Enum\PadDirection;
 use GraphQL\Validator\Rules\AbstractValidationRule;
-use Framework\GraphQL\Resolution\DefaultFieldResolver;
-use Framework\Http\Handlers\ErrorHandler;
+use Pgraph\GraphQL\Resolution\DefaultFieldResolver;
+use Pgraph\Http\Handlers\ErrorHandler;
 
 class GraphQLProvider implements ProviderInterface
 {
@@ -58,8 +58,8 @@ class GraphQLProvider implements ProviderInterface
             'fields' => [
                 PadField::class
             ],
-            'error_formatter' => '\Framework\GraphQL\Error\BasicErrorHandler::formatError',
-            'errors_handler'   => '\Framework\GraphQL\Error\BasicErrorHandler::handleErrors',
+            'error_formatter' => '\Pgraph\GraphQL\Error\BasicErrorHandler::formatError',
+            'errors_handler'   => '\Pgraph\GraphQL\Error\BasicErrorHandler::handleErrors',
             'security' => [
                 'max_complexity' => null,
                 'max_depth' => null,

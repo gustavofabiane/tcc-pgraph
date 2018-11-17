@@ -1,17 +1,17 @@
 <?php
 
-namespace Framework\Tests\Http;
+namespace Pgraph\Tests\Http;
 
-use Framework\Http;
-use Framework\Core\Application;
+use Pgraph\Http;
+use Pgraph\Core\Application;
 use PHPUnit\Framework\TestCase;
-use function Framework\Tests\request;
-use Framework\Http\ResponseStatusCode;
+use function Pgraph\Tests\request;
+use Pgraph\Http\ResponseStatusCode;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use Framework\Tests\Stubs\Middleware\XmlBody;
-use Framework\Tests\Stubs\StubRequestHandler;
-use Framework\Tests\Stubs\Middleware\ResponseWithErrorStatus;
+use Pgraph\Tests\Stubs\Middleware\XmlBody;
+use Pgraph\Tests\Stubs\StubRequestHandler;
+use Pgraph\Tests\Stubs\Middleware\ResponseWithErrorStatus;
 
 class HttpFunctionsTest extends TestCase
 {

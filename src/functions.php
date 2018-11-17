@@ -1,6 +1,6 @@
 <?php
 
-namespace Framework;
+namespace Pgraph;
 
 /**
  * Check whether the concrete type implements the given interface.

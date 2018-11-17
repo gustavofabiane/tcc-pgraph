@@ -1,15 +1,15 @@
 <?php
 
-namespace Framework\Http\Handlers;
+namespace Pgraph\Http\Handlers;
 
 use Closure;
-use function Framework\isImplementerOf;
+use function Pgraph\isImplementerOf;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Server\MiddlewareInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Server\RequestHandlerInterface;
-use Framework\Container\ServiceResolverInterface;
-use Framework\Http\Middleware\ResolvableMiddleware;
+use Pgraph\Container\ServiceResolverInterface;
+use Pgraph\Http\Middleware\ResolvableMiddleware;
 
 /**
  * Define behaviors for implementations that have middleware

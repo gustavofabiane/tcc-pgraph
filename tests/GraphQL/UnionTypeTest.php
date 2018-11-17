@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Framework\Tests\GraphQL;
+namespace Pgraph\Tests\GraphQL;
 
 use PHPUnit\Framework\TestCase;
-use Framework\GraphQL\UnionType;
-use Framework\Tests\GraphQL\Stubs\StubUnionType;
-use Framework\Tests\GraphQL\Stubs\StubObjectType;
-use Framework\Tests\GraphQL\Stubs\StubObjectTwoType;
+use Pgraph\GraphQL\UnionType;
+use Pgraph\Tests\GraphQL\Stubs\StubUnionType;
+use Pgraph\Tests\GraphQL\Stubs\StubObjectType;
+use Pgraph\Tests\GraphQL\Stubs\StubObjectTwoType;
 use GraphQL\Type\Definition\ResolveInfo;
 
 class UnionTypeTest extends TestCase

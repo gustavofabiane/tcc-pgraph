@@ -1,18 +1,18 @@
 <?php
 
-namespace Framework\Tests\Router;
+namespace Pgraph\Tests\Router;
 
-use Framework\Router\Route;
-use Framework\Http\Response;
-use Framework\Router\Router;
+use Pgraph\Router\Route;
+use Pgraph\Http\Response;
+use Pgraph\Router\Router;
 use FastRoute\RouteParser\Std;
 use PHPUnit\Framework\TestCase;
-use Framework\Container\Container;
-use Framework\Router\RouteCollector;
-use Framework\Router\RouteDispatcher;
-use Framework\Router\RouterInterface;
-use function Framework\Tests\request;
-use Framework\Router\RouteRequestHandler;
+use Pgraph\Container\Container;
+use Pgraph\Router\RouteCollector;
+use Pgraph\Router\RouteDispatcher;
+use Pgraph\Router\RouterInterface;
+use function Pgraph\Tests\request;
+use Pgraph\Router\RouteRequestHandler;
 use FastRoute\DataGenerator\GroupCountBased;
 use Psr\Http\Message\ServerRequestInterface;
 

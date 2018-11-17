@@ -1,10 +1,10 @@
 <?php
 
-use Framework\Http\Handlers\ErrorHandler;
+use Pgraph\Http\Handlers\ErrorHandler;
 
-use function Framework\Http\wrap;
-use function Framework\Http\response;
-use function Framework\Http\requestFromServerParams;
+use function Pgraph\Http\wrap;
+use function Pgraph\Http\response;
+use function Pgraph\Http\requestFromServerParams;
 
 include '../../vendor/autoload.php';
 

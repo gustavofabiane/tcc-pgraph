@@ -1,26 +1,26 @@
 <?php
 
-namespace Framework\Tests\Router;
+namespace Pgraph\Tests\Router;
 
-use Framework\Http\Response;
+use Pgraph\Http\Response;
 use FastRoute\RouteParser\Std;
 use PHPUnit\Framework\TestCase;
-use Framework\Container\Container;
-use Framework\Router\RouteCollector;
-use Framework\Router\RouteInterface;
-use Framework\Router\RouteRequestHandler;
+use Pgraph\Container\Container;
+use Pgraph\Router\RouteCollector;
+use Pgraph\Router\RouteInterface;
+use Pgraph\Router\RouteRequestHandler;
 use FastRoute\DataGenerator\GroupCountBased;
-use Framework\Tests\Stubs\Middleware\XmlBody;
-use Framework\Http\Middleware\ResolvableMiddleware;
-use Framework\Tests\Stubs\Middleware\ResponseWithErrorStatus;
-use Framework\Router\Route;
+use Pgraph\Tests\Stubs\Middleware\XmlBody;
+use Pgraph\Http\Middleware\ResolvableMiddleware;
+use Pgraph\Tests\Stubs\Middleware\ResponseWithErrorStatus;
+use Pgraph\Router\Route;
 
 class RouteCollectorTest extends TestCase
 {
     /**
      * Container
      *
-     * @var \Framework\Container\ContainerInterface
+     * @var \Pgraph\Container\ContainerInterface
      */
     protected $container;
 

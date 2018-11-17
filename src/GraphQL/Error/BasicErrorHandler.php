@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Framework\GraphQL\Error;
+namespace Pgraph\GraphQL\Error;
 
 use GraphQL\Error\Error;
 use GraphQL\Error\FormattedError;

@@ -1,6 +1,6 @@
 <?php
 
-namespace Framework\Container\Exception;
+namespace Pgraph\Container\Exception;
 
 use Exception;
 use Psr\Container\ContainerExceptionInterface;

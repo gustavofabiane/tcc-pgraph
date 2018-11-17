@@ -1,9 +1,9 @@
 <?php
 
-namespace Framework\Tests\Http;
+namespace Pgraph\Tests\Http;
 
 use PHPUnit\Framework\TestCase;
-use Framework\Http\UploadedFile;
+use Pgraph\Http\UploadedFile;
 use Psr\Http\Message\StreamInterface;
 
 class UploadedFileTest extends TestCase

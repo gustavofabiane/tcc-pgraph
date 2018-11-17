@@ -1,6 +1,6 @@
 <?php
 
-namespace Framework\Http\Handlers;
+namespace Pgraph\Http\Handlers;
 
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\ResponseInterface;

@@ -1,8 +1,8 @@
 <?php
 
-namespace Framework\Tests\Http;
+namespace Pgraph\Tests\Http;
 
-use Framework\Http\Uri;
+use Pgraph\Http\Uri;
 use PHPUnit\Framework\TestCase;
 
 class UriTest extends TestCase

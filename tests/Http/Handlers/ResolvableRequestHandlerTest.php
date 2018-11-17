@@ -1,18 +1,18 @@
 <?php
 
-namespace Framework\Tests\Http\Handlers;
+namespace Pgraph\Tests\Http\Handlers;
 
-use Framework\Http\Uri;
-use Framework\Http\Body;
-use Framework\Http\Request;
-use Framework\Http\Response;
+use Pgraph\Http\Uri;
+use Pgraph\Http\Body;
+use Pgraph\Http\Request;
+use Pgraph\Http\Response;
 use PHPUnit\Framework\TestCase;
-use Framework\Container\Container;
-use function Framework\Tests\request;
+use Pgraph\Container\Container;
+use function Pgraph\Tests\request;
 use Psr\Http\Message\ResponseInterface;
-use Framework\Container\ContainerInterface;
+use Pgraph\Container\ContainerInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use Framework\Http\Handlers\ResolvableRequestHandler;
+use Pgraph\Http\Handlers\ResolvableRequestHandler;
 
 class ResolvableRequestHandlerTest extends TestCase
 {
@@ -44,7 +44,7 @@ class ResolvableRequestHandlerTest extends TestCase
 
     public function testHandleFunction()
     {
-        $handler = $this->handler('\\Framework\\Tests\\testFunctionHandler');
+        $handler = $this->handler('\\Pgraph\\Tests\\testFunctionHandler');
 
         $response = $handler->handle($this->request);
         $this->assertSame(400, $response->getStatusCode());
@@ -71,7 +71,7 @@ class ResolvableRequestHandlerTest extends TestCase
     
     public function testHandleClassMethodCallable()
     {
-        $resolvable = '\Framework\Tests\Stubs\StubClass:handle';
+        $resolvable = '\Pgraph\Tests\Stubs\StubClass:handle';
         
         $handler = $this->handler($resolvable);
         
