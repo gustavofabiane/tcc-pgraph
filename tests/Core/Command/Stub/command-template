@@ -1,0 +1,8 @@
+<?php
+
+namespace {{namespace}}{{sub-namespace}};
+
+class {{name}}
+{
+    protected $ok = 1;
+}
