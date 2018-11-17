@@ -17,7 +17,13 @@ abstract class AbstractCreateCommand extends PgraphCommand
         $this->addArgument('name', InputArgument::REQUIRED, 'The name of the created component.');
         $this->addOption(
             'force', 'f', InputArgument::OPTIONAL, 
-            'If the compoenent already exists its forced to the overrided.', false
+            'If the component already exists its forced to the overrided.', 
+            false
+        );
+        $this->addOption(
+            'constructor', 'c', InputArgument::OPTIONAL,
+            'Creates the new class with its constructor already defined.', 
+            false
         );
 
         foreach ($this->options() as $opt) {
@@ -35,26 +41,17 @@ abstract class AbstractCreateCommand extends PgraphCommand
      */
     public function main()
     {
+        $className = $this->fullyQualifiedClassName();
         $templatePath = $this->template();
+        $destinationDir = $this->destinationDir();
+        $destinationFile = $this->destinationFile();
+
         if (!file_exists($templatePath)) {
             $this->error(sprintf('Given template file path does not exists [%s]', $templatePath));
             return 1;
         }
         
-        $namespace = $this->namespace();
-
-        $placeholders = $this->preparedPlaceholders();
-        $placeholders['{{name}}'] = ucfirst($this->arg('name'));
-        $placeholders['{{namespace}}'] = $this->applicationNamespace();
-        $placeholders['{{sub-namespace}}'] = $namespace ? '\\' . $namespace : '';
-        
-        $template = str_replace(
-            array_keys($placeholders), array_values($placeholders), file_get_contents($templatePath)
-        );
-
-        $className = $this->fullyQualifiedClassName();
-
-        if (!$this->opt('force') && class_exists($className)) {
+        if ($this->opt('force') === false && file_exists($destinationFile)) {
             $this->error(sprintf(
                 '\'%s\' already exists. Use --force to directly replaces it.', 
                 $className
@@ -62,13 +59,29 @@ abstract class AbstractCreateCommand extends PgraphCommand
             return 2;
         }
 
-        if (!is_dir($this->destinationDir())) {
-            mkdir($this->destinationDir());
-        }
-        file_put_contents($this->destinationFile(), $template);
+        $name = $this->name();
+        $namespace = $this->fullNamespace();
 
-        $this->info(sprintf('%s created with success!', $this->fullyQualifiedClassName()));
-        $this->info(sprintf('File: %s', $this->destinationFile()));
+        $placeholders = $this->preparedPlaceholders();
+        $placeholders['{{name}}'] = $name;
+        $placeholders['{{namespace}}'] = $namespace;
+        
+        $template = file_get_contents($templatePath);
+
+        $constructor = $this->opt('constructor') === true ? $this->constructor() : '';
+        $template = str_replace('{{constructor}}', $constructor, $template);
+
+        $template = str_replace(
+            array_keys($placeholders), array_values($placeholders), $template
+        );
+
+        if (!is_dir($destinationDir)) {
+            mkdir($destinationDir, '0755', true);
+        }
+        file_put_contents($destinationFile, $template);
+
+        $this->info(sprintf('%s created with success!', $className));
+        $this->info(sprintf('File: %s', $destinationFile));
 
         return 0;
     }
@@ -107,7 +120,21 @@ abstract class AbstractCreateCommand extends PgraphCommand
      */
     protected function namespacePath(): string
     {
-        return str_replace('\\', '/', trim($this->namespace(), '\\/'));
+        return str_replace(
+            [$this->applicationNamespace() . '\\', '\\'], 
+            ['', '/'], 
+            $this->fullNamespace()
+        );
+    }
+
+    protected function fullNamespace(): string
+    {
+        $namespace = trim($this->namespace(), '\\/');
+        $customNamespace = $this->customNamespace();
+
+        $namespace .= $customNamespace ? '\\' . $customNamespace : '';
+
+        return $this->applicationNamespace() . '\\' . $namespace;
     }
 
     /**
@@ -117,9 +144,26 @@ abstract class AbstractCreateCommand extends PgraphCommand
      */
     protected function fullyQualifiedClassName(): string
     {
-        return $this->applicationNamespace() . '\\' .
-               trim($this->namespace(), '\\/') . '\\' . 
-               ucfirst($this->arg('name'));
+        return $this->fullNamespace() . '\\' . $this->name();
+    }
+
+    protected function customNamespace(): string
+    {
+        $namespace = '';
+        $argument = $this->arg('name');
+        $namePos = strrchr($argument, '\\');
+        if ($namePos !== false) {
+            $namespace = substr($argument, 0, $namePos);
+        }
+        return trim($namespace, '\\/');
+    }
+
+    protected function name(): string
+    {
+        $argument = $this->arg('name');
+        $nameParts = explode('\\', $argument);
+        
+        return ucfirst(end($nameParts));
     }
 
     /**
@@ -140,6 +184,19 @@ abstract class AbstractCreateCommand extends PgraphCommand
     protected function destinationFile(): string
     {
         return $this->destinationDir() . '/' . ucfirst($this->arg('name')) . '.php';
+    }
+
+    protected function constructor(): string
+    {
+        return <<<EOF
+/**
+     * Create a new {{name}} instance.
+     */
+    public function __construct()
+    {
+        ///
+    }
+EOF;
     }
 
     /**

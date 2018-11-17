@@ -1,8 +1,10 @@
 <?php
 
-namespace {{namespace}}{{sub-namespace}};
+namespace {{namespace}};
 
 class {{name}}
 {
     protected $ok = 1;
+    
+    {{constructor}}
 }

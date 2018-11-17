@@ -3,59 +3,46 @@
 namespace Pgraph\Tests\Core\Command;
 
 use PHPUnit\Framework\TestCase;
-use Pgraph\Core\Application;
-use Pgraph\Command\Application as ConsoleApplication;
 use Pgraph\Tests\Core\Command\Stub\CreateStubCommand;
-use Symfony\Component\Console\Tester\CommandTester;
 
 class CreateCommandTest extends TestCase
 {
-    protected $appDir = __DIR__ . '/../../utils';
-    protected $appNamespace = 'App';
+    use CommandTestTrait;
 
-    /**
-     * The framework core application.
-     *
-     * @var Application
-     */
-    protected $application;
-
-    /**
-     * The console application.
-     *
-     * @var ConsoleApplication
-     */
-    protected $console;
-
-    public function setup()
-    {
-        $this->application = new Application();
-        $this->application['config']->set('app', [
-            'app_dir' => $this->appDir,
-            'app_namespace' => $this->appNamespace
-        ]);
-        
-        $this->console = new ConsoleApplication();
-        $this->console->setContainer($this->application);
-    }
+    protected $command = CreateStubCommand::class;
 
     public function testCreateStubClass()
     {
-        $command = $this->console->add(new CreateStubCommand());
-        $tester = new CommandTester($command);
+        $tester = $this->commandTester();
 
         $tester->execute(['name' => 'StubClass']);
         $this->assertContains('App\Stub\StubClass created with success', $tester->getDisplay());
 
         unlink($this->appDir . '/app/Stub/StubClass.php');
+        $this->assertFileNotExists($this->appDir . '/app/Stub/StubClass.php');
     }
 
     public function testCreateStubClassForced()
     {
-        $command = $this->console->add(new CreateStubCommand());
-        $tester = new CommandTester($command);
+        file_put_contents($this->appDir . '/app/Stub/StubClassForced.php', 'stub-file-test');
+
+        $tester = $this->commandTester();
 
         $tester->execute(['name' => 'StubClassForced', '--force' => true]);
         $this->assertContains('App\Stub\StubClassForced created with success', $tester->getDisplay());
+
+        unlink($this->appDir . '/app/Stub/StubClassForced.php');
+        $this->assertFileNotExists($this->appDir . '/app/Stub/StubClassForced.php');
+    }
+
+    public function testCreateWithConstructor()
+    {
+        $tester = $this->commandTester();
+
+        $tester->execute(['name' => 'StubClassWithConstructor', '--constructor' => true]);
+        $this->assertContains('App\Stub\StubClassWithConstructor created with success', $tester->getDisplay());
+
+        unlink($this->appDir . '/app/Stub/StubClassWithConstructor.php');
+        $this->assertFileNotExists($this->appDir . '/app/Stub/StubClassWithConstructor.php');
     }
 }
