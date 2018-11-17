@@ -42,8 +42,9 @@ class Application extends Container implements RequestHandlerInterface
      *
      * @param Configuration $configuration
      * @param array $services
+     * @param bool $setGlobal
      */
-    public function __construct(Configuration $config = null, array $services = [])
+    public function __construct(Configuration $config = null, array $services = [], bool $setGlobal = false)
     {
         parent::__construct($services);
 
@@ -52,6 +53,10 @@ class Application extends Container implements RequestHandlerInterface
         ]);
         $this->config->setApplication($this);
         $this->register('config', $this->config);
+
+        if ($setGlobal) {
+            static::getInstance($this);
+        }
     }
 
     /**
