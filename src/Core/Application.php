@@ -55,7 +55,7 @@ class Application extends Container implements RequestHandlerInterface
         $this->register('config', $this->config);
 
         if ($setGlobal) {
-            static::getInstance($this);
+            static::setInstance($this);
         }
     }
 
