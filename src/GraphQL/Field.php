@@ -223,18 +223,33 @@ abstract class Field implements ArrayAccess, IteratorAggregate
      */
     public function getIterator()
     {
-        return new ArrayIterator($this->extract());
+        return new ArrayIterator($this->toArray());
     }
 
+    /**
+     * Create a graphql-php native field definition.
+     *
+     * @return FieldDefinition
+     */
     public function toFieldDefnition(): FieldDefinition
     {
-        return FieldDefinition::create([
+        return FieldDefinition::create($this->toArray(), $this->type()->name);
+    }
+
+    /**
+     * Return the field defini as an array.
+     *
+     * @return array
+     */
+    public function toArray(): array
+    {
+        return [
             'name' => $this->name,
             'type' => $this->type,
             'args' => $this->args,
             'description' => $this->description,
             'deprecationReason' => $this->deprecationReason,
             'complexity' => $this->complexity
-        ], $this->type()->name);
+        ];
     }
 }
