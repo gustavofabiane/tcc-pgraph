@@ -25,13 +25,13 @@ class ServeCommand extends PgraphCommand
      */
     public function main()
     {
-        chdir($this->container->get('config')->get('public_dir'));
-
         $this->info('Starting P.graph development server... ');
-        $this->info(sprintf('Serving at: %s:%s', $this->arg('host'), $this->arg('port')));
-
+        
+        chdir(sprintf('"%s"', $this->container->get('config')->get('public_dir')));
         passthru($this->serve(), $status);
 
+        $this->info(sprintf('Serving at: http://%s:%s', $this->arg('host'), $this->arg('port')));
+        
         return $status;
     }
 
@@ -43,7 +43,7 @@ class ServeCommand extends PgraphCommand
     protected function serve(): string
     {
         return sprintf(
-            'php -S %s:%s index.php', 
+            'php -S %s:%s -t ./', 
             $this->arg('host'), 
             $this->arg('port')
         );
