@@ -318,11 +318,15 @@ class Application extends Container implements RequestHandlerInterface
         
         foreach ($response->getHeaders() as $name => $values) {
             
+            // Normalizes header name for SAPI environment
             $filtered = str_replace('-', ' ', $name);
             $filtered = ucwords($filtered);
             $name = str_replace(' ', '-', $filtered);
 
+            // Do not replace cookies header to maintain SESSION usage
             $first = stripos($name, 'Set-Cookie') === 0 ? false : true;
+
+            // Set the current header values
             foreach ($values as $value) {
                 header(sprintf('%s: %s', $name, $value), $first);
                 $first = false;
