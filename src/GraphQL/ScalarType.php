@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Pgraph\GraphQL;
 
 use GraphQL\Language\AST\Node;
+use Pgraph\GraphQL\Util\TypeTrait;
 use GraphQL\Type\Definition\ScalarType as BaseScalarType;
 
 /**
@@ -12,6 +13,8 @@ use GraphQL\Type\Definition\ScalarType as BaseScalarType;
  */
 abstract class ScalarType extends BaseScalarType
 {
+    use TypeTrait;
+
     /**
      * Create a new ScalarType instance.
      */
