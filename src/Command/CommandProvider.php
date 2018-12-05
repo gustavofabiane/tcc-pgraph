@@ -61,7 +61,9 @@ class CommandProvider implements ProviderInterface
         $this->register(ServeCommand::class);
         $this->register(CreateRequestHandlerCommand::class);
         $this->register(CreateTypeCommand::class);
-        $this->register(ValidateSchemaCommand::class);
+        $this->register(ValidateSchemaCommand::class, function ($c) {
+            return new ValidateSchemaCommand($c->get('graphqlSchema'));
+        });
 
         /**
          * Register user defined commands.

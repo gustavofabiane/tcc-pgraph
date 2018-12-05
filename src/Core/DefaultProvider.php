@@ -5,7 +5,9 @@ namespace Pgraph\Core;
 use Pgraph\Http\Request;
 use Pgraph\Http\Response;
 use Pgraph\Http\ResponseStatusCode;
+use Pgraph\Http\Handlers\ErrorHandler;
 use Pgraph\Container\ContainerInterface;
+use Pgraph\Http\Handlers\NotFoundHandler;
 
 class DefaultProvider implements ProviderInterface
 {
@@ -31,7 +33,7 @@ class DefaultProvider implements ProviderInterface
          */
         if (!$app->has('notFoundHandler')) {
             $app->register('notFoundHandler', function () {
-                return new \Pgraph\Http\Handlers\NotFoundHandler();
+                return new NotFoundHandler();
             });
             $app->alias('Pgraph\Http\Handlers\NotFoundHandler', 'notFoundHandler');
         }
@@ -41,7 +43,7 @@ class DefaultProvider implements ProviderInterface
          */
         if (!$app->has('errorHandler')) {
             $app->register('errorHandler', function () {
-                return new \Pgraph\Http\Handlers\ErrorHandler();
+                return new ErrorHandler();
             });
             $app->alias('Pgraph\Http\Handlers\ErrorHandler', 'errorHandler');
             $app->implemented(
