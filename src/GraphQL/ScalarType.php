@@ -29,7 +29,7 @@ abstract class ScalarType extends BaseScalarType implements
     public function make(): void
     {
         if (!$this->name) {
-            $this->tryInferName();
+            $this->name = $this->tryInferName();
         }
     }
     
