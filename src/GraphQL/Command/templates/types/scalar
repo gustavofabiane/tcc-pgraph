@@ -17,10 +17,10 @@ class {{name}} extends ScalarType
     /**
      * Serializes an internal value to include in a response.
      *
-     * @param string $value
+     * @param mixed $value
      * @return string
      */
-    public function serialize(string $value): string
+    public function serialize($value)
     {
         return $value;
     }
@@ -44,7 +44,7 @@ class {{name}} extends ScalarType
      * @return string
      * @throws \GraphQL\Error\Error
      */
-    public function parseLiteral(Node $valueNode, array $variables = []): string
+    public function parseLiteral($valueNode, array $variables = null)
     {
         return $valueNode->value;
     }

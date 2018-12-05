@@ -16,10 +16,10 @@ abstract class ScalarType extends BaseScalarType
     /**
      * Serializes an internal value to include in a response.
      *
-     * @param string $value
+     * @param mixed $value
      * @return string
      */
-    abstract public function serialize(string $value): string;
+    abstract public function serialize($value);
 
     /**
      * Parses an externally provided value (query variable) to use as an input.
@@ -42,5 +42,5 @@ abstract class ScalarType extends BaseScalarType
      * @return string
      * @throws \GraphQL\Error\Error
      */
-    abstract public function parseLiteral(Node $valueNode, array $variables = []): string;
+    abstract public function parseLiteral($valueNode, array $variables = null);
 }
