@@ -7,11 +7,13 @@ namespace Pgraph\GraphQL;
 use GraphQL\Language\AST\Node;
 use Pgraph\GraphQL\Util\TypeTrait;
 use GraphQL\Type\Definition\ScalarType as BaseScalarType;
+use Framework\GraphQL\Util\MakeableType;
 
 /**
  * Abstract implementation of a scalar type definitions.
  */
-abstract class ScalarType extends BaseScalarType
+abstract class ScalarType extends BaseScalarType implements 
+    MakeableType
 {
     use TypeTrait;
 
@@ -23,17 +25,12 @@ abstract class ScalarType extends BaseScalarType
         ///
     }
 
-    /**
-     * Type to string.
-     *
-     * @return string
-     */
-    public function __toString()
+    
+    public function make(): void
     {
         if (!$this->name) {
             $this->tryInferName();
         }
-        return $this->name;
     }
     
     /**
