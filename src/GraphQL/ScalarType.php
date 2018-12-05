@@ -7,7 +7,7 @@ namespace Pgraph\GraphQL;
 use GraphQL\Language\AST\Node;
 use Pgraph\GraphQL\Util\TypeTrait;
 use GraphQL\Type\Definition\ScalarType as BaseScalarType;
-use Framework\GraphQL\Util\MakeableType;
+use Pgraph\GraphQL\Util\MakeableType;
 
 /**
  * Abstract implementation of a scalar type definitions.
@@ -25,7 +25,7 @@ abstract class ScalarType extends BaseScalarType implements
         ///
     }
 
-    
+
     public function make(): void
     {
         if (!$this->name) {
