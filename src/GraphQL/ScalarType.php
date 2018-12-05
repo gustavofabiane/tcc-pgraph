@@ -22,6 +22,19 @@ abstract class ScalarType extends BaseScalarType
     {
         ///
     }
+
+    /**
+     * Type to string.
+     *
+     * @return string
+     */
+    public function __toString()
+    {
+        if (!$this->name) {
+            $this->tryInferName();
+        }
+        return $this->name;
+    }
     
     /**
      * Serializes an internal value to include in a response.
