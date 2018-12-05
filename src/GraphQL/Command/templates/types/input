@@ -5,11 +5,10 @@ declare(strict_types=1);
 namespace {{namespace}};
 
 use Pgraph\GraphQL\ObjectType;
-use GraphQL\Type\Definition\ResolveInfo;
 
 use function Pgraph\GraphQL\type;
 use function Pgraph\GraphQL\listOf;
-use function Pgraph\GraphQL\notNull;
+use function Pgraph\GraphQL\nonNull;
 
 /**
  * {{name}} type definition.
@@ -28,7 +27,7 @@ class {{name}} extends ObjectType
     /**
      * The type fields.
      *
-     * @return array of FieldDefinition without resolvers
+     * @return array of FieldDefinition without resolvers and arguments
      */
     public function fields(): array
     {

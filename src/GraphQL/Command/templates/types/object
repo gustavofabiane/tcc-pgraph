@@ -9,7 +9,7 @@ use GraphQL\Type\Definition\ResolveInfo;
 
 use function Pgraph\GraphQL\type;
 use function Pgraph\GraphQL\listOf;
-use function Pgraph\GraphQL\notNull;
+use function Pgraph\GraphQL\nonNull;
 use function Pgraph\GraphQL\argument;
 
 /**
