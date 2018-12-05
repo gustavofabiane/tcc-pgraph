@@ -12,6 +12,13 @@ use GraphQL\Type\Definition\ScalarType as BaseScalarType;
  */
 abstract class ScalarType extends BaseScalarType
 {
+    /**
+     * Create a new ScalarType instance.
+     */
+    public function __construct()
+    {
+        ///
+    }
     
     /**
      * Serializes an internal value to include in a response.
