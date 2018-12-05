@@ -16,14 +16,27 @@ class ValidateSchemaCommand extends Command
     protected $name = 'grahpql:validate';
 
     /**
+     * The application GraphQL schema.
+     *
+     * @var Schema
+     */
+    protected $schema;
+
+    public function __construct(Schema $graphqlSchema)
+    {
+        $this->schema = $graphqlSchema;   
+        parent::__construct();
+    }
+
+    /**
      * Validates the application GraphQL schema.
      *
      * @return void
      */
-    public function main(Schema $graphqlSchema)
+    public function main()
     {
         try {
-            $graphqlSchema->assertValid();
+            $this->schema->assertValid();
             $this->info('Current GraphQL schema is valid!');
         } catch (GraphQL\Error\InvariantViolation $e) {
             $this->error('Oops! Your current GraphQL schema is invalid!');
