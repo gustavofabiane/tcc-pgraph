@@ -1,0 +1,32 @@
+<?php
+
+declare(strict_types=1);
+
+namespace {{namespace}};
+
+use Pgraph\GraphQL\EnumType;
+
+/**
+ * {{name}} type definition.
+ * 
+ * Representation of the GraphQL enumeration type.
+ */
+class StubEnumType extends EnumType
+{
+    /**
+     * Describes the enumeration type.
+     *
+     * @var string       
+     */
+    public $description = 'About {{name}} type';
+
+    /**
+     * The enumeration type accepted values.
+     *
+     * @var array       
+     */
+    public function values(): array
+    {
+        return ['A', 'B', 'C'];
+    }
+}

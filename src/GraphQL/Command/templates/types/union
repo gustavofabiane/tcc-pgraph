@@ -1,0 +1,54 @@
+<?php
+
+declare(strict_types=1);
+
+namespace {{namespace}};
+
+use Pgraph\GraphQL\UnionType;
+use GraphQL\Type\Definition\ResolveInfo;
+
+use function Pgraph\GraphQL\type;
+use function Pgraph\GraphQL\listOf;
+use function Pgraph\GraphQL\notNull;
+use function Pgraph\GraphQL\argument;
+
+/**
+ * {{name}} type definition.
+ * 
+ * Representation of the GraphQL union type.
+ */
+class {{name}} extends UnionType
+{
+    /**
+     * Describes the union type.
+     *
+     * @var string       
+     */
+    public $description = 'About {{name}} type';
+    
+    /**
+     * The union types.
+     *
+     * @return array of \GraphQL\Type\Definition\Type
+     */
+    public function types(): array
+    {
+        return [
+            // $this->registry->type('StubObject'),
+            // $this->registry->type('StubObjectTwo')
+        ];
+    }
+
+    /**
+     * Resolve the field type that must be resolved for the given $obj value.
+     * 
+     * @var mixed $obj
+     * @var mixed $context
+     * @var ResolveInfo $info
+     * @return \GraphQL\Type\Definition\Type
+     */
+    public function resolveType($obj, $context, ResolveInfo $info)
+    {
+        // return $this->registry->type('StubObject');
+    }
+}

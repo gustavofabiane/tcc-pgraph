@@ -1,0 +1,52 @@
+<?php
+
+declare(strict_types=1);
+
+namespace {{namespace}};
+
+use Pgraph\GraphQL\ObjectType;
+use GraphQL\Type\Definition\ResolveInfo;
+
+use function Pgraph\GraphQL\type;
+use function Pgraph\GraphQL\listOf;
+use function Pgraph\GraphQL\notNull;
+use function Pgraph\GraphQL\argument;
+
+/**
+ * {{name}} type definition.
+ * 
+ * Representation of the GraphQL object type.
+ */
+class {{name}} extends ObjectType
+{
+    /**
+     * Describes the type.
+     *
+     * @var string       
+     */
+    public $description = 'About {{name}} type';
+
+    /**
+     * The type fields.
+     *
+     * @return array of FieldDefinition
+     */
+    public function fields(): array
+    {
+        return [
+            'id' => $this->registry->id()
+        ];
+    }
+
+    /**
+     * Interfaces implemented by this type.
+     *
+     * @return array of InterfaceType
+     */
+    public function implements(): array
+    {
+        return [
+            // $this->registry->type('StubInterface')       
+        ];
+    }
+}

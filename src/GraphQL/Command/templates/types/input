@@ -1,0 +1,39 @@
+<?php
+
+declare(strict_types=1);
+
+namespace {{namespace}};
+
+use Pgraph\GraphQL\ObjectType;
+use GraphQL\Type\Definition\ResolveInfo;
+
+use function Pgraph\GraphQL\type;
+use function Pgraph\GraphQL\listOf;
+use function Pgraph\GraphQL\notNull;
+
+/**
+ * {{name}} type definition.
+ * 
+ * Representation of the GraphQL input object type.
+ */
+class {{name}} extends ObjectType
+{
+    /**
+     * Describes the type.
+     *
+     * @var string       
+     */
+    public $description = 'About {{name}} type';
+
+    /**
+     * The type fields.
+     *
+     * @return array of FieldDefinition without resolvers
+     */
+    public function fields(): array
+    {
+        return [
+            'id' => $this->registry->id()
+        ];
+    }
+}

@@ -1,0 +1,18 @@
+<?php
+
+namespace {{namespace}};
+
+use Pgraph\Command\Command;
+
+class {{name}} extends Command
+{
+    protected function configure()
+    {
+
+    }
+
+    public function main()
+    {
+        
+    }
+}

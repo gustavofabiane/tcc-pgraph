@@ -2,24 +2,28 @@
 
 declare(strict_types=1);
 
-namespace Pgraph\GraphQL;
+namespace {{namespace}};
 
+use Pgraph\GraphQL\ScalarType;
 use GraphQL\Language\AST\Node;
-use GraphQL\Type\Definition\ScalarType as BaseScalarType;
 
 /**
- * Abstract implementation of a scalar type definitions.
+ * {{name}} scalar type definition.
+ *
+ * Representation of the GraphQL scalar type.
  */
-abstract class ScalarType extends BaseScalarType
+class {{name}} extends ScalarType
 {
-    
     /**
      * Serializes an internal value to include in a response.
      *
      * @param string $value
      * @return string
      */
-    abstract public function serialize(string $value): string;
+    public function serialize(string $value): string
+    {
+        return $value;
+    }
 
     /**
      * Parses an externally provided value (query variable) to use as an input.
@@ -27,20 +31,21 @@ abstract class ScalarType extends BaseScalarType
      * @param mixed $value
      * @return mixed
      */
-    abstract public function parseValue($value);
+    public function parseValue($value)
+    {
+        return $value;
+    }
 
     /**
      * Parses an externally provided literal value (hardcoded in GraphQL query) to use as an input.
-     * 
-     * E.g. 
-     * {
-     *   user(email: "user@example.com") 
-     * }
      *
      * @param Node $valueNode
      * @param array $variables
      * @return string
      * @throws \GraphQL\Error\Error
      */
-    abstract public function parseLiteral(Node $valueNode, array $variables = []): string;
+    public function parseLiteral(Node $valueNode, array $variables = []): string
+    {
+        return $valueNode->value;
+    }
 }

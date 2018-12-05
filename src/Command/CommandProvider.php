@@ -2,13 +2,15 @@
 
 namespace Pgraph\Command;
 
-use Pgraph\Core\ProviderInterface;
-use Pgraph\Core\Application as Pgraph;
 use Pgraph\Command\Application;
-use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\CommandLoader\ContainerCommandLoader;
+use Pgraph\Core\ProviderInterface;
 use Pgraph\Core\Command\ServeCommand;
+use Pgraph\Core\Application as Pgraph;
+use Pgraph\GraphQL\Command\CreateTypeCommand;
+use Pgraph\Core\Command\ValidateSchemaCommand;
+use Symfony\Component\Console\Command\Command;
 use Pgraph\Core\Command\CreateRequestHandlerCommand;
+use Symfony\Component\Console\CommandLoader\ContainerCommandLoader;
 
 class CommandProvider implements ProviderInterface
 {
@@ -58,6 +60,8 @@ class CommandProvider implements ProviderInterface
          */
         $this->register(ServeCommand::class);
         $this->register(CreateRequestHandlerCommand::class);
+        $this->register(CreateTypeCommand::class);
+        $this->register(ValidateSchemaCommand::class);
 
         /**
          * Register user defined commands.
