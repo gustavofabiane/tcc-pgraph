@@ -8,7 +8,9 @@ use Pgraph\Core\Command\ServeCommand;
 use Pgraph\Core\Application as Pgraph;
 use Pgraph\GraphQL\Command\CreateTypeCommand;
 use Pgraph\Core\Command\ValidateSchemaCommand;
+use Pgraph\GraphQL\Command\CreateQueryCommand;
 use Symfony\Component\Console\Command\Command;
+use Pgraph\GraphQL\Command\CreateMutationCommand;
 use Pgraph\Core\Command\CreateRequestHandlerCommand;
 use Symfony\Component\Console\CommandLoader\ContainerCommandLoader;
 
@@ -61,6 +63,8 @@ class CommandProvider implements ProviderInterface
         $this->register(ServeCommand::class);
         $this->register(CreateRequestHandlerCommand::class);
         $this->register(CreateTypeCommand::class);
+        $this->register(CreateQueryCommand::class);
+        $this->register(CreateMutationCommand::class);
         $this->register(ValidateSchemaCommand::class, function ($c) {
             return new ValidateSchemaCommand($c->get('graphqlSchema'));
         });

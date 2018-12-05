@@ -13,7 +13,7 @@ class ValidateSchemaCommand extends Command
      *
      * @var string
      */
-    protected $name = 'grahpql:validate';
+    protected $name = 'graphql:validate';
 
     /**
      * The application GraphQL schema.
