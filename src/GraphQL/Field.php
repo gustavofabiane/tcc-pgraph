@@ -249,7 +249,8 @@ abstract class Field implements ArrayAccess, IteratorAggregate
             'args' => $this->args,
             'description' => $this->description,
             'deprecationReason' => $this->deprecationReason,
-            'complexity' => $this->complexity
+            'complexity' => $this->complexity,
+            'resolve' => $this->resolve
         ];
     }
 }
